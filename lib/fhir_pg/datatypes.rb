@@ -13,16 +13,17 @@ module FhirPg
       {}.merge(enums).merge(primitives).merge(types)
     end
 
-    def mount(db, parent_path, key, type)
+    def mount(db, path, type)
       tp = db[type]
-      path = "#{parent_path}.#{key}"
-      tp.dup.merge(
-        path: path,
-        attrs: mount_recur(path, tp[:attrs])
-      )
-    end
-
-    def mount_recur(path, attrs)
+      key = path.split('.').last.to_sym
+      if tp[:kind] == :complex_type
+        attrs = tp[:attrs].each_with_object({}) do |(k,a), acc|
+          acc[k] = a.merge(mount(db, "#{path}.#{k}", a[:type]))
+        end
+        meta.mk_meta(tp.dup.merge(name: key, path: path, attrs: attrs))
+      else
+        meta.mk_meta(tp.dup.merge(name: key, path: path))
+      end
     end
 
     def nodes(xml)
@@ -47,11 +48,12 @@ module FhirPg
     end
 
     def mk_enum(key, node)
-      {
+      meta.mk_meta(
         name: key,
         kind: :enum,
+        type: key,
         options: node.xpath('.//enumeration').map{|n| n[:value]}.compact.sort
-      }
+      )
     end
 
     def collect_primitives(idx)
@@ -65,19 +67,15 @@ module FhirPg
     end
 
     def mk_primitive(key, p_node)
-      {
+      meta.mk_meta(
         name: key,
         kind: :primitive,
-        type: type(p_node)
-      }
+        type: key
+      )
     end
 
-    def unpostfix(str, *postfix)
-      str = str.to_s
-      postfix.each do |pfx|
-        str.gsub!(/_#{pfx}$/,'')
-      end
-      str.to_sym
+    def unpostfix(str, *pfxs)
+      str.to_s.gsub(/_#{pfxs.join('|')}$/,'').to_sym
     end
 
     def collect_types(idx, enums, primitives)
@@ -94,10 +92,8 @@ module FhirPg
     # dirty algorighm with temporal lookup
     def fix_complex_types(tmp_types, enums, primitives)
       mk_index(tmp_types) do |(key, tp)|
-        [
-          key,
-          tp.dup.merge(attrs: fix_attrs(tp[:attrs], tmp_types, enums, primitives))
-        ]
+        attrs = fix_attrs(tp[:attrs], tmp_types, enums, primitives)
+        [key, meta.mk_meta(tp.dup.merge(attrs: attrs))]
       end
     end
 
@@ -106,17 +102,17 @@ module FhirPg
         type = props[:type].to_sym
         tp = primitives[type] || enums[type] || tmp_types[type]
         raise "Could not find type #{key}: #{props}" unless tp.present?
-        [key, tp.dup.merge(props)]
+          [key, meta.mk_meta(tp.dup.merge(props))]
       end
     end
 
     def mk_type(key, node)
-      {
+      meta.mk_meta(
         name: key,
         kind: :complex_type,
         type: key,
         attrs: initial_attrs(key, node)
-      }
+      )
     end
 
     def initial_attrs(key, node)
@@ -125,7 +121,7 @@ module FhirPg
         [child_key, {
           name: child_key,
           type: normalize_name(child_node[:type]),
-          requied: requied?(child_node),
+          required: required?(child_node),
           collection: collection?(child_node)
         }]
       end
@@ -146,7 +142,7 @@ module FhirPg
       normalize_name(node[:type]).to_sym
     end
 
-    def requied?(node)
+    def required?(node)
       node[:minOccurs] != '0'
     end
 

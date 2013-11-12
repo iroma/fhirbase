@@ -3,7 +3,6 @@ require 'spec_helper'
 describe FhirPg::Datatypes do
   subject { described_class }
 
-
   let(:xml) {
     FhirPg::Xml.load('test/fhir-base.xsd')
   }
@@ -65,9 +64,10 @@ describe FhirPg::Datatypes do
 
   it "mount" do
     db = subject.mk_db(xml)
-    tree = subject.mount(db, 'user.name', 'gender', :codeable_concept)
+    tree = subject.mount(db, 'user.name.gender', :codeable_concept)
     tree[:path].should == 'user.name.gender'
     tree[:type].should == :codeable_concept
+    tree[:name].should == :gender
     tree[:attrs][:coding][:path].should == 'user.name.gender.coding'
     tree[:attrs][:coding][:collection].should be_true
   end
