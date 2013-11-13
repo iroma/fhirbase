@@ -1,24 +1,13 @@
 # FhirPg
 
-TODO: Write a gem description
+Postgresql/Relational persistance for FHIR models
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-    gem 'fhir_pg'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install fhir_pg
-
-## Usage
-
-TODO: Write usage instructions here
+* checkout project
+* bundle install
+* configure spec/connection.yml
+* rspec spec
 
 ## Contributing
 
