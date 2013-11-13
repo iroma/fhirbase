@@ -7,11 +7,21 @@ module FhirPg
           enum_to_sql(item, schema)
         when :table
           table_to_sql(item, schema)
+        when :index
+          index_to_sql(item, schema)
+        else
+          raise "Not suported case #{item[:sql]}"
         end
       end.join("\n")
     end
 
     private
+
+    def index_to_sql(item, schema)
+      table = item[:table]
+      column = item[:name]
+      "CREATE INDEX #{table}_#{column}_idx ON \"#{schema}\".#{table} (#{column});"
+    end
 
     def enum_to_sql(item, schema)
       "CREATE TYPE \"#{schema}\".#{item[:name]} AS ENUM (#{item[:options].map{|o| "'#{o}'"}.join(",")});"
@@ -57,15 +67,39 @@ module FhirPg
     extend self
   end
   module Schema
-    DEFAULT_SCHEMA = 'fhir'
-    def generate(meta)
+
+    def generate_sql(meta, types_db, schema)
+      SQL.to_sql(generate(meta, types_db), schema)
     end
 
-    def to_tables(meta, types_db)
+    def generate(meta, types_db)
+      enums = to_enums(types_db)
+      tables  = to_tables(meta)
+      indexes = to_indexes(tables)
+      enums + tables + indexes
+    end
+
+    def to_tables(meta)
       meta.map do |key, str|
         to_table(str)
       end.compact.flatten
     end
+
+    def to_indexes(tables)
+      tables.map do |t|
+        t[:columns].select{|c| c[:sql] == :fk}.map{|c| {sql: :index, table: t[:name], name: c[:name]}}
+      end.flatten
+    end
+
+    def to_enums(types_db)
+      types_db.values.map do |tp|
+        next unless tp[:kind] == :enum
+        raise "Enum must have options #{tp.inspect}" if tp[:options].empty?
+        {sql: :enum, name: type_name(tp[:name]), options: tp[:options] }
+      end.compact
+    end
+
+    private
 
     def to_table(meta)
       return unless [:resource, :complex_type].include?(meta[:kind])
@@ -123,16 +157,6 @@ module FhirPg
         type: type_to_pg(meta)
       }
     end
-
-    def to_enums(types_db)
-      types_db.values.map do |tp|
-        next unless tp[:kind] == :enum
-        raise "Enum must have options #{tp.inspect}" if tp[:options].empty?
-        {sql: :enum, name: type_name(tp[:name]), options: tp[:options] }
-      end.compact
-    end
-
-    private
 
     def type_name(key)
       key.to_s.gsub('.','_').underscore

@@ -21,7 +21,8 @@ describe FhirPg::Schema do
   def find_by_name(coll, name)
     coll.find {|c| c[:name] == name }
   end
-  let(:tables) { subject.to_tables(meta, 'f') }
+  let(:tables) { subject.to_tables(meta) }
+  let(:indexes) { subject.to_indexes(tables) }
 
   it "#to_tables" do
     pt = tables.find {|t| t[:name] == 'patients' }
@@ -74,8 +75,20 @@ describe FhirPg::Schema do
       sql = ''
       sql<< "drop schema if exists fhir cascade;\n"
       sql<< "create schema fhir;\n"
-      sql<<  FhirPg::SQL.to_sql(enums + tables, 'fhir')
+      sql<<  subject.generate_sql(meta, types_db, 'fhir')
       DB.execute(sql)
+    end
+  end
+
+  describe 'indexes' do
+    it 'yo' do
+      lnk = find_by_name tables, 'patient_links'
+      indexes = subject.to_indexes([lnk])
+      indexes.size.should == 1
+      index = indexes.first
+      index[:sql].should == :index
+      index[:table].should == 'patient_links'
+      index[:name].should == 'patient_id'
     end
   end
 end

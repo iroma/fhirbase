@@ -7,18 +7,19 @@ module FhirPg
   autoload :Resources, 'fhir_pg/resources'
   autoload :Schema, 'fhir_pg/schema'
   autoload :Meta, 'fhir_pg/meta'
+  autoload :Insert, 'fhir_pg/insert'
+  autoload :Select, 'fhir_pg/select'
+
+  def types_db
+    @types_db ||= Datatypes.mk_db(Xml.load('test/fhir-base.xsd'))
+  end
 
   def meta
-    @meta ||= begin
-                Resources.mk_db(
-                  Xml.load('test/pt.xml'),
-                  Datatypes.mk_db(
-                    Xml.load('test/fhir-base.xsd')))
-              end
+    @meta ||= Resources.mk_db(Xml.load('test/pt.xml'), types_db)
   end
 
   def schema
-    Schema.generate(meta)
+    Schema.generate_sql(meta, types_db, 'fhir')
   end
 
   extend self
