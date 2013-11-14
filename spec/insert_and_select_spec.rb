@@ -43,10 +43,15 @@ describe FhirPg::Insert do
     pt_json = patients_view.where(id: id_dataset).first
     pt = JSON.parse(pt_json[:json])
 
+    pt['resource_type'].should == 'patient'
+
     mrn = pt['identifier'].find {|i| i['label'] == 'MRN'}
     mrn['value'].should == '12345'
+    mo = pt['managing_organization']
+    mo.should_not be_nil
+    mo['reference'].should == 'Organization/1'
 
-    p pt['name'].first['family']
+    pt['name'].first['family']
   end
 
   def compact(hash)

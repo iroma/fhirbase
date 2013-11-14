@@ -22,6 +22,9 @@ describe FhirPg::Resources do
     pt[:kind].should == :resource
     pt[:attrs].should_not be_empty
 
+    mo = pt[:attrs][:managing_organization]
+    mo.should_not be_nil
+
     gender = pt[:attrs][:gender]
     gender[:kind].should == :complex_type
     gender[:type].should == :codeable_concept

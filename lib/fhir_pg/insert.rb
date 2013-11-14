@@ -15,6 +15,7 @@ module FhirPg
     def insert(db, meta, obj, opts = {})
       obj = fix_keys(obj)
       resource_name =  obj[:resource_type].underscore.to_sym
+      obj[:resource_type] = resource_name.to_s
       raise "Resource metainformation #{resource_name} not found" unless meta[resource_name]
       insert_recur(db, meta[resource_name], obj, opts)
     end
@@ -91,7 +92,7 @@ module FhirPg
     end
 
     def skip_attribute?(key)
-      ['resource_type', 'text'].include?(key)
+      ['text'].include?(key)
     end
 
     extend self

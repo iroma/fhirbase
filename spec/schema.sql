@@ -1,6 +1,10 @@
 drop schema if exists fhir cascade;
 create schema fhir;
 CREATE TYPE "fhir".resource_type AS ENUM ('patient','organization','practitioner','encounter');
+CREATE TABLE "fhir".resources (
+"resource_type" fhir.resource_type,
+"id" uuid,
+ PRIMARY KEY(id)) ;
 CREATE TYPE "fhir".narrative_status AS ENUM ('additional','empty','extensions','generated');
 CREATE TYPE "fhir".quantity_compararator AS ENUM ('<','<=','>','>=');
 CREATE TYPE "fhir".identifier_use AS ENUM ('official','secondary','temp','usual');
@@ -14,7 +18,6 @@ CREATE TYPE "fhir".document_reference_status AS ENUM ('current','error','superce
 CREATE TYPE "fhir".observation_status AS ENUM ('amended','cancelled','final','interim','registered','withdrawn');
 CREATE TYPE "fhir".value_set_status AS ENUM ('active','draft','retired');
 CREATE TABLE "fhir".patients (
-"id" uuid primary key,
 "birth_date" timestamp,
 "deceased_boolean" boolean,
 "deceased_date_time" timestamp,
@@ -28,76 +31,77 @@ CREATE TABLE "fhir".patients (
 "managing_organization_type" fhir.resource_type,
 "managing_organization_display" varchar,
 "managing_organization_reference" varchar,
-"active" boolean
-);
+"active" boolean,
+"resource_type" fhir.resource_type,
+ PRIMARY KEY(id)) INHERITS ("fhir".resources);
 CREATE TABLE "fhir".patient_texts (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
-"status" fhir.narrative_status
-);
+"status" fhir.narrative_status,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_identifiers (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "use" fhir.identifier_use,
 "label" varchar,
 "system" varchar,
-"value" varchar
-);
+"value" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_identifier_periods (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_identifier_id" uuid references fhir.patient_identifiers(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_names (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "use" fhir.name_use,
 "text" varchar,
 "family" varchar,
 "given" varchar,
 "prefix" varchar,
-"suffix" varchar
-);
+"suffix" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_name_periods (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_name_id" uuid references fhir.patient_names(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_telecoms (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "system" fhir.contact_system,
 "value" varchar,
-"use" fhir.contact_use
-);
+"use" fhir.contact_use,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_telecom_periods (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_telecom_id" uuid references fhir.patient_telecoms(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_genders (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_gender_codings (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_gender_id" uuid references fhir.patient_genders(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_addresses (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "use" fhir.address_use,
 "text" varchar,
@@ -105,32 +109,32 @@ CREATE TABLE "fhir".patient_addresses (
 "city" varchar,
 "state" varchar,
 "zip" varchar,
-"country" varchar
-);
+"country" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_address_periods (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_address_id" uuid references fhir.patient_addresses(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_marital_statuses (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_marital_status_codings (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_marital_status_id" uuid references fhir.patient_marital_statuses(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_photos (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "content_type" varchar,
 "language" varchar,
@@ -138,34 +142,34 @@ CREATE TABLE "fhir".patient_photos (
 "url" varchar,
 "size" integer,
 "hash" bytea,
-"title" varchar
-);
+"title" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_contacts (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "organization_id" uuid,
 "organization_type" fhir.resource_type,
 "organization_display" varchar,
-"organization_reference" varchar
-);
+"organization_reference" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_contact_relationships (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_contact_id" uuid references fhir.patient_contacts(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_contact_relationship_codings (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_contact_relationship_id" uuid references fhir.patient_contact_relationships(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_contact_names (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_contact_id" uuid references fhir.patient_contacts(id),
 "use" fhir.name_use,
@@ -173,32 +177,32 @@ CREATE TABLE "fhir".patient_contact_names (
 "family" varchar,
 "given" varchar,
 "prefix" varchar,
-"suffix" varchar
-);
+"suffix" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_contact_name_periods (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_contact_name_id" uuid references fhir.patient_contact_names(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_contact_telecoms (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_contact_id" uuid references fhir.patient_contacts(id),
 "system" fhir.contact_system,
 "value" varchar,
-"use" fhir.contact_use
-);
+"use" fhir.contact_use,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_contact_telecom_periods (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_contact_telecom_id" uuid references fhir.patient_contact_telecoms(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_contact_addresses (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_contact_id" uuid references fhir.patient_contacts(id),
 "use" fhir.address_use,
@@ -207,167 +211,167 @@ CREATE TABLE "fhir".patient_contact_addresses (
 "city" varchar,
 "state" varchar,
 "zip" varchar,
-"country" varchar
-);
+"country" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_contact_address_periods (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_contact_address_id" uuid references fhir.patient_contact_addresses(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_contact_genders (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_contact_id" uuid references fhir.patient_contacts(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_contact_gender_codings (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_contact_gender_id" uuid references fhir.patient_contact_genders(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_animals (
-"id" uuid primary key,
-"patient_id" uuid references fhir.patients(id)
-);
+"id" uuid,
+"patient_id" uuid references fhir.patients(id),
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_animal_species (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_animal_id" uuid references fhir.patient_animals(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_animal_species_codings (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_animal_specy_id" uuid references fhir.patient_animal_species(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_animal_breeds (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_animal_id" uuid references fhir.patient_animals(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_animal_breed_codings (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_animal_breed_id" uuid references fhir.patient_animal_breeds(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_animal_gender_statuses (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_animal_id" uuid references fhir.patient_animals(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_animal_gender_status_codings (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_animal_gender_status_id" uuid references fhir.patient_animal_gender_statuses(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_communications (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_communication_codings (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "patient_communication_id" uuid references fhir.patient_communications(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_links (
-"id" uuid primary key,
+"id" uuid,
 "patient_id" uuid references fhir.patients(id),
 "other_id" uuid,
 "other_type" fhir.resource_type,
 "other_display" varchar,
 "other_reference" varchar,
-"type" varchar
-);
+"type" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organizations (
-"id" uuid primary key,
 "name" varchar,
 "part_of_id" uuid,
 "part_of_type" fhir.resource_type,
 "part_of_display" varchar,
 "part_of_reference" varchar,
-"active" boolean
-);
+"active" boolean,
+"resource_type" fhir.resource_type,
+ PRIMARY KEY(id)) INHERITS ("fhir".resources);
 CREATE TABLE "fhir".organization_texts (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
-"status" fhir.narrative_status
-);
+"status" fhir.narrative_status,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_identifiers (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "use" fhir.identifier_use,
 "label" varchar,
 "system" varchar,
-"value" varchar
-);
+"value" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_identifier_periods (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "organization_identifier_id" uuid references fhir.organization_identifiers(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_types (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_type_codings (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "organization_type_id" uuid references fhir.organization_types(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_telecoms (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "system" fhir.contact_system,
 "value" varchar,
-"use" fhir.contact_use
-);
+"use" fhir.contact_use,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_telecom_periods (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "organization_telecom_id" uuid references fhir.organization_telecoms(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_addresses (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "use" fhir.address_use,
 "text" varchar,
@@ -375,37 +379,37 @@ CREATE TABLE "fhir".organization_addresses (
 "city" varchar,
 "state" varchar,
 "zip" varchar,
-"country" varchar
-);
+"country" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_address_periods (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "organization_address_id" uuid references fhir.organization_addresses(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_contacts (
-"id" uuid primary key,
-"organization_id" uuid references fhir.organizations(id)
-);
+"id" uuid,
+"organization_id" uuid references fhir.organizations(id),
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_contact_purposes (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "organization_contact_id" uuid references fhir.organization_contacts(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_contact_purpose_codings (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "organization_contact_purpose_id" uuid references fhir.organization_contact_purposes(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_contact_names (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "organization_contact_id" uuid references fhir.organization_contacts(id),
 "use" fhir.name_use,
@@ -413,32 +417,32 @@ CREATE TABLE "fhir".organization_contact_names (
 "family" varchar,
 "given" varchar,
 "prefix" varchar,
-"suffix" varchar
-);
+"suffix" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_contact_name_periods (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "organization_contact_name_id" uuid references fhir.organization_contact_names(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_contact_telecoms (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "organization_contact_id" uuid references fhir.organization_contacts(id),
 "system" fhir.contact_system,
 "value" varchar,
-"use" fhir.contact_use
-);
+"use" fhir.contact_use,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_contact_telecom_periods (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "organization_contact_telecom_id" uuid references fhir.organization_contact_telecoms(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_contact_addresses (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "organization_contact_id" uuid references fhir.organization_contacts(id),
 "use" fhir.address_use,
@@ -447,92 +451,92 @@ CREATE TABLE "fhir".organization_contact_addresses (
 "city" varchar,
 "state" varchar,
 "zip" varchar,
-"country" varchar
-);
+"country" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_contact_address_periods (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "organization_contact_address_id" uuid references fhir.organization_contact_addresses(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_contact_genders (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "organization_contact_id" uuid references fhir.organization_contacts(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization_contact_gender_codings (
-"id" uuid primary key,
+"id" uuid,
 "organization_id" uuid references fhir.organizations(id),
 "organization_contact_gender_id" uuid references fhir.organization_contact_genders(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioners (
-"id" uuid primary key,
 "birth_date" timestamp,
 "organization_id" uuid,
 "organization_type" fhir.resource_type,
 "organization_display" varchar,
-"organization_reference" varchar
-);
+"organization_reference" varchar,
+"resource_type" fhir.resource_type,
+ PRIMARY KEY(id)) INHERITS ("fhir".resources);
 CREATE TABLE "fhir".practitioner_texts (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
-"status" fhir.narrative_status
-);
+"status" fhir.narrative_status,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_identifiers (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "use" fhir.identifier_use,
 "label" varchar,
 "system" varchar,
-"value" varchar
-);
+"value" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_identifier_periods (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "practitioner_identifier_id" uuid references fhir.practitioner_identifiers(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_names (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "use" fhir.name_use,
 "text" varchar,
 "family" varchar,
 "given" varchar,
 "prefix" varchar,
-"suffix" varchar
-);
+"suffix" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_name_periods (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "practitioner_name_id" uuid references fhir.practitioner_names(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_telecoms (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "system" fhir.contact_system,
 "value" varchar,
-"use" fhir.contact_use
-);
+"use" fhir.contact_use,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_telecom_periods (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "practitioner_telecom_id" uuid references fhir.practitioner_telecoms(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_addresses (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "use" fhir.address_use,
 "text" varchar,
@@ -540,32 +544,32 @@ CREATE TABLE "fhir".practitioner_addresses (
 "city" varchar,
 "state" varchar,
 "zip" varchar,
-"country" varchar
-);
+"country" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_address_periods (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "practitioner_address_id" uuid references fhir.practitioner_addresses(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_genders (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_gender_codings (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "practitioner_gender_id" uuid references fhir.practitioner_genders(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_photos (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "content_type" varchar,
 "language" varchar,
@@ -573,92 +577,91 @@ CREATE TABLE "fhir".practitioner_photos (
 "url" varchar,
 "size" integer,
 "hash" bytea,
-"title" varchar
-);
+"title" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_roles (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_role_codings (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "practitioner_role_id" uuid references fhir.practitioner_roles(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_specialties (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_specialty_codings (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "practitioner_specialty_id" uuid references fhir.practitioner_specialties(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_periods (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_qualifications (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "issuer_id" uuid,
 "issuer_type" fhir.resource_type,
 "issuer_display" varchar,
-"issuer_reference" varchar
-);
+"issuer_reference" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_qualification_codes (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "practitioner_qualification_id" uuid references fhir.practitioner_qualifications(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_qualification_code_codings (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "practitioner_qualification_code_id" uuid references fhir.practitioner_qualification_codes(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_qualification_periods (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "practitioner_qualification_id" uuid references fhir.practitioner_qualifications(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_communications (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_communication_codings (
-"id" uuid primary key,
+"id" uuid,
 "practitioner_id" uuid references fhir.practitioners(id),
 "practitioner_communication_id" uuid references fhir.practitioner_communications(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounters (
-"id" uuid primary key,
 "status" varchar,
 "class" varchar,
 "subject_id" uuid,
@@ -681,93 +684,94 @@ CREATE TABLE "fhir".encounters (
 "part_of_id" uuid,
 "part_of_type" fhir.resource_type,
 "part_of_display" varchar,
-"part_of_reference" varchar
-);
+"part_of_reference" varchar,
+"resource_type" fhir.resource_type,
+ PRIMARY KEY(id)) INHERITS ("fhir".resources);
 CREATE TABLE "fhir".encounter_texts (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
-"status" fhir.narrative_status
-);
+"status" fhir.narrative_status,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_identifiers (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "use" fhir.identifier_use,
 "label" varchar,
 "system" varchar,
-"value" varchar
-);
+"value" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_identifier_periods (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_identifier_id" uuid references fhir.encounter_identifiers(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_types (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_type_codings (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_type_id" uuid references fhir.encounter_types(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_participants (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "type" varchar,
 "practitioner_id" uuid,
 "practitioner_type" fhir.resource_type,
 "practitioner_display" varchar,
-"practitioner_reference" varchar
-);
+"practitioner_reference" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_lengths (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "value" decimal,
 "comparator" fhir.quantity_compararator,
 "units" varchar,
 "system" varchar,
-"code" varchar
-);
+"code" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_reasons (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_reason_codings (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_reason_id" uuid references fhir.encounter_reasons(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_priorities (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_priority_codings (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_priority_id" uuid references fhir.encounter_priorities(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalizations (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "origin_id" uuid,
 "origin_type" fhir.resource_type,
@@ -777,138 +781,138 @@ CREATE TABLE "fhir".encounter_hospitalizations (
 "destination_type" fhir.resource_type,
 "destination_display" varchar,
 "destination_reference" varchar,
-"re_admission" boolean
-);
+"re_admission" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_pre_admission_identifiers (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_hospitalization_id" uuid references fhir.encounter_hospitalizations(id),
 "use" fhir.identifier_use,
 "label" varchar,
 "system" varchar,
-"value" varchar
-);
+"value" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_pre_admission_identifier_periods (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_hospitalization_pre_admission_identifier_id" uuid references fhir.encounter_hospitalization_pre_admission_identifiers(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_admit_sources (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_hospitalization_id" uuid references fhir.encounter_hospitalizations(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_admit_source_codings (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_hospitalization_admit_source_id" uuid references fhir.encounter_hospitalization_admit_sources(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_periods (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_hospitalization_id" uuid references fhir.encounter_hospitalizations(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_accomodations (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_hospitalization_id" uuid references fhir.encounter_hospitalizations(id),
 "bed_id" uuid,
 "bed_type" fhir.resource_type,
 "bed_display" varchar,
-"bed_reference" varchar
-);
+"bed_reference" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_accomodation_periods (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_hospitalization_accomodation_id" uuid references fhir.encounter_hospitalization_accomodations(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_diets (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_hospitalization_id" uuid references fhir.encounter_hospitalizations(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_diet_codings (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_hospitalization_diet_id" uuid references fhir.encounter_hospitalization_diets(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_special_courtesies (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_hospitalization_id" uuid references fhir.encounter_hospitalizations(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_special_courtesy_codings (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_hospitalization_special_courtesy_id" uuid references fhir.encounter_hospitalization_special_courtesies(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_special_arrangements (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_hospitalization_id" uuid references fhir.encounter_hospitalizations(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_special_arrangement_codings (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_hospitalization_special_arrangement_id" uuid references fhir.encounter_hospitalization_special_arrangements(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_discharge_dispositions (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_hospitalization_id" uuid references fhir.encounter_hospitalizations(id),
-"text" varchar
-);
+"text" varchar,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_discharge_disposition_codings (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_hospitalization_discharge_disposition_id" uuid references fhir.encounter_hospitalization_discharge_dispositions(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
 "display" varchar,
-"primary" boolean
-);
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_locations (
-"id" uuid primary key,
-"encounter_id" uuid references fhir.encounters(id)
-);
+"id" uuid,
+"encounter_id" uuid references fhir.encounters(id),
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_location_periods (
-"id" uuid primary key,
+"id" uuid,
 "encounter_id" uuid references fhir.encounters(id),
 "encounter_location_id" uuid references fhir.encounter_locations(id),
 "start" timestamp,
-"end" timestamp
-);
+"end" timestamp,
+ PRIMARY KEY(id)) ;
 CREATE INDEX pat_tex_pat_id_idx ON "fhir".patient_texts (patient_id);
 CREATE INDEX pat_ide_pat_id_idx ON "fhir".patient_identifiers (patient_id);
 CREATE INDEX pat_ide_per_pat_id_idx ON "fhir".patient_identifier_periods (patient_id);
@@ -1294,7 +1298,7 @@ CREATE VIEW "fhir".view_patients AS select t1.id, row_to_json(t1, true) as json 
               from fhir.patient_contact_genders t3
               WHERE t3.patient_id = t1.id
             ) t3
-         ) as gender, t2.organization_reference
+         ) as gender, hstore_to_json(hstore(ARRAY['reference', t2.organization_reference ,'display',t2.organization_display])) as organization
           from fhir.patient_contacts t2
           WHERE t2.patient_id = t1.id
         ) t2
@@ -1379,11 +1383,11 @@ CREATE VIEW "fhir".view_patients AS select t1.id, row_to_json(t1, true) as json 
       array_to_json(
         array_agg(row_to_json(t2, true)), true) from
         (
-          select     t2.type, t2.other_reference
+          select     t2.type, hstore_to_json(hstore(ARRAY['reference', t2.other_reference ,'display',t2.other_display])) as other
           from fhir.patient_links t2
           WHERE t2.patient_id = t1.id
         ) t2
-     ) as link, t1.birth_date,t1.deceased_boolean,t1.deceased_date_time,t1.multiple_birth_boolean,t1.multiple_birth_integer,t1.active
+     ) as link, t1.birth_date,t1.deceased_boolean,t1.deceased_date_time,t1.multiple_birth_boolean,t1.multiple_birth_integer,t1.active,t1.resource_type, hstore_to_json(hstore(ARRAY['reference', t1.care_provider_reference ,'display',t1.care_provider_display])) as care_provider,hstore_to_json(hstore(ARRAY['reference', t1.managing_organization_reference ,'display',t1.managing_organization_display])) as managing_organization
   from fhir.patients t1
 ) t1
 ;
@@ -1558,7 +1562,7 @@ CREATE VIEW "fhir".view_organizations AS select t1.id, row_to_json(t1, true) as 
           from fhir.organization_contacts t2
           WHERE t2.organization_id = t1.id
         ) t2
-     ) as contact, t1.name,t1.active
+     ) as contact, t1.name,t1.active,t1.resource_type, hstore_to_json(hstore(ARRAY['reference', t1.part_of_reference ,'display',t1.part_of_display])) as part_of
   from fhir.organizations t1
 ) t1
 ;
@@ -1739,7 +1743,7 @@ CREATE VIEW "fhir".view_practitioners AS select t1.id, row_to_json(t1, true) as 
               from fhir.practitioner_qualification_periods t3
               WHERE t3.practitioner_id = t1.id
             ) t3
-         ) as period, t2.issuer_reference
+         ) as period, hstore_to_json(hstore(ARRAY['reference', t2.issuer_reference ,'display',t2.issuer_display])) as issuer
           from fhir.practitioner_qualifications t2
           WHERE t2.practitioner_id = t1.id
         ) t2
@@ -1760,7 +1764,7 @@ CREATE VIEW "fhir".view_practitioners AS select t1.id, row_to_json(t1, true) as 
           from fhir.practitioner_communications t2
           WHERE t2.practitioner_id = t1.id
         ) t2
-     ) as communication, t1.birth_date
+     ) as communication, t1.birth_date,t1.resource_type, hstore_to_json(hstore(ARRAY['reference', t1.organization_reference ,'display',t1.organization_display])) as organization
   from fhir.practitioners t1
 ) t1
 ;
@@ -1813,7 +1817,7 @@ CREATE VIEW "fhir".view_encounters AS select t1.id, row_to_json(t1, true) as jso
       array_to_json(
         array_agg(row_to_json(t2, true)), true) from
         (
-          select     t2.type, t2.practitioner_reference
+          select     t2.type, hstore_to_json(hstore(ARRAY['reference', t2.practitioner_reference ,'display',t2.practitioner_display])) as practitioner
           from fhir.encounter_participants t2
           WHERE t2.encounter_id = t1.id
         ) t2
@@ -1920,7 +1924,7 @@ CREATE VIEW "fhir".view_encounters AS select t1.id, row_to_json(t1, true) as jso
                   from fhir.encounter_hospitalization_accomodation_periods t4
                   WHERE t4.encounter_id = t1.id AND t4.encounter_hospitalization_accomodation_id = t3.id
                 ) t4
-             ) as period, t3.bed_reference
+             ) as period, hstore_to_json(hstore(ARRAY['reference', t3.bed_reference ,'display',t3.bed_display])) as bed
               from fhir.encounter_hospitalization_accomodations t3
               WHERE t3.encounter_id = t1.id
             ) t3
@@ -1992,7 +1996,7 @@ CREATE VIEW "fhir".view_encounters AS select t1.id, row_to_json(t1, true) as jso
               from fhir.encounter_hospitalization_discharge_dispositions t3
               WHERE t3.encounter_id = t1.id
             ) t3
-         ) as discharge_disposition, t2.re_admission, t2.origin_reference,t2.destination_reference
+         ) as discharge_disposition, t2.re_admission, hstore_to_json(hstore(ARRAY['reference', t2.origin_reference ,'display',t2.origin_display])) as origin,hstore_to_json(hstore(ARRAY['reference', t2.destination_reference ,'display',t2.destination_display])) as destination
           from fhir.encounter_hospitalizations t2
           WHERE t2.encounter_id = t1.id
         ) t2
@@ -2013,7 +2017,7 @@ CREATE VIEW "fhir".view_encounters AS select t1.id, row_to_json(t1, true) as jso
           from fhir.encounter_locations t2
           WHERE t2.encounter_id = t1.id
         ) t2
-     ) as location, t1.status,t1.class,t1.start
+     ) as location, t1.status,t1.class,t1.start,t1.resource_type, hstore_to_json(hstore(ARRAY['reference', t1.subject_reference ,'display',t1.subject_display])) as subject,hstore_to_json(hstore(ARRAY['reference', t1.fulfills_reference ,'display',t1.fulfills_display])) as fulfills,hstore_to_json(hstore(ARRAY['reference', t1.indication_reference ,'display',t1.indication_display])) as indication,hstore_to_json(hstore(ARRAY['reference', t1.service_provider_reference ,'display',t1.service_provider_display])) as service_provider,hstore_to_json(hstore(ARRAY['reference', t1.part_of_reference ,'display',t1.part_of_display])) as part_of
   from fhir.encounters t1
 ) t1
 ;

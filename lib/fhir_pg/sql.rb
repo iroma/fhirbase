@@ -64,12 +64,16 @@ module FhirPg
       when :fk
         "references #{schema}.#{col[:parent_table]}(id)"
       when :pk
-        'primary key'
+        # 'primary key' created by default
       end
     end
 
     def table_to_sql(item, schema)
-      "CREATE TABLE \"#{schema}\".#{item[:name]} (\n#{columns_to_sql(item, schema)}\n);"
+      parent_table = item[:inherits]
+      inherits = if parent_table
+                   "INHERITS (\"#{schema}\".#{parent_table})"
+                 end
+      "CREATE TABLE \"#{schema}\".#{item[:name]} (\n#{columns_to_sql(item, schema)},\n PRIMARY KEY(id)) #{inherits};"
     end
 
     extend self

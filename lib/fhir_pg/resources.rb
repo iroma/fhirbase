@@ -20,14 +20,20 @@ module FhirPg
 
     private
 
+    def add_default_resource_attrs(attrs)
+      attrs[:resource_type] = meta.mk_meta(kind: :enum, type: :resource_type, name: :resource_type, path: :resource_type)
+    end
+
     def mk_resource(key, node, types_db)
       el_nodes = node.xpath('./element')
+      attrs = expand_complex_types(types_db, collect_attrs(key, el_nodes))
+      add_default_resource_attrs(attrs)
       meta.mk_meta(
         name: key,
         kind: :resource,
         path: key.to_s,
         type: key,
-        attrs: expand_complex_types(types_db, collect_attrs(key, el_nodes))
+        attrs: attrs
       )
     end
 

@@ -27,7 +27,15 @@ module FhirPg
 
     def to_base(meta)
       [
-        {sql: :enum, name: 'resource_type', options: meta.keys.map(&:to_s)}
+        {sql: :enum, name: 'resource_type', options: meta.keys.map(&:to_s)},
+        {
+          sql: :table,
+          name: 'resources',
+          columns: [
+            { sql: :column, name: 'resource_type', type: '.resource_type'},
+            { sql: :pk, name: 'id', type: 'uuid'}
+          ]
+        }
       ]
     end
 
@@ -35,19 +43,6 @@ module FhirPg
       meta.map do |key, str|
         to_table(str)
       end.compact.flatten
-    end
-
-    # TODO
-    def base_resource_table
-      {
-        sql: :table,
-        name: :resources,
-        columns: [
-          {sql: :pk, name: :id, type: 'uuid'},
-          {sql: :column, name: :resource_type, type: '.resource_type'},
-          {sql: :column, name: :aggregate_id, type: 'boolean'}
-        ]
-      }
     end
 
     def to_indexes(tables)
@@ -89,12 +84,13 @@ module FhirPg
         sql: :table,
         name: table_name(path),
         collection: meta[:collection],
-        columns: [primary_key, aggregate_key(path), parent_key(path)].compact + to_columns(meta)
+        columns: [primary_key(meta), aggregate_key(path), parent_key(path)].compact + to_columns(meta),
+        inherits: meta[:kind] == :resource && 'resources'
       }
     end
 
-    def primary_key
-      { sql: :pk, name: 'id', type: 'uuid'}
+    def primary_key(meta)
+      { sql: :pk, name: 'id', type: 'uuid'} unless meta[:kind] == :resource
     end
 
     def aggregate_key(path)

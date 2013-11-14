@@ -8,12 +8,7 @@ module FhirPg
 
       table_index = 1
       aliaz = "t1"
-
-      cols = [
-        select_columns(meta, table_index, nil, deep).strip.presence,
-        columns(aliaz, meta).strip.presence
-      ].compact.join(', ')
-
+      cols = select_columns(aliaz, meta, table_index, nil, deep)
 
       <<-SQL
 select t1.id, row_to_json(#{aliaz}, true) as json from
@@ -26,25 +21,6 @@ SQL
 
     private
 
-    def columns(aliaz, meta)
-      meta[:attrs].values.map do |m|
-        next unless column?(m)
-        "#{aliaz}.#{m[:name]}"
-      end.compact.join(',')
-    end
-
-    #FIXME: move to helpers
-    def is_ref?(meta)
-      meta[:kind] == :ref
-    end
-
-    def ref_columns(aliaz, meta)
-      meta[:attrs].values.map do |m|
-        next unless is_ref?(m)
-        "#{aliaz}.#{m[:name]}_reference"
-      end.compact.join(',')
-    end
-
     def build_sql(meta, table_index, parent_table = nil, deep = 0)
       aliaz = "t#{table_index}"
       path = meta[:path]
@@ -53,12 +29,7 @@ SQL
         parent_condition(aliaz, path)
       ].compact.join(' AND ')
 
-      cols = [
-        select_columns(meta, table_index, parent_table, deep).strip.presence,
-        columns(aliaz, meta).strip.presence,
-        ref_columns(aliaz, meta).presence
-      ].compact.join(', ')
-
+      cols = select_columns(aliaz, meta, table_index, parent_table, deep)
       raise "Table without columns #{meta.inspect}" if cols.empty?
 
       <<-SQL
@@ -73,7 +44,35 @@ select
     SQL
     end
 
-    def select_columns(meta, table_index, parent_table, deep)
+    def select_columns(aliaz, meta, table_index, parent_table, deep)
+      [
+        select_complex_columns(meta, table_index, parent_table, deep).strip.presence,
+        select_simple_columns(aliaz, meta).strip.presence,
+        select_ref_columns(aliaz, meta).presence
+      ].compact.join(', ')
+    end
+
+    def select_simple_columns(aliaz, meta)
+      meta[:attrs].values.map do |m|
+        next unless column?(m)
+        "#{aliaz}.#{m[:name]}"
+      end.compact.join(',')
+    end
+
+    #FIXME: move to helpers
+    def is_ref?(meta)
+      meta[:kind] == :ref
+    end
+
+    def select_ref_columns(aliaz, meta)
+      meta[:attrs].values.map do |m|
+        next unless is_ref?(m)
+        name = "#{aliaz}.#{m[:name]}"
+        "hstore_to_json(hstore(ARRAY['reference', #{name}_reference ,'display',#{name}_display])) as #{m[:name]}"
+      end.compact.join(',')
+    end
+
+    def select_complex_columns(meta, table_index, parent_table, deep)
       meta[:attrs].values.map do |m|
         next unless table?(m)
         "( #{build_sql(m, table_index + 1, deep + 1)} ) as #{m[:name]}"
