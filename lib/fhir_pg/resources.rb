@@ -12,7 +12,7 @@ module FhirPg
     #public
 
     def mk_db(xml, types_db)
-      mk_index(xml.xpath('./structure')) do |node|
+      mk_index(xml.xpath('//structure')) do |node|
         key = normalize_name(node.xpath('./type').first[:value])
         [key, mk_resource(key, node, types_db)]
       end

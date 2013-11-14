@@ -71,4 +71,10 @@ describe FhirPg::Datatypes do
     tree[:attrs][:coding][:path].should == 'user.name.gender.coding'
     tree[:attrs][:coding][:collection].should be_true
   end
+
+  it "manual fix" do
+    data = FhirPg.types_db[:sampled_data][:attrs][:data]
+    data[:kind].should == :primitive
+    data[:type].should == :string
+  end
 end

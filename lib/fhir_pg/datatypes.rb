@@ -10,11 +10,26 @@ module FhirPg
       enums = collect_enums(idx)
       primitives = collect_primitives(idx)
       types = collect_types(idx, enums, primitives)
-      {}.merge(enums).merge(primitives).merge(types)
+      manual_fix({}.merge(enums).merge(primitives).merge(types))
+    end
+
+    #FIXME: find right place for this fix
+    def manual_fix(meta_db)
+      #HACK fix datatype
+      data = meta_db[:sampled_data][:attrs][:data]
+      data[:type] = :string
+      data[:kind] = :primitive
+
+      data = meta_db[:sampled_data_data_type]
+      data[:type] = :string
+      data[:kind] = :primitive
+
+      meta_db
     end
 
     def mount(db, path, type)
       tp = db[type]
+      raise "Could not find #{type}" unless tp
       key = path.split('.').last.to_sym
       if tp[:kind] == :complex_type
         attrs = tp[:attrs].each_with_object({}) do |(k,a), acc|
@@ -97,8 +112,13 @@ module FhirPg
       end
     end
 
+    def skip_attribute?(key, props)
+      props[:type] == :resource_reference
+    end
+
     def fix_attrs(attrs, tmp_types, enums, primitives)
       mk_index(attrs) do |(key, props)|
+        next if skip_attribute?(key, props)
         type = props[:type].to_sym
         tp = primitives[type] || enums[type] || tmp_types[type]
         raise "Could not find type #{key}: #{props}" unless tp.present?

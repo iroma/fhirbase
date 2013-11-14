@@ -36,6 +36,11 @@ describe FhirPg::Schema do
     id[:sql].should == :pk
     id[:type].should == 'uuid'
     id[:collection].should_not be_true
+
+    find_by_name(pt[:columns], 'managing_organization_reference').should_not be_nil
+    find_by_name(pt[:columns], 'managing_organization_id').should_not be_nil
+    find_by_name(pt[:columns], 'managing_organization_type').should_not be_nil
+    find_by_name(pt[:columns], 'managing_organization_display').should_not be_nil
   end
 
   it "#to_tables" do
@@ -87,11 +92,22 @@ describe FhirPg::Schema do
     index[:name].should == 'patient_id'
   end
 
+  it "encounter" do
+    enc = meta[:encounter]
+    hosp = enc[:attrs][:hospitalization]
+    id = hosp[:attrs][:pre_admission_identifier]
+    puts id.to_yaml
+  end
+
   it "sql" do
     sql = ''
     sql<< "drop schema if exists fhir cascade;\n"
     sql<< "create schema fhir;\n"
     sql<<  subject.generate_sql(meta, types_db, 'fhir')
+
+    open(File.dirname(__FILE__) + '/schema.sql', 'w') do |f|
+      f<< sql
+    end
     DB.execute(sql)
   end
 end

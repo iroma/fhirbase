@@ -17,17 +17,37 @@ module FhirPg
     end
 
     def generate(meta, types_db)
+      base_structures = to_base(meta)
       enums = to_enums(types_db)
       tables  = to_tables(meta)
       indexes = to_indexes(tables)
       views = to_views(meta)
-      enums + tables + indexes + views
+      base_structures + enums + tables + indexes + views
+    end
+
+    def to_base(meta)
+      [
+        {sql: :enum, name: 'resource_type', options: meta.keys.map(&:to_s)}
+      ]
     end
 
     def to_tables(meta)
       meta.map do |key, str|
         to_table(str)
       end.compact.flatten
+    end
+
+    # TODO
+    def base_resource_table
+      {
+        sql: :table,
+        name: :resources,
+        columns: [
+          {sql: :pk, name: :id, type: 'uuid'},
+          {sql: :column, name: :resource_type, type: '.resource_type'},
+          {sql: :column, name: :aggregate_id, type: 'boolean'}
+        ]
+      }
     end
 
     def to_indexes(tables)
@@ -97,12 +117,28 @@ module FhirPg
     def is_column?(meta)
       [:primitive, :enum].include?(meta[:kind])
     end
+    def is_ref?(meta)
+      [:ref].include?(meta[:kind])
+    end
 
     def to_columns(meta)
       meta[:attrs].map do |key, attr|
-        next unless is_column?(attr)
-        mk_column(attr)
-      end.compact
+        if is_column?(attr)
+          mk_column(attr)
+        elsif is_ref?(attr)
+          mk_ref_columns(attr)
+        end
+      end.flatten.compact
+    end
+
+    def mk_ref_columns(attr)
+      name = attr[:name]
+      [
+        {sql: :col, name: "#{name}_id", type: 'uuid'},
+        {sql: :col, name: "#{name}_type", type: '.resource_type'},
+        {sql: :col, name: "#{name}_display", type: 'varchar'},
+        {sql: :col, name: "#{name}_reference", type: 'varchar'}
+      ]
     end
 
     def mk_column(meta)
@@ -133,11 +169,15 @@ module FhirPg
           "string" => 'varchar',
           "uri" => 'varchar',
           "date_time" => 'timestamp',
+          "instant" => 'timestamp',
           "boolean" => 'boolean',
           "base64_binary" => 'bytea',
           "integer" => 'integer',
           "decimal" => 'decimal',
           "sampled_data_data_type" => 'text',
+          "date" => 'date',
+          "id" => 'varchar',
+          "oid" => 'varchar',
         }[type.to_s] || raise("Unknown type #{type}")
 
         else

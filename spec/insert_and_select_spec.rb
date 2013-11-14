@@ -45,6 +45,8 @@ describe FhirPg::Insert do
 
     mrn = pt['identifier'].find {|i| i['label'] == 'MRN'}
     mrn['value'].should == '12345'
+
+    p pt['name'].first['family']
   end
 
   def compact(hash)

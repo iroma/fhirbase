@@ -1,4 +1,3 @@
-
 module FhirPg
   module Select
 
@@ -14,6 +13,7 @@ module FhirPg
         select_columns(meta, table_index, nil, deep).strip.presence,
         columns(aliaz, meta).strip.presence
       ].compact.join(', ')
+
 
       <<-SQL
 select t1.id, row_to_json(#{aliaz}, true) as json from
@@ -33,6 +33,18 @@ SQL
       end.compact.join(',')
     end
 
+    #FIXME: move to helpers
+    def is_ref?(meta)
+      meta[:kind] == :ref
+    end
+
+    def ref_columns(aliaz, meta)
+      meta[:attrs].values.map do |m|
+        next unless is_ref?(m)
+        "#{aliaz}.#{m[:name]}_reference"
+      end.compact.join(',')
+    end
+
     def build_sql(meta, table_index, parent_table = nil, deep = 0)
       aliaz = "t#{table_index}"
       path = meta[:path]
@@ -43,8 +55,11 @@ SQL
 
       cols = [
         select_columns(meta, table_index, parent_table, deep).strip.presence,
-        columns(aliaz, meta).strip.presence
+        columns(aliaz, meta).strip.presence,
+        ref_columns(aliaz, meta).presence
       ].compact.join(', ')
+
+      raise "Table without columns #{meta.inspect}" if cols.empty?
 
       <<-SQL
 select

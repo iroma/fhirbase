@@ -16,7 +16,7 @@ module FhirPg
   end
 
   def meta
-    @meta ||= Resources.mk_db(Xml.load('test/pt.xml'), types_db)
+    @meta ||= Resources.mk_db(Xml.load('test/adt.xml'), types_db)
   end
 
   def schema

@@ -19,14 +19,36 @@ module FhirPg
       insert_recur(db, meta[resource_name], obj, opts)
     end
 
+    def is_ref?(meta)
+      meta[:kind] == :ref
+    end
+
+    def is_uuid?(str)
+      str =~ /^[0-9a-z]{8}(-[0-9a-z]{4}){2}/
+    end
+
+    def fill_reference(attributes, value, meta)
+      name = meta[:name]
+      type, id = value['reference'].split('/',2)
+      #FIXME: put original reference
+      id = is_uuid?(id) ? id : nil
+      attributes["#{name}_id"] = id
+      attributes["#{name}_type"] = type.underscore
+      attributes["#{name}_display"] = value['display']
+      attributes["#{name}_reference"] = value['reference']
+    end
+
     def insert_recur(db, meta, obj, opts = {})
       obj = fix_keys(obj)
       uuid = gen_uuid
       attributes = meta[:attrs].each_with_object({}) do |(key,attr), acc|
         next if skip_attribute?(key)
-        next unless column?(attr)
         next unless val = obj[key]
-        acc[key] = val.is_a?(Array) ? pg_array(val) : val
+        if column?(attr)
+          acc[key] = val.is_a?(Array) ? pg_array(val) : val
+        elsif is_ref?(attr)
+          fill_reference(acc, val, attr)
+        end
       end.merge(id: uuid).merge(opts)
 
       datasets(db, meta).insert(attributes)

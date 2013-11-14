@@ -4,7 +4,7 @@ describe FhirPg::Resources do
   subject { described_class }
 
   let(:xml) {
-    FhirPg::Xml.load('test/pt.xml')
+    FhirPg::Xml.load('test/adt.xml')
   }
 
   let(:types_db) {

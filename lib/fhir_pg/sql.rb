@@ -22,7 +22,8 @@ module FhirPg
     def index_to_sql(item, schema)
       table = item[:table]
       column = item[:name]
-      "CREATE INDEX #{table}_#{column}_idx ON \"#{schema}\".#{table} (#{column});"
+      index_name = "#{table}_#{column}_idx".split('_').map{|s| s[0..2]}.join('_')
+      "CREATE INDEX #{index_name} ON \"#{schema}\".#{table} (#{column});"
     end
 
     def enum_to_sql(item, schema)

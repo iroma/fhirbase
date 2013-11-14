@@ -13,6 +13,8 @@ Postgresql/Relational persistance for FHIR models
 
 * resource references
 * inline resources
+* insert in postgresql
+* array in json
 * extensions
 
 ## Contributing
