@@ -25,17 +25,13 @@ describe FhirPg::Schema do
   let(:indexes) { subject.to_indexes(tables) }
 
   it "#to_tables" do
-    pt = tables.find {|t| t[:name] == 'patients' }
+    pt = find_by_name(tables, 'patients')
     pt.should_not be_nil
     %w[birth_date active].each do |col_name|
       col = find_by_name(pt[:columns], col_name)
       col.should_not be_nil
     end
-    id = find_by_name(pt[:columns], 'id')
-    id.should_not be_nil
-    id[:sql].should == :pk
-    id[:type].should == 'uuid'
-    id[:collection].should_not be_true
+
 
     find_by_name(pt[:columns], 'managing_organization_reference').should_not be_nil
     find_by_name(pt[:columns], 'managing_organization_id').should_not be_nil
@@ -45,6 +41,13 @@ describe FhirPg::Schema do
 
   it "#to_tables" do
     nm = find_by_name(tables, 'patient_names')
+
+    id = find_by_name(nm[:columns], 'id')
+    id.should_not be_nil
+    id[:sql].should == :pk
+    id[:type].should == 'uuid'
+    id[:collection].should_not be_true
+
     pid = find_by_name(nm[:columns], 'patient_id')
     pid.should_not be_nil
     pid[:sql].should == :fk
