@@ -70,25 +70,28 @@ describe FhirPg::Schema do
     names.size.should == names.uniq.size
   end
 
-  describe "sql" do
-    example do
-      sql = ''
-      sql<< "drop schema if exists fhir cascade;\n"
-      sql<< "create schema fhir;\n"
-      sql<<  subject.generate_sql(meta, types_db, 'fhir')
-      DB.execute(sql)
-    end
+  example "views" do
+    views = subject.to_views(meta)
+    views.should_not be_empty
+    pt_v = views.find {|v| v[:name] == :patient }
+    pt_v.should_not be_nil
   end
 
-  describe 'indexes' do
-    it 'yo' do
-      lnk = find_by_name tables, 'patient_links'
-      indexes = subject.to_indexes([lnk])
-      indexes.size.should == 1
-      index = indexes.first
-      index[:sql].should == :index
-      index[:table].should == 'patient_links'
-      index[:name].should == 'patient_id'
-    end
+  it 'indexes' do
+    lnk = find_by_name tables, 'patient_links'
+    indexes = subject.to_indexes([lnk])
+    indexes.size.should == 1
+    index = indexes.first
+    index[:sql].should == :index
+    index[:table].should == 'patient_links'
+    index[:name].should == 'patient_id'
+  end
+
+  it "sql" do
+    sql = ''
+    sql<< "drop schema if exists fhir cascade;\n"
+    sql<< "create schema fhir;\n"
+    sql<<  subject.generate_sql(meta, types_db, 'fhir')
+    DB.execute(sql)
   end
 end

@@ -4,6 +4,7 @@ module FhirPg
 
     def select_sql(meta_db, resource_name, schema = 'fhir')
       meta = meta_db[resource_name.to_sym]
+      raise "Could not find meta for [#{resource_name}]" unless meta.present?
       deep = 0
 
       table_index = 1

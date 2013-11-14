@@ -2,28 +2,28 @@ require 'spec_helper'
 
 describe FhirPg::Insert do
   subject { described_class }
-  let(:meta) { FhirPg.meta }
+  def select; FhirPg::Select ; end
+  def meta;  FhirPg.meta; end
 
-  before :all do
+  before :each do
     sql = ''
     sql<< "drop schema if exists fhir cascade;\n"
     sql<< "create schema fhir;\n"
     sql<<  FhirPg.schema
     DB.execute(sql)
+
+    subject.insert(DB, meta, load_json('pt1'))
+    subject.insert(DB, meta, load_json('pt2'))
   end
+
 
   def load_json(name)
     file = File.dirname(__FILE__) + "/fixtures/#{name}.json"
       JSON.parse(File.read(file))
   end
-  let(:select) { FhirPg::Select }
 
-  example do
-    subject.insert(DB, meta, load_json('pt1'))
-    subject.insert(DB, meta, load_json('pt2'))
-
+  it "select" do
     puts DB[:fhir__patient_contact_names].all.to_yaml
-
     sql = select.select_sql(meta, :patient)
     puts sql
     DB[sql].each do |row|
@@ -32,6 +32,19 @@ describe FhirPg::Insert do
       puts '-'*30
       puts compact(JSON.parse(row[:json])).to_yaml
     end
+  end
+
+  it "selection from views" do
+    id_dataset = DB[:fhir__patient_identifiers]
+    .where(value: '12345')
+    .select(:patient_id)
+
+    patients_view = DB[:fhir__view_patients]
+    pt_json = patients_view.where(id: id_dataset).first
+    pt = JSON.parse(pt_json[:json])
+
+    mrn = pt['identifier'].find {|i| i['label'] == 'MRN'}
+    mrn['value'].should == '12345'
   end
 
   def compact(hash)

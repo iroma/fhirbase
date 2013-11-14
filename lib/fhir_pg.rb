@@ -9,6 +9,7 @@ module FhirPg
   autoload :Meta, 'fhir_pg/meta'
   autoload :Insert, 'fhir_pg/insert'
   autoload :Select, 'fhir_pg/select'
+  autoload :SQL, 'fhir_pg/sql'
 
   def types_db
     @types_db ||= Datatypes.mk_db(Xml.load('test/fhir-base.xsd'))

@@ -9,6 +9,12 @@ Postgresql/Relational persistance for FHIR models
 * configure spec/connection.yml
 * rspec spec
 
+## TODO
+
+* resource references
+* inline resources
+* extensions
+
 ## Contributing
 
 1. Fork it
