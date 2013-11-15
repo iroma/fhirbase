@@ -6,12 +6,7 @@ describe FhirPg::Insert do
   def meta;  FhirPg.meta; end
 
   before :each do
-    sql = ''
-    sql<< "drop schema if exists fhir cascade;\n"
-    sql<< "create schema fhir;\n"
-    sql<<  FhirPg.schema
-    DB.execute(sql)
-
+    FhirPg.reload_schema(DB, 'fhir')
     subject.insert(DB, meta, load_json('pt1'))
     subject.insert(DB, meta, load_json('pt2'))
   end

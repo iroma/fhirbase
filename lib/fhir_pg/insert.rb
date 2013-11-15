@@ -41,7 +41,6 @@ module FhirPg
 
     def insert_recur(db, meta, obj, opts = {})
       obj = fix_keys(obj)
-      uuid = gen_uuid
       attributes = meta[:attrs].each_with_object({}) do |(key,attr), acc|
         next if skip_attribute?(key)
         next unless val = obj[key]
@@ -50,7 +49,8 @@ module FhirPg
         elsif is_ref?(attr)
           fill_reference(acc, val, attr)
         end
-      end.merge(id: uuid).merge(opts)
+      end.merge(opts)
+      uuid = attributes[:id] = obj[:id] || gen_uuid
 
       datasets(db, meta).insert(attributes)
 

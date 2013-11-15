@@ -10,6 +10,7 @@ module FhirPg
   autoload :Insert, 'fhir_pg/insert'
   autoload :Select, 'fhir_pg/select'
   autoload :SQL, 'fhir_pg/sql'
+  autoload :Repository, 'fhir_pg/repository'
 
   def types_db
     @types_db ||= Datatypes.mk_db(Xml.load('test/fhir-base.xsd'))
@@ -21,6 +22,14 @@ module FhirPg
 
   def schema
     Schema.generate_sql(meta, types_db, 'fhir')
+  end
+
+  def reload_schema(db, schema)
+    sql = ''
+    sql<< "drop schema if exists #{schema} cascade;\n"
+    sql<< "create schema #{schema};\n"
+    sql<<  self.schema
+    db.execute(sql)
   end
 
   extend self
