@@ -34,7 +34,7 @@ module FhirPg
           columns: [
             { sql: :column, name: 'resource_type', type: '.resource_type'},
             { sql: :pk, name: 'id', type: 'uuid'},
-            { sql: :column, name: 'inline', type: 'boolean'},
+            { sql: :column, name: 'inline_id', type: 'varchar'},
             { sql: :column, name: 'container_id', type: 'uuid'}
           ]
         }

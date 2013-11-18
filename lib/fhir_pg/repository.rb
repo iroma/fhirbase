@@ -40,7 +40,19 @@ module FhirPg
       resource = resources_table.where(id: resource_id).first
       raise "Resource with id (#{resource_id}) not found" unless resource.present?
       row = view_datasets(resource[:resource_type]).where(id: resource_id).first
-      ActiveSupport::HashWithIndifferentAccess.new(JSON.parse(row[:json]))
+      result = ActiveSupport::HashWithIndifferentAccess.new(JSON.parse(row[:json]))
+      result[:contained] = load_inline_resources(resource_id)
+      result
     end
+
+    private
+
+    def load_inline_resources(resource_id)
+      #TODO: optimize
+      datasets(:resource).where(container_id: resource_id).map do |res|
+        find(res[:id])
+      end
+    end
+
   end
 end

@@ -13,7 +13,7 @@ module FhirPg
       <<-SQL
 select t1.id, row_to_json(#{aliaz}, true) as json from
 (
-  select id, #{ident(cols, deep + 1)}
+  select id, '#'||inline_id as inline_id, #{ident(cols, deep + 1)}
   from #{table_name(meta)} #{aliaz}
 ) #{aliaz}
 SQL

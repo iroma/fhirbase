@@ -26,7 +26,7 @@ module FhirPg
 
     def ids_for_contained(contained = [])
       contained.each_with_object(new_map) do |res, acc|
-        _id = res[:id]
+        _id = res[:inline_id] = res[:id]
         res[:id] = gen_uuid
         acc[_id] = res
       end

@@ -15,8 +15,6 @@ describe FhirPg::Repository do
     saved_pt = subject.find(pt['id'])
 
     saved_pt['contained'].should_not be_empty
-
-    # saved_pt.should == pt
-    #
+    saved_pt['contained'].first[:inline_id].should == saved_pt['managing_organization'][:reference]
   end
 end

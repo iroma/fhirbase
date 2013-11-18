@@ -4,7 +4,7 @@ CREATE TYPE "fhir".resource_type AS ENUM ('patient','organization','practitioner
 CREATE TABLE "fhir".resources (
 "resource_type" fhir.resource_type,
 "id" uuid,
-"inline" boolean,
+"inline_id" varchar,
 "container_id" uuid,
  PRIMARY KEY(id)) ;
 CREATE TYPE "fhir".narrative_status AS ENUM ('additional','empty','extensions','generated');
@@ -1108,7 +1108,7 @@ CREATE INDEX enc_loc_per_enc_id_idx ON "fhir".encounter_location_periods (encoun
 CREATE INDEX enc_loc_per_enc_loc_id_idx ON "fhir".encounter_location_periods (encounter_location_id);
 CREATE VIEW "fhir".view_patients AS select t1.id, row_to_json(t1, true) as json from
 (
-  select id,     ( select
+  select id, '#'||inline_id as inline_id,     ( select
       array_to_json(
         array_agg(row_to_json(t2, true)), true) from
         (
@@ -1411,7 +1411,7 @@ CREATE VIEW "fhir".view_patients AS select t1.id, row_to_json(t1, true) as json 
 ;
 CREATE VIEW "fhir".view_organizations AS select t1.id, row_to_json(t1, true) as json from
 (
-  select id,     ( select
+  select id, '#'||inline_id as inline_id,     ( select
       array_to_json(
         array_agg(row_to_json(t2, true)), true) from
         (
@@ -1586,7 +1586,7 @@ CREATE VIEW "fhir".view_organizations AS select t1.id, row_to_json(t1, true) as 
 ;
 CREATE VIEW "fhir".view_practitioners AS select t1.id, row_to_json(t1, true) as json from
 (
-  select id,     ( select
+  select id, '#'||inline_id as inline_id,     ( select
       array_to_json(
         array_agg(row_to_json(t2, true)), true) from
         (
@@ -1788,7 +1788,7 @@ CREATE VIEW "fhir".view_practitioners AS select t1.id, row_to_json(t1, true) as 
 ;
 CREATE VIEW "fhir".view_encounters AS select t1.id, row_to_json(t1, true) as json from
 (
-  select id,     ( select
+  select id, '#'||inline_id as inline_id,     ( select
       array_to_json(
         array_agg(row_to_json(t2, true)), true) from
         (
