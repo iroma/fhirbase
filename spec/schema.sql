@@ -4,6 +4,8 @@ CREATE TYPE "fhir".resource_type AS ENUM ('patient','organization','practitioner
 CREATE TABLE "fhir".resources (
 "resource_type" fhir.resource_type,
 "id" uuid,
+"inline" boolean,
+"container_id" uuid,
  PRIMARY KEY(id)) ;
 CREATE TYPE "fhir".narrative_status AS ENUM ('additional','empty','extensions','generated');
 CREATE TYPE "fhir".quantity_compararator AS ENUM ('<','<=','>','>=');
@@ -27,10 +29,12 @@ CREATE TABLE "fhir".patients (
 "care_provider_type" fhir.resource_type,
 "care_provider_display" varchar,
 "care_provider_reference" varchar,
+"care_provider_inlined" boolean,
 "managing_organization_id" uuid,
 "managing_organization_type" fhir.resource_type,
 "managing_organization_display" varchar,
 "managing_organization_reference" varchar,
+"managing_organization_inlined" boolean,
 "active" boolean,
 "resource_type" fhir.resource_type,
  PRIMARY KEY(id)) INHERITS ("fhir".resources);
@@ -151,6 +155,7 @@ CREATE TABLE "fhir".patient_contacts (
 "organization_type" fhir.resource_type,
 "organization_display" varchar,
 "organization_reference" varchar,
+"organization_inlined" boolean,
  PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_contact_relationships (
 "id" uuid,
@@ -310,6 +315,7 @@ CREATE TABLE "fhir".patient_links (
 "other_type" fhir.resource_type,
 "other_display" varchar,
 "other_reference" varchar,
+"other_inlined" boolean,
 "type" varchar,
  PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organizations (
@@ -318,6 +324,7 @@ CREATE TABLE "fhir".organizations (
 "part_of_type" fhir.resource_type,
 "part_of_display" varchar,
 "part_of_reference" varchar,
+"part_of_inlined" boolean,
 "active" boolean,
 "resource_type" fhir.resource_type,
  PRIMARY KEY(id)) INHERITS ("fhir".resources);
@@ -482,6 +489,7 @@ CREATE TABLE "fhir".practitioners (
 "organization_type" fhir.resource_type,
 "organization_display" varchar,
 "organization_reference" varchar,
+"organization_inlined" boolean,
 "resource_type" fhir.resource_type,
  PRIMARY KEY(id)) INHERITS ("fhir".resources);
 CREATE TABLE "fhir".practitioner_texts (
@@ -622,6 +630,7 @@ CREATE TABLE "fhir".practitioner_qualifications (
 "issuer_type" fhir.resource_type,
 "issuer_display" varchar,
 "issuer_reference" varchar,
+"issuer_inlined" boolean,
  PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".practitioner_qualification_codes (
 "id" uuid,
@@ -668,23 +677,28 @@ CREATE TABLE "fhir".encounters (
 "subject_type" fhir.resource_type,
 "subject_display" varchar,
 "subject_reference" varchar,
+"subject_inlined" boolean,
 "fulfills_id" uuid,
 "fulfills_type" fhir.resource_type,
 "fulfills_display" varchar,
 "fulfills_reference" varchar,
+"fulfills_inlined" boolean,
 "start" timestamp,
 "indication_id" uuid,
 "indication_type" fhir.resource_type,
 "indication_display" varchar,
 "indication_reference" varchar,
+"indication_inlined" boolean,
 "service_provider_id" uuid,
 "service_provider_type" fhir.resource_type,
 "service_provider_display" varchar,
 "service_provider_reference" varchar,
+"service_provider_inlined" boolean,
 "part_of_id" uuid,
 "part_of_type" fhir.resource_type,
 "part_of_display" varchar,
 "part_of_reference" varchar,
+"part_of_inlined" boolean,
 "resource_type" fhir.resource_type,
  PRIMARY KEY(id)) INHERITS ("fhir".resources);
 CREATE TABLE "fhir".encounter_texts (
@@ -730,6 +744,7 @@ CREATE TABLE "fhir".encounter_participants (
 "practitioner_type" fhir.resource_type,
 "practitioner_display" varchar,
 "practitioner_reference" varchar,
+"practitioner_inlined" boolean,
  PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_lengths (
 "id" uuid,
@@ -777,10 +792,12 @@ CREATE TABLE "fhir".encounter_hospitalizations (
 "origin_type" fhir.resource_type,
 "origin_display" varchar,
 "origin_reference" varchar,
+"origin_inlined" boolean,
 "destination_id" uuid,
 "destination_type" fhir.resource_type,
 "destination_display" varchar,
 "destination_reference" varchar,
+"destination_inlined" boolean,
 "re_admission" boolean,
  PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_pre_admission_identifiers (
@@ -830,6 +847,7 @@ CREATE TABLE "fhir".encounter_hospitalization_accomodations (
 "bed_type" fhir.resource_type,
 "bed_display" varchar,
 "bed_reference" varchar,
+"bed_inlined" boolean,
  PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".encounter_hospitalization_accomodation_periods (
 "id" uuid,

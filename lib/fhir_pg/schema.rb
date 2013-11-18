@@ -33,7 +33,9 @@ module FhirPg
           name: 'resources',
           columns: [
             { sql: :column, name: 'resource_type', type: '.resource_type'},
-            { sql: :pk, name: 'id', type: 'uuid'}
+            { sql: :pk, name: 'id', type: 'uuid'},
+            { sql: :column, name: 'inline', type: 'boolean'},
+            { sql: :column, name: 'container_id', type: 'uuid'}
           ]
         }
       ]
@@ -133,7 +135,8 @@ module FhirPg
         {sql: :col, name: "#{name}_id", type: 'uuid'},
         {sql: :col, name: "#{name}_type", type: '.resource_type'},
         {sql: :col, name: "#{name}_display", type: 'varchar'},
-        {sql: :col, name: "#{name}_reference", type: 'varchar'}
+        {sql: :col, name: "#{name}_reference", type: 'varchar'},
+        {sql: :col, name: "#{name}_inlined", type: 'boolean'}
       ]
     end
 

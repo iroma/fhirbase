@@ -11,7 +11,6 @@ describe FhirPg::Insert do
     subject.insert(DB, meta, load_json('pt2'))
   end
 
-
   def load_json(name)
     file = File.dirname(__FILE__) + "/fixtures/#{name}.json"
       JSON.parse(File.read(file))
@@ -47,6 +46,39 @@ describe FhirPg::Insert do
     mo['reference'].should == 'Organization/1'
 
     pt['name'].first['family']
+  end
+
+  it "#set_ids" do
+    res = subject.send(:set_ids, {
+      a: { b: 'val'},
+      c: [{d: 'val'}]
+    })
+    res[:id].should_not be_nil
+    res[:a][:id].should_not be_nil
+    res[:c].first[:id].should_not be_nil
+  end
+
+  it "#set_root_ids" do
+    res = subject.send(:set_root_ids, :pt, {
+      id: 1,
+      a: { b: 'val'},
+      c: [{d: 'val'}, { e: {f: 'val'}}]
+    })
+    res[:id].should_not be_nil
+    res[:a][:pt_id].should_not be_nil
+    res[:c].first[:pt_id].should_not be_nil
+    res[:c].second[:e][:pt_id].should_not be_nil
+  end
+
+  it "#set_parent_ids" do
+    res = subject.send(:set_parent_ids, :pt, {
+      id: 1,
+      a: { id: 2, b: {id: 6, v: 'val'}},
+      c: [{id: 3, d: 'val'}, {id: 4, e: {id: 5, f: 'val'}}]
+    })
+    res[:id].should_not be_nil
+    res[:a][:b][:pt_a_id].should_not be_nil
+    res[:c].second[:e][:pt_c_id].should_not be_nil
   end
 
   def compact(hash)
