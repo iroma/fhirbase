@@ -53,6 +53,5 @@ module FhirPg
         find(res[:id])
       end
     end
-
   end
 end

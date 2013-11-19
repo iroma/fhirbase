@@ -102,15 +102,21 @@ describe FhirPg::Schema do
     puts id.to_yaml
   end
 
+  def wfile(name, content)
+    open(File.dirname(__FILE__) + "/#{name}", 'w') {|f| f<< content }
+  end
+
+  it "yaml" do
+    wfile('schema.yaml', meta.to_yaml)
+  end
+
   it "sql" do
     sql = ''
     sql<< "drop schema if exists fhir cascade;\n"
     sql<< "create schema fhir;\n"
     sql<<  subject.generate_sql(meta, types_db, 'fhir')
 
-    open(File.dirname(__FILE__) + '/schema.sql', 'w') do |f|
-      f<< sql
-    end
+    wfile('schema.sql', sql)
     DB.execute(sql)
   end
 end
