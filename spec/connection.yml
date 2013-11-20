@@ -1,2 +1,2 @@
-db: test
-user: nicola
+db: fhir_test
+user: max

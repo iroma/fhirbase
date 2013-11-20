@@ -3,6 +3,7 @@ require "active_support/core_ext"
 
 module FhirPg
   autoload :Datatypes, 'fhir_pg/datatypes'
+  autoload :Extensions, 'fhir_pg/extensions'
   autoload :Xml, 'fhir_pg/xml'
   autoload :Resources, 'fhir_pg/resources'
   autoload :Schema, 'fhir_pg/schema'
