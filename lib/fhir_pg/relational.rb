@@ -5,10 +5,16 @@ module FhirPg
       create_schema(db)
       fill_datatypes(db, datatypes_xml)
       fill_resources_table(db, resources_xml)
+      create_views(db)
     end
 
     def drop_schema(db)
       sql = "drop schema if exists meta cascade"
+      db.execute(sql)
+    end
+
+    def create_views(db)
+      sql = File.read(File.dirname(__FILE__) + '/views.sql')
       db.execute(sql)
     end
 
@@ -17,15 +23,15 @@ module FhirPg
       db.execute(sql)
     end
 
-    def table(db, name)
-      (@tables ||= {})[name.to_sym] ||= db["meta__#{name}".to_sym]
+    def dataset(db, name)
+      (@dataset ||= {})[name.to_sym] ||= db["meta__#{name}".to_sym]
     end
 
     def fill_datatypes(db, xml)
-      datatypes = table(db, :datatypes)
+      datatypes = dataset(db, :datatypes)
       version = '0.12'
-      datatype_enums = table(db,:datatype_enums)
-      datatype_elements = table(db, :datatype_elements)
+      datatype_enums = dataset(db,:datatype_enums)
+      datatype_elements = dataset(db, :datatype_elements)
       (xml.xpath('//simpleType').to_a + xml.xpath('//complexType').to_a).each do |node|
         type = node[:name]
         next unless type
@@ -34,7 +40,7 @@ module FhirPg
           type: type,
           version: version,
           documentation: pg_array(node_text(node, './annotation/documentation')),
-          extension: pg_array(node_attrs(node, './complexContent/extension/attribute', :type)),
+          extension: node_attr(node, './complexContent/extension/attribute', :type),
           restriction_base: node_attr(node, './restriction', :base)
         )
 

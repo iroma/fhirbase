@@ -5,7 +5,7 @@ create table meta.datatypes (
   version varchar,
   type varchar,
   kind varchar,
-  extension varchar[],
+  extension varchar,
   restriction_base varchar,
   documentation text[],
   PRIMARY KEY(type)
