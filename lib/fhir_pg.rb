@@ -11,6 +11,7 @@ module FhirPg
   autoload :Select, 'fhir_pg/select'
   autoload :SQL, 'fhir_pg/sql'
   autoload :Repository, 'fhir_pg/repository'
+  autoload :Relational, 'fhir_pg/relational'
 
   def types_db
     @types_db ||= Datatypes.mk_db(Xml.load('test/fhir-base.xsd'))
