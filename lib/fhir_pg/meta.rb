@@ -1,7 +1,7 @@
 module FhirPg
   module Meta
     REQUIRED_ATTRS = [:kind, :name, :type]
-    KINDS = [:complex_type, :resource, :enum, :primitive]
+    KINDS = [:complex_type, :resource, :enum, :primitive, :extension]
     ALLOWED_KEYS = REQUIRED_ATTRS + [:attrs, :options, :path, :required, :collection]
 
     def mk_meta(attrs)

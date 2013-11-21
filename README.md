@@ -8,6 +8,49 @@ Pure relational database for fhir resources
 
 ```
 
+"extension" : [
+    {
+      "url" : "http://acme.org/fhir/profiles/@main#trial-status",
+      "extension" : [
+        {
+          "url" : "http://acme.org/fhir/profiles/@main#trial-status-code",
+          "valueCode" : "unsure"
+        },
+        {
+          "url" : "http://acme.org/fhir/profiles/@main#trial-status-date",
+          "valueDate" : "2009-03-14"
+        },
+        {
+          "url" : "http://acme.org/fhir/profiles/@main#trial-status-who",
+          "valueResource" : {
+            "reference" : "Practitioner/example"
+          }
+        }
+     ]
+   }
+  ]
+name: :extension : [
+    {
+      "url" : "http://acme.org/fhir/profiles/@main#trial-status",
+      "extension" : [
+        {
+          "url" : "http://acme.org/fhir/profiles/@main#trial-status-code",
+          "valueCode" : "unsure"
+        },
+        {
+          "url" : "http://acme.org/fhir/profiles/@main#trial-status-date",
+          "valueDate" : "2009-03-14"
+        },
+        {
+          "url" : "http://acme.org/fhir/profiles/@main#trial-status-who",
+          "valueResource" : {
+            "reference" : "Practitioner/example"
+          }
+        }
+     ]
+   }
+  ]
+
   {
     name: :patient
     attrs: {
@@ -68,6 +111,7 @@ Pure relational database for fhir resources
 resource -> table
 resource.attribute (enum || primitive) -> column
 resource.attribute (complex type) -> table
+resource.attribute (extension) -> table
 
 ## Installation
 

@@ -6,7 +6,7 @@ describe FhirPg::Insert do
   def meta;  FhirPg.meta; end
 
   before :each do
-    FhirPg.reload_schema(DB, 'fhir')
+#    FhirPg.reload_schema(DB, 'fhir')
     subject.insert(DB, meta, load_json('pt1'))
     subject.insert(DB, meta, load_json('pt2'))
   end

@@ -1,5 +1,49 @@
 module FhirPg
   module Extensions
+    def mk_db(xml, resources_db)
+      db = resources_db.dup
+      defn(xml).each do |n|
+        path = e_cn(n)
+        context = find_context(db, path.map{ |p| [p, :attrs] }.flatten)
+        (context[:extension] ||= {}).tap do |ex|
+          ex[:name] ||= :extension
+          ex[:kind] ||= :extension
+          ex[:type] ||= :extension
+          ex[:path] ||= (path + [:extension]).map(&:to_s).join('.')
+          (ex[:attrs] ||= {}).tap do |attrs|
+          end
+        end
+      end
+      db
+    end
+
+    private
+
+    def defn(x)
+      x.xpath('.//extensionDefn')
+    end
+
+    def find_context(context, path)
+      (path.size > 0) && find_context(context[path.first], path.last(path.size - 1)) || context
+    end
+
+    def mk_ex(db, n)
+      {
+        code: e_c(n),
+        context_type: e_cnt(n),
+        context: e_cn(n),
+        definition: e_d(n)
+      }
+    end
+
+    private
+
+    def mk_db_old(x)
+      defn(x).map do |n|
+        m_e(n) if r?(n)
+      end.compact
+    end
+
     def schema(x, s = 'fhir_ex')
       [d_s(s), c_s(s), "\n", c_ts(x, s)].compact.join("\n")
     end
@@ -21,7 +65,7 @@ module FhirPg
     end
 
     def c_ts(x, s)
-      mk_db(x).map do |m|
+      mk_db_old(x).map do |m|
         c_t(s, m)
       end.compact.join("\n\n")
     end
@@ -69,16 +113,6 @@ module FhirPg
 
     def c_th(s, t)
       "CREATE TABLE \"#{s}\".#{t} ("
-    end
-
-    def mk_db(x)
-      defn(x).map do |n|
-        m_e(n) if r?(n)
-      end.compact
-    end
-
-    def defn(x)
-      x.xpath('.//extensionDefn')
     end
 
     def m_e(n)

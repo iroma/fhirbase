@@ -3,6 +3,7 @@ module FhirPg
   module Insert
 
     def insert(db, meta, obj)
+      puts meta.to_yaml
       obj = normalize_keys(obj)
       resource_name =  resource_name(obj)
       obj[:resource_type] = resource_name.to_s
@@ -124,6 +125,10 @@ module FhirPg
 
     def is_ref?(meta)
       meta[:kind] == :ref
+    end
+
+    def is_extension?(meta)
+      meta[:kind] == :extension
     end
 
     def is_uuid?(str)
