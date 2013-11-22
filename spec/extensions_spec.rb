@@ -42,6 +42,16 @@ describe FhirPg::Extensions do
           end
         end
       end
+      p[:attrs][:contact][:attrs][:name][:attrs][:extension][:attrs][:kind].tap do |c|
+        c.should be_present
+        c[:name].should == :kind
+        c[:kind].should == :complex_type
+        c[:type].should == :coding
+        c[:path].should == 'patient.contact.name.extension.kind'
+        c[:collection].should be_false
+        c[:attrs][:system].should be_present
+        c[:attrs][:code].should be_present
+      end
     end
   end
 end
