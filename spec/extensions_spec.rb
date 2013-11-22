@@ -13,7 +13,7 @@ describe FhirPg::Extensions do
 
   let(:xml) { FhirPg::Xml.load('test/extension.xml') }
 
-  let(:db) { subject.mk_db(xml, resources_db) }
+  let(:db) { subject.mk_db(xml, resources_db, types_db) }
 
   example do
     context = {a: :b}
@@ -31,7 +31,15 @@ describe FhirPg::Extensions do
         e[:type].should == :extension
         e[:path].should == 'patient.extension'
         e[:attrs].tap do |a|
-          a.should_not be_nil
+          a.should be_present
+          a[:participation_agreement].tap do |d|
+            d.should be_present
+            d[:name].should == :participation_agreement
+            d[:kind].should == :primitive
+            d[:type].should == :uri
+            d[:path].should == 'patient.extension.participation_agreement'
+            d[:collection].should be_true
+          end
         end
       end
     end

@@ -1,6 +1,10 @@
 module FhirPg
   module Extensions
-    def mk_db(xml, resources_db)
+    def dt
+      FhirPg::Datatypes
+    end
+
+    def mk_db(xml, resources_db, types_db)
       db = resources_db.dup
       defn(xml).each do |n|
         path = e_cn(n)
@@ -11,6 +15,14 @@ module FhirPg
           ex[:type] ||= :extension
           ex[:path] ||= (path + [:extension]).map(&:to_s).join('.')
           (ex[:attrs] ||= {}).tap do |attrs|
+            name = e_c(n)
+            (attrs[name] ||= {}).tap do |d|
+              d[:path] = (path + [:extension, name]).map(&:to_s).join('.')
+              d[:collection] = el_collection?(n)
+              d[:required] = el_required?(n)
+              type = n.xpath('./definition/type/code').first[:value].underscore.to_sym
+              d.merge!(dt.mount(types_db, d[:path], type))
+            end
           end
         end
       end
@@ -34,6 +46,18 @@ module FhirPg
         context: e_cn(n),
         definition: e_d(n)
       }
+    end
+
+    def el_attr(el, attr)
+      el.xpath("./definition/#{attr}").first[:value]
+    end
+
+    def el_collection?(el)
+      el_attr(el, 'max') == '*'
+    end
+
+    def el_required?(el)
+      el_attr(el, 'min') == '1'
     end
 
     private
