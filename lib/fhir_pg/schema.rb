@@ -74,7 +74,7 @@ module FhirPg
     private
 
     def to_table(meta)
-      return unless [:resource, :complex_type].include?(meta[:kind])
+      return unless [:resource, :complex_type, :extension].include?(meta[:kind])
       [mk_table(meta)] + meta[:attrs].map do |_,attr|
         to_table(attr)
       end.compact.flatten

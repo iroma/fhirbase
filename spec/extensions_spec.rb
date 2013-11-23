@@ -54,4 +54,74 @@ describe FhirPg::Extensions do
       end
     end
   end
+
+  example do
+    json = load_json('extension')
+    obj = subject.prepare(json)
+    puts obj.to_yaml
+  end
+
+  example do
+    json = load_json('extension')
+    obj = FhirPg::Insert.insert(DB, db, json)
+  end
+
+  let(:tables) { FhirPg::Schema.to_tables(db) }
+
+  example do
+    nm = find_by_name(tables, 'patient_extensions')
+    nm.should_not be_nil
+
+    id = find_by_name(nm[:columns], 'id')
+    id.should_not be_nil
+    id[:sql].should == :pk
+    id[:type].should == 'uuid'
+    id[:collection].should_not be_true
+
+    pid = find_by_name(nm[:columns], 'patient_id')
+    pid.should_not be_nil
+    pid[:sql].should == :fk
+    pid[:type].should == 'uuid'
+    pid[:parent_table].should == 'patients'
+  end
+
+  example do
+    nm = find_by_name(tables, 'patient_contact_name_extension_kinds')
+    nm.should_not be_nil
+
+    id = find_by_name(nm[:columns], 'id')
+    id.should_not be_nil
+    id[:sql].should == :pk
+    id[:type].should == 'uuid'
+    id[:collection].should_not be_true
+
+    pid = find_by_name(nm[:columns], 'patient_id')
+    pid.should_not be_nil
+    pid[:sql].should == :fk
+    pid[:type].should == 'uuid'
+    pid[:parent_table].should == 'patients'
+  end
+
+  example do
+    sql = ''
+    sql<< "drop schema if exists fhir cascade;\n"
+    sql<< "create schema fhir;\n"
+    sql<<  FhirPg::Schema.generate_sql(db, types_db, 'fhir')
+
+    wfile('schema.sql', sql)
+    DB.execute(sql)
+  end
+
+  def load_json(name)
+    file = File.dirname(__FILE__) + "/fixtures/#{name}.json"
+    JSON.parse(File.read(file))
+  end
+
+  def find_by_name(coll, name)
+    coll.find {|c| c[:name] == name }
+  end
+
+  def wfile(name, content)
+    open(File.dirname(__FILE__) + "/#{name}", 'w') {|f| f<< content }
+  end
 end

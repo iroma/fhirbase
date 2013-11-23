@@ -122,18 +122,20 @@
       }
       ],
         "name": {
+            "extension": [ {
+              "url": "http://hl7.org/fhir/Profileiso-21090#kind",
+              "valueCoding":  [
+		{
+		  "system": "http://hl7.org/fhir/patient-contact-relationship",
+		  "code": "partner"
+		}]
+            } ],
           "family": [
             "du",
           "Marché"
             ],
           "_family": [
           {
-            "extension": [
-            {
-              "url": "http://hl7.org/fhir/Profileiso-21090#comment",
-              "valueString": "Some Comment"
-            }
-            ]
           },
           null
             ],

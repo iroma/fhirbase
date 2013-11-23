@@ -15,7 +15,7 @@
           :name: :status
           :kind: :enum
           :type: :narrative_status
-          :options: &5
+          :options: &21459400
           - additional
           - empty
           - extensions
@@ -35,7 +35,7 @@
           :name: :use
           :kind: :enum
           :type: :identifier_use
-          :options: &6
+          :options: &21540060
           - official
           - secondary
           - temp
@@ -98,7 +98,7 @@
           :name: :use
           :kind: :enum
           :type: :name_use
-          :options: &1
+          :options: &23572800
           - anonymous
           - maiden
           - nickname
@@ -178,7 +178,7 @@
           :name: :system
           :kind: :enum
           :type: :contact_system
-          :options: &2
+          :options: &21719440
           - email
           - fax
           - phone
@@ -197,7 +197,7 @@
           :name: :use
           :kind: :enum
           :type: :contact_use
-          :options: &3
+          :options: &21755060
           - home
           - mobile
           - old
@@ -320,7 +320,7 @@
           :name: :use
           :kind: :enum
           :type: :address_use
-          :options: &4
+          :options: &23577580
           - home
           - old
           - temp
@@ -597,7 +597,7 @@
               :name: :use
               :kind: :enum
               :type: :name_use
-              :options: *1
+              :options: *23572800
               :required: false
               :collection: false
               :path: patient.contact.name.use
@@ -670,7 +670,7 @@
               :name: :system
               :kind: :enum
               :type: :contact_system
-              :options: *2
+              :options: *21719440
               :required: false
               :collection: false
               :path: patient.contact.telecom.system
@@ -685,7 +685,7 @@
               :name: :use
               :kind: :enum
               :type: :contact_use
-              :options: *3
+              :options: *21755060
               :required: false
               :collection: false
               :path: patient.contact.telecom.use
@@ -723,7 +723,7 @@
               :name: :use
               :kind: :enum
               :type: :address_use
-              :options: *4
+              :options: *23577580
               :required: false
               :collection: false
               :path: patient.contact.address.use
@@ -1170,7 +1170,7 @@
           :name: :status
           :kind: :enum
           :type: :narrative_status
-          :options: *5
+          :options: *21459400
           :required: true
           :collection: false
           :path: organization.text.status
@@ -1186,7 +1186,7 @@
           :name: :use
           :kind: :enum
           :type: :identifier_use
-          :options: *6
+          :options: *21540060
           :required: false
           :collection: false
           :path: organization.identifier.use
@@ -1311,7 +1311,7 @@
           :name: :system
           :kind: :enum
           :type: :contact_system
-          :options: *2
+          :options: *21719440
           :required: false
           :collection: false
           :path: organization.telecom.system
@@ -1326,7 +1326,7 @@
           :name: :use
           :kind: :enum
           :type: :contact_use
-          :options: *3
+          :options: *21755060
           :required: false
           :collection: false
           :path: organization.telecom.use
@@ -1364,7 +1364,7 @@
           :name: :use
           :kind: :enum
           :type: :address_use
-          :options: *4
+          :options: *23577580
           :required: false
           :collection: false
           :path: organization.address.use
@@ -1516,7 +1516,7 @@
               :name: :use
               :kind: :enum
               :type: :name_use
-              :options: *1
+              :options: *23572800
               :required: false
               :collection: false
               :path: organization.contact.name.use
@@ -1589,7 +1589,7 @@
               :name: :system
               :kind: :enum
               :type: :contact_system
-              :options: *2
+              :options: *21719440
               :required: false
               :collection: false
               :path: organization.contact.telecom.system
@@ -1604,7 +1604,7 @@
               :name: :use
               :kind: :enum
               :type: :contact_use
-              :options: *3
+              :options: *21755060
               :required: false
               :collection: false
               :path: organization.contact.telecom.use
@@ -1642,7 +1642,7 @@
               :name: :use
               :kind: :enum
               :type: :address_use
-              :options: *4
+              :options: *23577580
               :required: false
               :collection: false
               :path: organization.contact.address.use
@@ -1801,7 +1801,7 @@
           :name: :status
           :kind: :enum
           :type: :narrative_status
-          :options: *5
+          :options: *21459400
           :required: true
           :collection: false
           :path: practitioner.text.status
@@ -1817,7 +1817,7 @@
           :name: :use
           :kind: :enum
           :type: :identifier_use
-          :options: *6
+          :options: *21540060
           :required: false
           :collection: false
           :path: practitioner.identifier.use
@@ -1876,7 +1876,7 @@
           :name: :use
           :kind: :enum
           :type: :name_use
-          :options: *1
+          :options: *23572800
           :required: false
           :collection: false
           :path: practitioner.name.use
@@ -1949,7 +1949,7 @@
           :name: :system
           :kind: :enum
           :type: :contact_system
-          :options: *2
+          :options: *21719440
           :required: false
           :collection: false
           :path: practitioner.telecom.system
@@ -1964,7 +1964,7 @@
           :name: :use
           :kind: :enum
           :type: :contact_use
-          :options: *3
+          :options: *21755060
           :required: false
           :collection: false
           :path: practitioner.telecom.use
@@ -2002,7 +2002,7 @@
           :name: :use
           :kind: :enum
           :type: :address_use
-          :options: *4
+          :options: *23577580
           :required: false
           :collection: false
           :path: practitioner.address.use
@@ -2516,7 +2516,7 @@
           :name: :status
           :kind: :enum
           :type: :narrative_status
-          :options: *5
+          :options: *21459400
           :required: true
           :collection: false
           :path: encounter.text.status
@@ -2532,7 +2532,7 @@
           :name: :use
           :kind: :enum
           :type: :identifier_use
-          :options: *6
+          :options: *21540060
           :required: false
           :collection: false
           :path: encounter.identifier.use
@@ -2723,8 +2723,8 @@
           :options:
           - <
           - <=
-          - '>'
-          - '>='
+          - ! '>'
+          - ! '>='
           :required: false
           :collection: false
           :path: encounter.length.comparator
@@ -2891,7 +2891,7 @@
               :name: :use
               :kind: :enum
               :type: :identifier_use
-              :options: *6
+              :options: *21540060
               :required: false
               :collection: false
               :path: encounter.hospitalization.pre_admission_identifier.use

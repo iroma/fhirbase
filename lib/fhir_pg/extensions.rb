@@ -29,6 +29,29 @@ module FhirPg
       db
     end
 
+    def prepare(obj)
+      obj.each do |key, value|
+        if key.to_s == 'extension'
+          ext = {}
+          value.each do |e|
+            e_key = e['url'].split("#").last.underscore.to_sym
+            e_value = e.select{|x, y| x.start_with?('value')}.first.last
+            ext[e_key] = e_value
+          end
+          value << ext
+        end
+        if value.is_a?(Array)
+          value.each do |v|
+            if v.is_a?(Hash)
+              prepare(v)
+            end
+          end
+        elsif value.is_a?(Hash)
+          prepare(value)
+        end
+      end
+    end
+
     private
 
     def defn(x)

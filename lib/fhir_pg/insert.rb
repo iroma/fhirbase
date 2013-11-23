@@ -3,7 +3,6 @@ module FhirPg
   module Insert
 
     def insert(db, meta, obj)
-      puts meta.to_yaml
       obj = normalize_keys(obj)
       resource_name =  resource_name(obj)
       obj[:resource_type] = resource_name.to_s
@@ -177,7 +176,7 @@ module FhirPg
     end
 
     def table?(meta)
-      [:resource, :complex_type].include?(meta[:kind])
+      [:resource, :complex_type, :extension].include?(meta[:kind])
     end
 
     def skip_attribute?(key)
