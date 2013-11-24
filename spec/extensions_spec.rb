@@ -16,6 +16,16 @@ describe FhirPg::Extensions do
   let(:db) { subject.mk_db(xml, resources_db, types_db) }
 
   example do
+    sql = ''
+    sql<< "drop schema if exists fhir cascade;\n"
+    sql<< "create schema fhir;\n"
+    sql<<  FhirPg::Schema.generate_sql(db, types_db, 'fhir')
+
+    wfile('schema.sql', sql)
+    DB.execute(sql)
+  end
+
+  example do
     context = {a: :b}
     db = {c: {d: :e, f: context}}
     subject.send(:find_context, db, [:c, :f]).should == context
@@ -115,16 +125,6 @@ describe FhirPg::Extensions do
     pid[:sql].should == :fk
     pid[:type].should == 'uuid'
     pid[:parent_table].should == 'patients'
-  end
-
-  example do
-    sql = ''
-    sql<< "drop schema if exists fhir cascade;\n"
-    sql<< "create schema fhir;\n"
-    sql<<  FhirPg::Schema.generate_sql(db, types_db, 'fhir')
-
-    wfile('schema.sql', sql)
-    DB.execute(sql)
   end
 
   def load_json(name)
