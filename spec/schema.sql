@@ -1286,7 +1286,24 @@ CREATE VIEW "fhir".view_patients AS select t1.id, row_to_json(t1, true) as json 
                   from fhir.patient_contact_name_periods t4
                   WHERE t4.patient_id = t1.id AND t4.patient_contact_name_id = t3.id
                 ) t4
-             ) as period, t3.use,t3.text,t3.family,t3.given,t3.prefix,t3.suffix
+             ) as period,
+            ( select
+              array_to_json(
+                array_agg(row_to_json(t4, true)), true) from
+                (
+                  select     ( select
+                  array_to_json(
+                    array_agg(row_to_json(t5, true)), true) from
+                    (
+                      select     t5.system,t5.version,t5.code,t5.display,t5.primary
+                      from fhir.patient_contact_name_extension_kinds t5
+                      WHERE t5.patient_id = t1.id AND t5.patient_contact_name_extension_id = t4.id
+                    ) t5
+                 ) as kind
+                  from fhir.patient_contact_name_extensions t4
+                  WHERE t4.patient_id = t1.id AND t4.patient_contact_name_id = t3.id
+                ) t4
+             ) as extension, t3.use,t3.text,t3.family,t3.given,t3.prefix,t3.suffix
               from fhir.patient_contact_names t3
               WHERE t3.patient_id = t1.id
             ) t3
@@ -1318,7 +1335,7 @@ CREATE VIEW "fhir".view_patients AS select t1.id, row_to_json(t1, true) as json 
                 (
                   select     t4.start,t4.end
                   from fhir.patient_contact_address_periods t4
-                  WHERE t4.patient_id = t1.id AND t4.patient_contact_addres_id = t3.id
+                  WHERE t4.patient_id = t1.id AND t4.patient_contact_address_id = t3.id
                 ) t4
              ) as period, t3.use,t3.text,t3.line,t3.city,t3.state,t3.zip,t3.country
               from fhir.patient_contact_addresses t3
@@ -1394,7 +1411,7 @@ CREATE VIEW "fhir".view_patients AS select t1.id, row_to_json(t1, true) as json 
                 (
                   select     t4.system,t4.version,t4.code,t4.display,t4.primary
                   from fhir.patient_animal_gender_status_codings t4
-                  WHERE t4.patient_id = t1.id AND t4.patient_animal_gender_statu_id = t3.id
+                  WHERE t4.patient_id = t1.id AND t4.patient_animal_gender_status_id = t3.id
                 ) t4
              ) as coding, t3.text
               from fhir.patient_animal_gender_statuses t3
@@ -1430,7 +1447,16 @@ CREATE VIEW "fhir".view_patients AS select t1.id, row_to_json(t1, true) as json 
           from fhir.patient_links t2
           WHERE t2.patient_id = t1.id
         ) t2
-     ) as link, t1.birth_date,t1.deceased_boolean,t1.deceased_date_time,t1.multiple_birth_boolean,t1.multiple_birth_integer,t1.active,t1.resource_type, hstore_to_json(hstore(ARRAY['reference', t1.care_provider_reference ,'display',t1.care_provider_display])) as care_provider,hstore_to_json(hstore(ARRAY['reference', t1.managing_organization_reference ,'display',t1.managing_organization_display])) as managing_organization
+     ) as link,
+    ( select
+      array_to_json(
+        array_agg(row_to_json(t2, true)), true) from
+        (
+          select     t2.participation_agreement
+          from fhir.patient_extensions t2
+          WHERE t2.patient_id = t1.id
+        ) t2
+     ) as extension, t1.birth_date,t1.deceased_boolean,t1.deceased_date_time,t1.multiple_birth_boolean,t1.multiple_birth_integer,t1.active,t1.resource_type, hstore_to_json(hstore(ARRAY['reference', t1.care_provider_reference ,'display',t1.care_provider_display])) as care_provider,hstore_to_json(hstore(ARRAY['reference', t1.managing_organization_reference ,'display',t1.managing_organization_display])) as managing_organization
   from fhir.patients t1
 ) t1
 ;
@@ -1578,7 +1604,7 @@ CREATE VIEW "fhir".view_organizations AS select t1.id, row_to_json(t1, true) as 
                 (
                   select     t4.start,t4.end
                   from fhir.organization_contact_address_periods t4
-                  WHERE t4.organization_id = t1.id AND t4.organization_contact_addres_id = t3.id
+                  WHERE t4.organization_id = t1.id AND t4.organization_contact_address_id = t3.id
                 ) t4
              ) as period, t3.use,t3.text,t3.line,t3.city,t3.state,t3.zip,t3.country
               from fhir.organization_contact_addresses t3

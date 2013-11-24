@@ -13,6 +13,8 @@ module FhirPg
           ex[:name] ||= :extension
           ex[:kind] ||= :extension
           ex[:type] ||= :extension
+          ex[:collection] ||= true
+          ex[:required] ||= false
           ex[:path] ||= (path + [:extension]).map(&:to_s).join('.')
           (ex[:attrs] ||= {}).tap do |attrs|
             name = e_c(n)

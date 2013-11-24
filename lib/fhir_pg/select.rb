@@ -101,7 +101,7 @@ select
       return unless deep_table?(path)
       parent_name = path.split('.')[0..-2].join('_').underscore
       parent_table = prev(aliaz)
-      "#{aliaz}.#{parent_name.singularize}_id = #{parent_table}.id"
+      "#{aliaz}.#{parent_name.to_s}_id = #{parent_table}.id"
     end
 
 
@@ -114,7 +114,7 @@ select
     end
 
     def table?(m)
-      m.present? && [:resource, :complex_type].include?(m[:kind])
+      m.present? && [:resource, :complex_type, :extension].include?(m[:kind])
     end
 
     def table_name(meta)

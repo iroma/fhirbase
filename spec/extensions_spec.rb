@@ -66,6 +66,19 @@ describe FhirPg::Extensions do
     json = load_json('extension')
     obj = subject.prepare(json)
     FhirPg::Insert.insert(DB, db, obj)
+    sql = FhirPg::Select.select_sql(db, :patient)
+    DB[sql].each do |row|
+      puts
+      puts 'Patient'
+      puts '-'*30
+      puts compact(JSON.parse(row[:json])).to_yaml
+    end
+  end
+
+  example do
+    json = load_json('extension')
+    obj = subject.prepare(json)
+    FhirPg::Insert.insert(DB, db, obj)
   end
 
   let(:tables) { FhirPg::Schema.to_tables(db) }
@@ -125,5 +138,21 @@ describe FhirPg::Extensions do
 
   def wfile(name, content)
     open(File.dirname(__FILE__) + "/#{name}", 'w') {|f| f<< content }
+  end
+
+  def compact(hash)
+    hash.each_with_object({}) do |(k,v), acc|
+      if v.is_a?(Hash)
+        acc[k] = compact(v)
+      elsif v.is_a?(Array) && v.present?
+        acc[k] = v.map do |i|
+          i.is_a?(Hash) ?  compact(i) : i
+        end
+      else
+        if v.present?
+          acc[k] = v
+        end
+      end
+    end
   end
 end
