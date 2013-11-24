@@ -58,12 +58,14 @@ describe FhirPg::Extensions do
   example do
     json = load_json('extension')
     obj = subject.prepare(json)
-    puts obj.to_yaml
+    obj['extension'].first['participation_agreement'].should == 'Some Agreement'
+    obj['contact'].first['name']['extension'].first['kind'].first['code'].should == 'partner'
   end
 
   example do
     json = load_json('extension')
-    obj = FhirPg::Insert.insert(DB, db, json)
+    obj = subject.prepare(json)
+    FhirPg::Insert.insert(DB, db, obj)
   end
 
   let(:tables) { FhirPg::Schema.to_tables(db) }

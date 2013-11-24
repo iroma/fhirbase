@@ -34,10 +34,11 @@ module FhirPg
         if key.to_s == 'extension'
           ext = {}
           value.each do |e|
-            e_key = e['url'].split("#").last.underscore.to_sym
-            e_value = e.select{|x, y| x.start_with?('value')}.first.last
-            ext[e_key] = e_value
+            e_key = e['url'].split("#").last.underscore
+            e_value = e.select{|x, y| x.start_with?('value')}.first
+            ext[e_key] = e_value.last
           end
+          value.clear
           value << ext
         end
         if value.is_a?(Array)
