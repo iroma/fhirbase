@@ -67,14 +67,14 @@ describe FhirPg::Extensions do
 
   example do
     json = load_json('extension')
-    obj = subject.prepare(json)
+    obj = subject.uniform(json)
     obj['extension'].first['participation_agreement'].should == 'Some Agreement'
     obj['contact'].first['name']['extension'].first['kind'].first['code'].should == 'partner'
   end
 
   example do
     json = load_json('extension')
-    obj = subject.prepare(json)
+    obj = subject.uniform(json)
     FhirPg::Insert.insert(DB, db, obj)
     sql = FhirPg::Select.select_sql(db, :patient)
     DB[sql].each do |row|
@@ -87,7 +87,7 @@ describe FhirPg::Extensions do
 
   example do
     json = load_json('extension')
-    obj = subject.prepare(json)
+    obj = subject.uniform(json)
     FhirPg::Insert.insert(DB, db, obj)
   end
 

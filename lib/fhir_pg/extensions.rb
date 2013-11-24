@@ -31,7 +31,7 @@ module FhirPg
       db
     end
 
-    def prepare(obj)
+    def uniform(obj)
       obj.each do |key, value|
         if key.to_s == 'extension'
           ext = {}
@@ -48,13 +48,17 @@ module FhirPg
         if value.is_a?(Array)
           value.each do |v|
             if v.is_a?(Hash)
-              prepare(v)
+              uniform(v)
             end
           end
         elsif value.is_a?(Hash)
-          prepare(value)
+          uniform(value)
         end
       end
+    end
+
+    def expand(obj, url)
+      obj
     end
 
     private
