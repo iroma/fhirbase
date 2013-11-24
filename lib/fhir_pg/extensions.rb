@@ -38,7 +38,9 @@ module FhirPg
           value.each do |e|
             e_key = e['url'].split("#").last.underscore
             e_value = e.select{|x, y| x.start_with?('value')}.first
-            ext[e_key] = e_value.last
+            if e_value.present?
+              ext[e_key] = e_value.last
+            end
           end
           value.clear
           value << ext

@@ -4,6 +4,22 @@
 	{
 		"url": "http://hl7.org/fhir/Profileiso-21090#participation-agreement",
 		"valueUri": "Some Agreement"
+	},
+	{
+		"url" : "http://acme.org/fhir/profiles/@main#trial-status",
+		"extension" : [
+		{
+			"url" : "http://acme.org/fhir/profiles/@main#trial-status-code",
+			"valueCode" : "unsure"
+		},
+		{
+			"url" : "http://acme.org/fhir/profiles/@main#trial-status-date",
+			"valueDate" : "2009-03-14"
+		},
+		{
+			"url" : "http://acme.org/fhir/profiles/@main#trial-status-who",
+			"valueResource" : { "reference" : "Practitioner/example" }
+		}]
 	}
 	],
   "text": {
