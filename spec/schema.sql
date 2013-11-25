@@ -254,7 +254,7 @@ CREATE TABLE "fhir".patient_animal_species (
 CREATE TABLE "fhir".patient_animal_species_codings (
 "id" uuid,
 "patient_id" uuid references fhir.patients(id),
-"patient_animal_specy_id" uuid references fhir.patient_animal_species(id),
+"patient_animal_species_id" uuid references fhir.patient_animal_species(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
@@ -976,7 +976,7 @@ CREATE INDEX pat_ani_pat_id_idx ON "fhir".patient_animals (patient_id);
 CREATE INDEX pat_ani_spe_pat_id_idx ON "fhir".patient_animal_species (patient_id);
 CREATE INDEX pat_ani_spe_pat_ani_id_idx ON "fhir".patient_animal_species (patient_animal_id);
 CREATE INDEX pat_ani_spe_cod_pat_id_idx ON "fhir".patient_animal_species_codings (patient_id);
-CREATE INDEX pat_ani_spe_cod_pat_ani_spe_id_idx ON "fhir".patient_animal_species_codings (patient_animal_specy_id);
+CREATE INDEX pat_ani_spe_cod_pat_ani_spe_id_idx ON "fhir".patient_animal_species_codings (patient_animal_species_id);
 CREATE INDEX pat_ani_bre_pat_id_idx ON "fhir".patient_animal_breeds (patient_id);
 CREATE INDEX pat_ani_bre_pat_ani_id_idx ON "fhir".patient_animal_breeds (patient_animal_id);
 CREATE INDEX pat_ani_bre_cod_pat_id_idx ON "fhir".patient_animal_breed_codings (patient_id);
@@ -1293,7 +1293,7 @@ CREATE VIEW "fhir".view_patients AS select t1.id, row_to_json(t1, true) as json 
                 (
                   select     t4.start,t4.end
                   from fhir.patient_contact_address_periods t4
-                  WHERE t4.patient_id = t1.id AND t4.patient_contact_address_id = t3.id
+                  WHERE t4.patient_id = t1.id AND t4.patient_contact_addres_id = t3.id
                 ) t4
              ) as period, t3.use,t3.text,t3.line,t3.city,t3.state,t3.zip,t3.country
               from fhir.patient_contact_addresses t3
@@ -1335,7 +1335,7 @@ CREATE VIEW "fhir".view_patients AS select t1.id, row_to_json(t1, true) as json 
                 (
                   select     t4.system,t4.version,t4.code,t4.display,t4.primary
                   from fhir.patient_animal_species_codings t4
-                  WHERE t4.patient_id = t1.id AND t4.patient_animal_specy_id = t3.id
+                  WHERE t4.patient_id = t1.id AND t4.patient_animal_species_id = t3.id
                 ) t4
              ) as coding, t3.text
               from fhir.patient_animal_species t3
@@ -1369,7 +1369,7 @@ CREATE VIEW "fhir".view_patients AS select t1.id, row_to_json(t1, true) as json 
                 (
                   select     t4.system,t4.version,t4.code,t4.display,t4.primary
                   from fhir.patient_animal_gender_status_codings t4
-                  WHERE t4.patient_id = t1.id AND t4.patient_animal_gender_status_id = t3.id
+                  WHERE t4.patient_id = t1.id AND t4.patient_animal_gender_statu_id = t3.id
                 ) t4
              ) as coding, t3.text
               from fhir.patient_animal_gender_statuses t3
@@ -1553,7 +1553,7 @@ CREATE VIEW "fhir".view_organizations AS select t1.id, row_to_json(t1, true) as 
                 (
                   select     t4.start,t4.end
                   from fhir.organization_contact_address_periods t4
-                  WHERE t4.organization_id = t1.id AND t4.organization_contact_address_id = t3.id
+                  WHERE t4.organization_id = t1.id AND t4.organization_contact_addres_id = t3.id
                 ) t4
              ) as period, t3.use,t3.text,t3.line,t3.city,t3.state,t3.zip,t3.country
               from fhir.organization_contact_addresses t3
