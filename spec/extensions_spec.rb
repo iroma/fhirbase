@@ -74,6 +74,14 @@ describe FhirPg::Extensions do
 
   example do
     json = load_json('extension')
+    obj = subject.expand(subject.uniform(json), 'test')
+    puts obj.to_yaml
+    obj['extension'].first['url'].should == 'test#participation_agreement'
+    obj['extension'].first['valueUri'].should == 'Some Agreement'
+  end
+
+  example do
+    json = load_json('extension')
     obj = subject.uniform(json)
     FhirPg::Insert.insert(DB, db, obj)
     sql = FhirPg::Select.select_sql(db, :patient)

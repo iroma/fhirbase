@@ -58,7 +58,34 @@ module FhirPg
     end
 
     def expand(obj, url)
-      obj
+      obj.each do |key, value|
+        if key.to_s == 'extension'
+          arr = []
+          e = value.first
+          if e
+            e.each do |k, v|
+              arr << {
+                'url' => "#{url}\##{k}",
+                'value' => v
+              }
+            end
+          end
+          puts arr.to_yaml
+          value.clear
+          arr.each do |a|
+            value << a
+          end
+        end
+        if value.is_a?(Array)
+          value.each do |v|
+            if v.is_a?(Hash)
+              expand(v, url)
+            end
+          end
+        elsif value.is_a?(Hash)
+          expand(value, url)
+        end
+      end
     end
 
     private
