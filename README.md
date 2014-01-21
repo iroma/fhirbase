@@ -76,6 +76,25 @@ resource.attribute (complex type) -> table
 * configure spec/connection.yml
 * rspec spec
 
+Install plv8 on ubuntu 13.04
+apt-source deb http://apt.postgresql.org/pub/repos/apt/ squeeze-pgdg main
+
+```bash
+git clone https://code.google.com/p/plv8js/
+cd plv8js
+
+sudo apt-get install libv8 libv8-dev libpq
+sudo apt-get install postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3
+sudo apt-get install libpq-dev
+sudo make
+sudo make install
+
+```
+
+on ubuntu 14.04 (trusty)
+sudo apt-get install postgresql-9.3 postgresql-9.3-plv8 ...
+
+
 ## TODO
 
 * resource references
