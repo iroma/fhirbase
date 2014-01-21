@@ -133,6 +133,18 @@ sudo apt-get install libpq-dev
 sudo make
 sudo make install
 
+ubuntu 13.10
+
+sudo add-apt-repository ppa:chris-lea/postgresql-9.3
+sudo apt-get install postgresql-server-dev-9.3
+sudo apt-get install postgresql-contrib-9.3
+
+git clone https://code.google.com/p/plv8js/
+cd plv8js
+make
+sudo make install
+
+
 ```
 
 on ubuntu 14.04 (trusty)
