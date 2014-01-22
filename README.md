@@ -154,6 +154,13 @@ sudo vim /etc/postgresql/9.3/main/postgresql.conf
 plv8.start_proc = 'plv8_init'
 
 
+Install nodejs (nvm)
+
+npm install -g coffee-script
+npm install js2coffee
+coffee --compile --output db/src/ db/js/ 
+
+
 ## TODO
 
 * resource references
