@@ -22,3 +22,12 @@ eq(this.str.underscore("maxBodnarChuk"), 'max_bodnar_chuk')
 eq(this.str.camelize('max_bodnarchuk'), "maxBodnarchuk")
 eq(this.str.camelize('max_bodnarchuk'), "maxBodnarchuk")
 eq(this.str.camelize('max_bodnar_chuk'), "maxBodnarChuk")
+
+
+assert(this.u.isObject({}));
+assert(!this.u.isObject([]));
+assert(!this.u.isObject(1));
+assert(!this.u.isObject('vasiliy'));
+assert(!this.u.isObject(new Date()));
+assert(!this.u.isObject(false));
+assert(!this.u.isObject(true));

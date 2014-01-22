@@ -1,7 +1,7 @@
 --db:test
 --{{{
-CREATE EXTENSION IF NOT EXISTS plv8;
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+--CREATE EXTENSION IF NOT EXISTS plv8;
+--CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 drop table if exists plv8_modules;
 
 create table plv8_modules(modname text primary key, load_on_start boolean, code text);
@@ -22,6 +22,21 @@ create OR replace function public.plv8_init()
   };
 $$;
 
+create OR replace function public.insert_resource(json json)
+  returns void
+  language plv8
+  as $$
+  load_module('medapp');
+  sql.insert_resource(json)
+$$;
+
+\set json `cat ./pt1.json` 
+
+select insert_resource(:'json');
+
+--}}}
+
+--{{{
 do language plv8 $$
   load_module('medapp')
   u.log(str.underscore("MaxBodnarchuk"))
@@ -29,4 +44,5 @@ do language plv8 $$
   var attrs = {a: 1, b: 2}
   u.log(sql.fields_to_insert(columns, attrs))
 $$;
+  select * from plv8_modules;
 --}}}

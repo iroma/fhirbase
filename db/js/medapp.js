@@ -3,17 +3,52 @@ this.sql  = {
     return columns.reduce(function(acc, m){
       var an = m.column_name
       if(obj[an]){ acc[an] = obj[an] }
-    return acc;
+      return acc;
     },{})
+  },
+  insert_obj: function (name, obj){
+    return plv8.execute(
+      'insert into ' + name +' (select * from json_populate_recordset(null::' + name + ', $1::json))'
+      , [JSON.stringify([obj])]);
+  },
+  columns: function(table_name){
+    return plv8.execute(
+      'select column_name from information_schema.columns where table_name = $1', [table_name])
+
+  },
+  insert_resource: function(json){
+    json = normalize_keys(json);
+    plv8.elog(NOTICE, str.underscore(json.resourceType));
+  },
+  normalize_keys: function normalize_keys(json) {
+    new_json = {}
+    for (var key in json) {
+      var value = json[p]
+      if (u.isObject(value)) {
+        value = normalize_keys(value);
+      } else if (Array.isArray(value)) {
+        value = value.map(function(v) {
+          if (u.isObject(v)) {
+            return normalize_keys(v);
+          } else {
+            return v;
+          }
+        })
+      }
+      new_json[str.underscore(p)] = value;
+    }
+    return new_json;
   }
 }
 
 this.u = {
   log: function(mess){
     plv8.elog(NOTICE, JSON.stringify(mess));
+  },
+  isObject: function(obj){
+    return Object.prototype.toString.call(obj) == '[object Object]';
   }
 }
-
 
 this.str = {
   underscore: function(str){

@@ -150,6 +150,9 @@ sudo make install
 on ubuntu 14.04 (trusty)
 sudo apt-get install postgresql-9.3 postgresql-9.3-plv8 ...
 
+sudo vim /etc/postgresql/9.3/main/postgresql.conf
+plv8.start_proc = 'plv8_init'
+
 
 ## TODO
 

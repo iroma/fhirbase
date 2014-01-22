@@ -191,21 +191,6 @@ CREATE TABLE "fhir".patient_contact_name_periods (
 "start" timestamp,
 "end" timestamp,
  PRIMARY KEY(id)) ;
-CREATE TABLE "fhir".patient_contact_name_extensions (
-"id" uuid,
-"patient_id" uuid references fhir.patients(id),
-"patient_contact_name_id" uuid references fhir.patient_contact_names(id),
- PRIMARY KEY(id)) ;
-CREATE TABLE "fhir".patient_contact_name_extension_kinds (
-"id" uuid,
-"patient_id" uuid references fhir.patients(id),
-"patient_contact_name_extension_id" uuid references fhir.patient_contact_name_extensions(id),
-"system" varchar,
-"version" varchar,
-"code" varchar,
-"display" varchar,
-"primary" boolean,
- PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_contact_telecoms (
 "id" uuid,
 "patient_id" uuid references fhir.patients(id),
@@ -269,7 +254,7 @@ CREATE TABLE "fhir".patient_animal_species (
 CREATE TABLE "fhir".patient_animal_species_codings (
 "id" uuid,
 "patient_id" uuid references fhir.patients(id),
-"patient_animal_species_id" uuid references fhir.patient_animal_species(id),
+"patient_animal_specy_id" uuid references fhir.patient_animal_species(id),
 "system" varchar,
 "version" varchar,
 "code" varchar,
@@ -332,11 +317,6 @@ CREATE TABLE "fhir".patient_links (
 "other_reference" varchar,
 "other_inlined" boolean,
 "type" varchar,
- PRIMARY KEY(id)) ;
-CREATE TABLE "fhir".patient_extensions (
-"id" uuid,
-"patient_id" uuid references fhir.patients(id),
-"participation_agreement" varchar,
  PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organizations (
 "name" varchar,
@@ -980,10 +960,6 @@ CREATE INDEX pat_con_nam_pat_id_idx ON "fhir".patient_contact_names (patient_id)
 CREATE INDEX pat_con_nam_pat_con_id_idx ON "fhir".patient_contact_names (patient_contact_id);
 CREATE INDEX pat_con_nam_per_pat_id_idx ON "fhir".patient_contact_name_periods (patient_id);
 CREATE INDEX pat_con_nam_per_pat_con_nam_id_idx ON "fhir".patient_contact_name_periods (patient_contact_name_id);
-CREATE INDEX pat_con_nam_ext_pat_id_idx ON "fhir".patient_contact_name_extensions (patient_id);
-CREATE INDEX pat_con_nam_ext_pat_con_nam_id_idx ON "fhir".patient_contact_name_extensions (patient_contact_name_id);
-CREATE INDEX pat_con_nam_ext_kin_pat_id_idx ON "fhir".patient_contact_name_extension_kinds (patient_id);
-CREATE INDEX pat_con_nam_ext_kin_pat_con_nam_ext_id_idx ON "fhir".patient_contact_name_extension_kinds (patient_contact_name_extension_id);
 CREATE INDEX pat_con_tel_pat_id_idx ON "fhir".patient_contact_telecoms (patient_id);
 CREATE INDEX pat_con_tel_pat_con_id_idx ON "fhir".patient_contact_telecoms (patient_contact_id);
 CREATE INDEX pat_con_tel_per_pat_id_idx ON "fhir".patient_contact_telecom_periods (patient_id);
@@ -1000,7 +976,7 @@ CREATE INDEX pat_ani_pat_id_idx ON "fhir".patient_animals (patient_id);
 CREATE INDEX pat_ani_spe_pat_id_idx ON "fhir".patient_animal_species (patient_id);
 CREATE INDEX pat_ani_spe_pat_ani_id_idx ON "fhir".patient_animal_species (patient_animal_id);
 CREATE INDEX pat_ani_spe_cod_pat_id_idx ON "fhir".patient_animal_species_codings (patient_id);
-CREATE INDEX pat_ani_spe_cod_pat_ani_spe_id_idx ON "fhir".patient_animal_species_codings (patient_animal_species_id);
+CREATE INDEX pat_ani_spe_cod_pat_ani_spe_id_idx ON "fhir".patient_animal_species_codings (patient_animal_specy_id);
 CREATE INDEX pat_ani_bre_pat_id_idx ON "fhir".patient_animal_breeds (patient_id);
 CREATE INDEX pat_ani_bre_pat_ani_id_idx ON "fhir".patient_animal_breeds (patient_animal_id);
 CREATE INDEX pat_ani_bre_cod_pat_id_idx ON "fhir".patient_animal_breed_codings (patient_id);
@@ -1013,7 +989,6 @@ CREATE INDEX pat_com_pat_id_idx ON "fhir".patient_communications (patient_id);
 CREATE INDEX pat_com_cod_pat_id_idx ON "fhir".patient_communication_codings (patient_id);
 CREATE INDEX pat_com_cod_pat_com_id_idx ON "fhir".patient_communication_codings (patient_communication_id);
 CREATE INDEX pat_lin_pat_id_idx ON "fhir".patient_links (patient_id);
-CREATE INDEX pat_ext_pat_id_idx ON "fhir".patient_extensions (patient_id);
 CREATE INDEX org_tex_org_id_idx ON "fhir".organization_texts (organization_id);
 CREATE INDEX org_ide_org_id_idx ON "fhir".organization_identifiers (organization_id);
 CREATE INDEX org_ide_per_org_id_idx ON "fhir".organization_identifier_periods (organization_id);
@@ -1286,24 +1261,7 @@ CREATE VIEW "fhir".view_patients AS select t1.id, row_to_json(t1, true) as json 
                   from fhir.patient_contact_name_periods t4
                   WHERE t4.patient_id = t1.id AND t4.patient_contact_name_id = t3.id
                 ) t4
-             ) as period,
-            ( select
-              array_to_json(
-                array_agg(row_to_json(t4, true)), true) from
-                (
-                  select     ( select
-                  array_to_json(
-                    array_agg(row_to_json(t5, true)), true) from
-                    (
-                      select     t5.system,t5.version,t5.code,t5.display,t5.primary
-                      from fhir.patient_contact_name_extension_kinds t5
-                      WHERE t5.patient_id = t1.id AND t5.patient_contact_name_extension_id = t4.id
-                    ) t5
-                 ) as kind
-                  from fhir.patient_contact_name_extensions t4
-                  WHERE t4.patient_id = t1.id AND t4.patient_contact_name_id = t3.id
-                ) t4
-             ) as extension, t3.use,t3.text,t3.family,t3.given,t3.prefix,t3.suffix
+             ) as period, t3.use,t3.text,t3.family,t3.given,t3.prefix,t3.suffix
               from fhir.patient_contact_names t3
               WHERE t3.patient_id = t1.id
             ) t3
@@ -1447,16 +1405,7 @@ CREATE VIEW "fhir".view_patients AS select t1.id, row_to_json(t1, true) as json 
           from fhir.patient_links t2
           WHERE t2.patient_id = t1.id
         ) t2
-     ) as link,
-    ( select
-      array_to_json(
-        array_agg(row_to_json(t2, true)), true) from
-        (
-          select     t2.participation_agreement
-          from fhir.patient_extensions t2
-          WHERE t2.patient_id = t1.id
-        ) t2
-     ) as extension, t1.birth_date,t1.deceased_boolean,t1.deceased_date_time,t1.multiple_birth_boolean,t1.multiple_birth_integer,t1.active,t1.resource_type, hstore_to_json(hstore(ARRAY['reference', t1.care_provider_reference ,'display',t1.care_provider_display])) as care_provider,hstore_to_json(hstore(ARRAY['reference', t1.managing_organization_reference ,'display',t1.managing_organization_display])) as managing_organization
+     ) as link, t1.birth_date,t1.deceased_boolean,t1.deceased_date_time,t1.multiple_birth_boolean,t1.multiple_birth_integer,t1.active,t1.resource_type, hstore_to_json(hstore(ARRAY['reference', t1.care_provider_reference ,'display',t1.care_provider_display])) as care_provider,hstore_to_json(hstore(ARRAY['reference', t1.managing_organization_reference ,'display',t1.managing_organization_display])) as managing_organization
   from fhir.patients t1
 ) t1
 ;

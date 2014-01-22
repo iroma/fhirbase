@@ -16,7 +16,7 @@ module FhirPg
       obj
     end
 
-    protected
+
 
     def insert_contained_resources(db, meta, root_id, contained_resources_idx)
       contained_resources_idx.values.map do |res_attrs|
