@@ -1,3 +1,5 @@
+var self = this;
+
 this.sql  = {
   fields_to_insert: function(columns, obj){
     return columns.reduce(function(acc, m){
@@ -20,22 +22,22 @@ this.sql  = {
     json = normalize_keys(json);
     plv8.elog(NOTICE, str.underscore(json.resourceType));
   },
-  normalize_keys: function normalize_keys(json) {
-    new_json = {}
+  normalize_keys: function(json) {
+    var new_json = {}
     for (var key in json) {
-      var value = json[p]
-      if (u.isObject(value)) {
-        value = normalize_keys(value);
+      var value = json[key]
+      if (self.u.isObject(value)) {
+        value = self.sql.normalize_keys(value);
       } else if (Array.isArray(value)) {
         value = value.map(function(v) {
-          if (u.isObject(v)) {
-            return normalize_keys(v);
+          if (self.u.isObject(v)) {
+            return self.sql.normalize_keys(v);
           } else {
             return v;
           }
         })
       }
-      new_json[str.underscore(p)] = value;
+      new_json[self.str.underscore(key)] = value;
     }
     return new_json;
   }
