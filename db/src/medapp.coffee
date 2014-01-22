@@ -1,6 +1,7 @@
 self = this
 @sql =
   fields_to_insert: (columns, obj) ->
+    console.log('here')
     columns.reduce ((acc, m) ->
       an = m.column_name
       acc[an] = obj[an]  if obj[an]
@@ -47,3 +48,19 @@ self = this
   camelize: (str) ->
     str.replace /[-_\s]+(.)?/g, (match, c) ->
       (if c then c.toUpperCase() else "")
+
+  is_vowel: (char) ->
+    /[aeiou]/.test char if char.length is 1
+
+  pluralize: (str) ->
+    if str.slice(-1) is "y"
+      if self.str.is_vowel((str.charAt(str.length - 2)))
+        str + "s"
+      else
+        str.slice(0, -1) + "ies"
+    else if str.substring(str.length - 2) is "us"
+      str.slice(0, -2) + "i"
+    else if ["ch", "sh"].indexOf(str.substring(str.length - 2)) isnt -1 or ["x", "s"].indexOf(str.slice(-1)) isnt -1
+      str + "es"
+    else
+      str + "s"
