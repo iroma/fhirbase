@@ -4,7 +4,7 @@ Document/Relational hybryde database for FHIR
 
 ## Installation
 
-[hemlet](doc/hemlet.png)
+![hemlet](doc/hemlet.png)
 
 ```
   sudo apt-get postgresql-9.3 postgresql-contrib-9.3 postgresql-plv8-9.3
