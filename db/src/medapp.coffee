@@ -1,38 +1,65 @@
 self = this
 @sql =
-  fields_to_insert: (columns, obj) ->
-    console.log('here')
-    columns.reduce ((acc, m) ->
-      an = m.column_name
-      acc[an] = obj[an]  if obj[an]
-      acc
-    ), {}
+  log: (mess)->
+    plv8.elog(NOTICE, JSON.stringify(mess))
 
-  insert_obj: (name, obj) ->
-    plv8.execute "insert into " + name + " (select * from json_populate_recordset(null::" + name + ", $1::json))", [JSON.stringify([obj])]
+  insert_record: (table_name, attrs) ->
+    plv8.execute "insert into #{table_name} (select * from json_populate_recordset(null::#{table_name}, $1::json))", [JSON.stringify([attrs])]
 
   columns: (table_name) ->
     plv8.execute "select column_name from information_schema.columns where table_name = $1", [table_name]
 
-  insert_resource: (json) ->
-    json = normalize_keys(json)
-    plv8.elog NOTICE, str.underscore(json.resourceType)
+  collect_attributes: (table_name, obj) ->
+    columns = self.sql.columns(table_name)
+    columns.reduce ((acc, m) ->
+      an = self.str.camelize(m.column_name)
+      self.sql.log(m)
+      acc[m.column_name] = obj[an] if obj[an]
+      acc
+    ), {}
 
-  normalize_keys: (json) ->
-    new_json = {}
-    for key of json
-      value = json[key]
+  uuid: ()->
+    sql = 'select uuid_generate_v4() as uuid'
+    plv8.execute(sql)[0]['uuid']
+
+  insert_resource: (json) ->
+    resource_name = json.resourceType
+    s = self.str
+    sql = self.sql
+    uuid = sql.uuid
+    schema = 'fhir.'
+
+    sql.walk [], s.underscore(resource_name), json, (parents, name, obj)->
+      attrs = sql.collect_attributes(s.pluralize(name), obj)
+      attrs.id ||= uuid()
+
+      table_name = s.pluralize(name)
+      if parents.length > 0
+        agg_key = parents[0].name + '_id'
+        attrs[agg_key] = parents[0].meta
+        table_name = sql.table_name(parents) + "_#{table_name}"
+      if parents.length > 1
+        parent_key = sql.table_name(parents) + '_id'
+        attrs[parent_key] = parents[parents.length - 1].meta
+
+      sql.insert_record(schema + table_name, attrs)
+
+      attrs.id
+
+  table_name: (parents) ->
+    parents.map((i)-> self.str.underscore(i.name)).join('_')
+
+  walk: (parents, name, obj, cb)->
+    res = cb.call(self, parents, name, obj)
+    new_parents = parents.concat({name: name, obj: obj, meta: res})
+    for key of obj
+      value = obj[key]
       if self.u.isObject(value)
-        value = self.sql.normalize_keys(value)
+        self.sql.walk(new_parents, key, value, cb)
       else if Array.isArray(value)
-        value = value.map((v) ->
+        value.map (v) ->
           if self.u.isObject(v)
-            self.sql.normalize_keys v
-          else
-            v
-        )
-      new_json[self.str.underscore(key)] = value
-    new_json
+            self.sql.walk(new_parents, key, v, cb)
 
 @u =
   log: (mess) ->
@@ -51,7 +78,9 @@ self = this
 
   is_vowel: (char) ->
     /[aeiou]/.test char if char.length is 1
-
+  tabelize: (str)->
+    s = self.str
+    s.pluralize(s.underscore(str))
   pluralize: (str) ->
     if str.slice(-1) is "y"
       if self.str.is_vowel((str.charAt(str.length - 2)))

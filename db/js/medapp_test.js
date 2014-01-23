@@ -17,11 +17,13 @@
     }
   };
 
-  debug = function(obj) {
-    return console.log(JSON.stringify(obj));
+  debug = function(mess) {
+    return console.log(JSON.stringify(mess));
   };
 
   self = this;
+
+  self.sql.log = debug;
 
   fact("underscore", function() {
     eq(this.str.underscore("MaxBodnarchuk"), "max_bodnarchuk");
@@ -45,28 +47,50 @@
     return assert(!this.u.isObject(true));
   });
 
-  fact("normalize_keys", function() {
-    var nobj, obj;
-    obj = {
-      NikolayRyzhikov: {
-        MikhailRyzhikov: 1,
-        VasiliyPupkin: [
-          {
-            NoYes: 2
-          }
-        ]
-      }
-    };
-    nobj = this.sql.normalize_keys(obj);
-    eq(nobj.nikolay_ryzhikov.vasiliy_pupkin[0].no_yes, 2);
-    return eq(nobj.nikolay_ryzhikov.mikhail_ryzhikov, 1);
-  });
-
   fact("pluralize", function() {
     eq(this.str.pluralize('patient'), 'patients');
     eq(this.str.pluralize('visit'), 'visits');
     eq(this.str.pluralize('boy'), 'boys');
     return eq(this.str.pluralize('party'), 'parties');
+  });
+
+  fact('collect_attributes', function() {
+    var attrs, old_columns;
+    old_columns = this.sql.columns;
+    this.sql.columns = function(x) {
+      switch (x) {
+        case 'patients':
+          return [
+            {
+              column_name: 'id'
+            }, {
+              column_name: 'birth_date'
+            }, {
+              column_name: 'resource_type'
+            }
+          ];
+        default:
+          return [
+            {
+              column_name: 'patient_id'
+            }
+          ];
+      }
+    };
+    attrs = this.sql.collect_attributes('patients', self.pt);
+    return eq(attrs.birth_date, '1944-11-17');
+  });
+
+  fact('insert_resource', function() {
+    var counter;
+    this.sql.insert_record = function(table_name, attrs) {
+      return console.log("insert into " + table_name + " " + (JSON.stringify(attrs)));
+    };
+    counter = 0;
+    this.sql.uuid = function() {
+      return counter += 1;
+    };
+    return this.sql.insert_resource(self.pt);
   });
 
 }).call(this);

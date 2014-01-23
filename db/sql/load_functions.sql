@@ -30,7 +30,7 @@ create OR replace function public.insert_resource(json json)
   sql.insert_resource(json)
 $$;
 
-\set json `cat ./pt1.json` 
+\set json `cat ./pt1.json`
 
 select insert_resource(:'json');
 

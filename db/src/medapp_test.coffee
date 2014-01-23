@@ -8,10 +8,12 @@ fact = (name, cb) ->
     console.log name
     console.log e
     console.error e.stack
-debug = (obj) ->
-  console.log JSON.stringify(obj)
+debug = (mess) ->
+  console.log JSON.stringify(mess)
 
 self = this
+
+self.sql.log = debug
 
 fact "underscore", ->
   eq @str.underscore("MaxBodnarchuk"), "max_bodnarchuk"
@@ -32,18 +34,30 @@ fact "isObject", ->
   assert not @u.isObject(false)
   assert not @u.isObject(true)
 
-fact "normalize_keys", ->
-  obj = NikolayRyzhikov:
-    MikhailRyzhikov: 1
-    VasiliyPupkin: [NoYes: 2]
-
-  nobj = @sql.normalize_keys(obj)
-  # debug(nobj)
-  eq nobj.nikolay_ryzhikov.vasiliy_pupkin[0].no_yes, 2
-  eq nobj.nikolay_ryzhikov.mikhail_ryzhikov, 1
-
 fact "pluralize", ->
   eq(@str.pluralize('patient'), 'patients')
   eq(@str.pluralize('visit'), 'visits')
   eq(@str.pluralize('boy'), 'boys')
   eq(@str.pluralize('party'), 'parties')
+
+fact 'collect_attributes', ->
+  old_columns = @sql.columns
+  @sql.columns = (x)->
+    switch x
+      when 'patients'
+        [{column_name: 'id'}, {column_name: 'birth_date'}, {column_name: 'resource_type'}]
+      else
+        [{column_name: 'patient_id'}]
+
+  attrs = @sql.collect_attributes('patients', self.pt)
+  eq(attrs.birth_date, '1944-11-17')
+
+fact 'insert_resource', ->
+  @sql.insert_record = (table_name, attrs)->
+    console.log("insert into #{table_name} #{JSON.stringify(attrs)}")
+
+  counter = 0
+  @sql.uuid = ()->
+    counter += 1
+
+  @sql.insert_resource(self.pt)

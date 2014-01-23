@@ -5,46 +5,87 @@
   self = this;
 
   this.sql = {
-    fields_to_insert: function(columns, obj) {
-      console.log('here');
-      return columns.reduce((function(acc, m) {
-        var an;
-        an = m.column_name;
-        if (obj[an]) {
-          acc[an] = obj[an];
-        }
-        return acc;
-      }), {});
+    log: function(mess) {
+      return plv8.elog(NOTICE, JSON.stringify(mess));
     },
-    insert_obj: function(name, obj) {
-      return plv8.execute("insert into " + name + " (select * from json_populate_recordset(null::" + name + ", $1::json))", [JSON.stringify([obj])]);
+    insert_record: function(table_name, attrs) {
+      return plv8.execute("insert into " + table_name + " (select * from json_populate_recordset(null::" + table_name + ", $1::json))", [JSON.stringify([attrs])]);
     },
     columns: function(table_name) {
       return plv8.execute("select column_name from information_schema.columns where table_name = $1", [table_name]);
     },
-    insert_resource: function(json) {
-      json = normalize_keys(json);
-      return plv8.elog(NOTICE, str.underscore(json.resourceType));
-    },
-    normalize_keys: function(json) {
-      var key, new_json, value;
-      new_json = {};
-      for (key in json) {
-        value = json[key];
-        if (self.u.isObject(value)) {
-          value = self.sql.normalize_keys(value);
-        } else if (Array.isArray(value)) {
-          value = value.map(function(v) {
-            if (self.u.isObject(v)) {
-              return self.sql.normalize_keys(v);
-            } else {
-              return v;
-            }
-          });
+    collect_attributes: function(table_name, obj) {
+      var columns;
+      columns = self.sql.columns(table_name);
+      return columns.reduce((function(acc, m) {
+        var an;
+        an = self.str.camelize(m.column_name);
+        self.sql.log(m);
+        if (obj[an]) {
+          acc[m.column_name] = obj[an];
         }
-        new_json[self.str.underscore(key)] = value;
+        return acc;
+      }), {});
+    },
+    uuid: function() {
+      var sql;
+      sql = 'select uuid_generate_v4() as uuid';
+      return plv8.execute(sql)[0]['uuid'];
+    },
+    insert_resource: function(json) {
+      var resource_name, s, schema, sql, uuid;
+      resource_name = json.resourceType;
+      s = self.str;
+      sql = self.sql;
+      uuid = sql.uuid;
+      schema = 'fhir.';
+      return sql.walk([], s.underscore(resource_name), json, function(parents, name, obj) {
+        var agg_key, attrs, parent_key, table_name;
+        attrs = sql.collect_attributes(s.pluralize(name), obj);
+        attrs.id || (attrs.id = uuid());
+        table_name = s.pluralize(name);
+        if (parents.length > 0) {
+          agg_key = parents[0].name + '_id';
+          attrs[agg_key] = parents[0].meta;
+          table_name = sql.table_name(parents) + ("_" + table_name);
+        }
+        if (parents.length > 1) {
+          parent_key = sql.table_name(parents) + '_id';
+          attrs[parent_key] = parents[parents.length - 1].meta;
+        }
+        sql.insert_record(schema + table_name, attrs);
+        return attrs.id;
+      });
+    },
+    table_name: function(parents) {
+      return parents.map(function(i) {
+        return self.str.underscore(i.name);
+      }).join('_');
+    },
+    walk: function(parents, name, obj, cb) {
+      var key, new_parents, res, value, _results;
+      res = cb.call(self, parents, name, obj);
+      new_parents = parents.concat({
+        name: name,
+        obj: obj,
+        meta: res
+      });
+      _results = [];
+      for (key in obj) {
+        value = obj[key];
+        if (self.u.isObject(value)) {
+          _results.push(self.sql.walk(new_parents, key, value, cb));
+        } else if (Array.isArray(value)) {
+          _results.push(value.map(function(v) {
+            if (self.u.isObject(v)) {
+              return self.sql.walk(new_parents, key, v, cb);
+            }
+          }));
+        } else {
+          _results.push(void 0);
+        }
       }
-      return new_json;
+      return _results;
     }
   };
 
@@ -74,6 +115,11 @@
       if (char.length === 1) {
         return /[aeiou]/.test(char);
       }
+    },
+    tabelize: function(str) {
+      var s;
+      s = self.str;
+      return s.pluralize(s.underscore(str));
     },
     pluralize: function(str) {
       if (str.slice(-1) === "y") {
