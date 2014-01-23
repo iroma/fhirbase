@@ -4,8 +4,12 @@ Document/Relational hybryde database for FHIR
 
 ## Installation
 
-sudo apt-get postgresql-9.3 postgresql-contrib-9.3 postgresql-plv8-9.3
-cat fhirbase.sql fhirbase_spec.sql | psql -d myfhir
+[hemlet](doc/hemlet.png)
+
+```
+  sudo apt-get postgresql-9.3 postgresql-contrib-9.3 postgresql-plv8-9.3
+  cat fhirbase.sql fhirbase_spec.sql | psql -d myfhir
+```
 
 ## TODO
 
