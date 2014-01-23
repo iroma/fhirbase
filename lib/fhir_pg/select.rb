@@ -118,7 +118,7 @@ select
     end
 
     def table_name(meta)
-      'fhir.' + meta[:path].gsub('.','_').underscore.pluralize
+      'fhir.' + meta[:path].gsub('.','_').underscore
     end
 
     def ident(str, deep)

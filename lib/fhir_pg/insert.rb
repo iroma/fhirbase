@@ -5,7 +5,6 @@ module FhirPg
     def insert(db, meta, obj)
       obj = normalize_keys(obj)
       resource_name =  resource_name(obj)
-      obj[:resource_type] = resource_name.to_s
       root_id = (obj[:id] ||= gen_uuid)
       contained_resources_idx = ids_for_contained(obj.delete(:contained)) if obj[:contained].present?
       obj = set_ids(obj)
@@ -72,7 +71,7 @@ module FhirPg
 
     def parent_name(meta)
       pth = meta[:path].split('.')
-      pth.join('_').underscore.singularize + '_id'
+      pth.join('_').underscore + '_id'
     end
 
     def is_resource?(meta)
@@ -85,7 +84,7 @@ module FhirPg
 
     def parent_name(meta)
       pth = meta[:path].split('.')
-      pth[0..-2].join('_').underscore.singularize + '_id'
+      pth[0..-2].join('_').underscore + '_id'
     end
 
     def resource_name(obj)
@@ -167,7 +166,7 @@ module FhirPg
     end
 
     def datasets(db, meta)
-      key = 'fhir__' + meta[:path].gsub('.','_').underscore.pluralize
+      key = 'fhir__' + meta[:path].gsub('.','_').underscore
       (@ds ||= {})[key]||= db[key.to_sym]
     end
 

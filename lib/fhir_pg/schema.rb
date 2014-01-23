@@ -13,7 +13,9 @@ module FhirPg
     #public
 
     def generate_sql(meta, types_db, schema)
-      sql.to_sql(generate(meta, types_db), schema)
+      res = sql.to_sql(generate(meta, types_db), schema)
+      puts res
+      res
     end
 
     def generate(meta, types_db)
@@ -27,7 +29,7 @@ module FhirPg
 
     def to_base(meta)
       [
-        {sql: :enum, name: 'resource_type', options: meta.keys.map(&:to_s)},
+        {sql: :enum, name: 'resource_type', options: meta.keys.map{|k| k.to_s.camelize}},
         {
           sql: :table,
           name: 'resources',
@@ -100,15 +102,15 @@ module FhirPg
       return if pth.size == 1
       raise 'imposible!!!!' if pth.size == 0
       agg_root = pth.first.underscore
-      name = "#{agg_root.singularize}_id"
-      { sql: :fk, name: name, type: 'uuid', parent_table: agg_root.pluralize }
+      name = "#{agg_root}_id"
+      { sql: :fk, name: name, type: 'uuid', parent_table: agg_root }
     end
 
     def parent_key(path)
       pth = path.split('.')
       return if pth.size < 3
-      parent_table = pth[0..-2].join('_').underscore.pluralize
-      name = "#{parent_table.singularize}_id"
+      parent_table = pth[0..-2].join('_').underscore
+      name = "#{parent_table}_id"
       {sql: :fk, name: name, type: 'uuid', parent_table: parent_table}
     end
 
@@ -153,7 +155,7 @@ module FhirPg
     end
 
     def table_name(name)
-      name.to_s.gsub('.','_').underscore.pluralize
+      name.to_s.gsub('.','_').underscore
     end
 
     def type_to_pg(meta)
@@ -162,7 +164,7 @@ module FhirPg
       if kind == :enum
         ".#{type}"
       elsif kind == :primitive
-        {
+        pgtype = {
           "code" => 'varchar',
           "datetime" => 'timestamp',
           "string" => 'varchar',
@@ -179,9 +181,10 @@ module FhirPg
           "oid" => 'varchar',
         }[type.to_s] || raise("Unknown type #{type}")
 
-        else
-          raise 'Ups'
-        end
+        meta[:collection] ? "#{pgtype}[]" : pgtype
+      else
+        raise 'Ups'
+      end
     end
 
     extend self

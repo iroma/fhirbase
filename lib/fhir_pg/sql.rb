@@ -37,7 +37,7 @@ module FhirPg
     end
 
     def view_to_sql(item, schema)
-      view_name = item[:name].to_s.pluralize
+      view_name = item[:name]
       "CREATE VIEW \"#{schema}\".view_#{view_name} AS #{item[:query]};"
     end
 

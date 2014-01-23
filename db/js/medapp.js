@@ -11,18 +11,54 @@
     insert_record: function(table_name, attrs) {
       return plv8.execute("insert into " + table_name + " (select * from json_populate_recordset(null::" + table_name + ", $1::json))", [JSON.stringify([attrs])]);
     },
+    table_exists: function(table_name) {
+      var _base;
+      (_base = self.sql).exited_tables || (_base.exited_tables = plv8.execute("select table_name from information_schema.tables where table_schema = 'fhir'").map(function(i) {
+        return i.table_name;
+      }));
+      return self.sql.exited_tables.indexOf(table_name) > -1;
+    },
     columns: function(table_name) {
-      return plv8.execute("select column_name from information_schema.columns where table_name = $1", [table_name]);
+      var _base;
+      (_base = self.sql).columns_for || (_base.columns_for = self.sql.collect_columns());
+      return self.sql.columns_for[table_name];
+    },
+    collect_columns: function() {
+      var cols;
+      cols = plv8.execute("select table_name, column_name from information_schema.columns where table_schema = 'fhir'", []);
+      return cols.reduce((function(acc, col) {
+        acc[col.table_name] = acc[col.table_name] || [];
+        acc[col.table_name].push(col);
+        return acc;
+      }), {});
     },
     collect_attributes: function(table_name, obj) {
-      var columns;
+      var arr2lit, columns;
       columns = self.sql.columns(table_name);
+      arr2lit = function(v) {
+        v = v.map(function(i) {
+          return "\"" + i + "\"";
+        }).join(',');
+        return "{" + v + "}";
+      };
       return columns.reduce((function(acc, m) {
-        var an;
-        an = self.str.camelize(m.column_name);
-        self.sql.log(m);
-        if (obj[an]) {
-          acc[m.column_name] = obj[an];
+        var an, col_prefix, column_name, parts, v;
+        column_name = m.column_name;
+        an = self.str.camelize(column_name);
+        v = obj[an];
+        parts = column_name.match(/(.*)_reference/);
+        if (parts) {
+          col_prefix = parts[1];
+          if (v = obj[self.str.camelize(col_prefix)]) {
+            acc[column_name] = v.reference;
+            acc["" + col_prefix + "_display"] = v.display;
+          }
+        } else if (v) {
+          if (Array.isArray(v)) {
+            acc[column_name] = arr2lit(v);
+          } else {
+            acc[m.column_name] = v;
+          }
         }
         return acc;
       }), {});
@@ -40,21 +76,28 @@
       uuid = sql.uuid;
       schema = 'fhir.';
       return sql.walk([], s.underscore(resource_name), json, function(parents, name, obj) {
-        var agg_key, attrs, parent_key, table_name;
-        attrs = sql.collect_attributes(s.pluralize(name), obj);
-        attrs.id || (attrs.id = uuid());
-        table_name = s.pluralize(name);
-        if (parents.length > 0) {
-          agg_key = parents[0].name + '_id';
-          attrs[agg_key] = parents[0].meta;
-          table_name = sql.table_name(parents) + ("_" + table_name);
+        var agg_key, attrs, parent_key, parents_prefix, table_name;
+        parents_prefix = sql.table_name(parents);
+        table_name = s.underscore(name);
+        if (parents_prefix.length > 0) {
+          table_name = parents_prefix + '_' + table_name;
         }
-        if (parents.length > 1) {
-          parent_key = sql.table_name(parents) + '_id';
-          attrs[parent_key] = parents[parents.length - 1].meta;
+        if (sql.table_exists(table_name)) {
+          attrs = sql.collect_attributes(table_name, obj);
+          attrs.id || (attrs.id = uuid());
+          if (parents.length > 0) {
+            agg_key = parents[0].name + '_id';
+            attrs[agg_key] = parents[0].meta;
+          }
+          if (parents.length > 1) {
+            parent_key = parents_prefix + '_id';
+            attrs[parent_key] = parents[parents.length - 1].meta;
+          }
+          sql.insert_record(schema + table_name, attrs);
+          return attrs.id;
+        } else {
+
         }
-        sql.insert_record(schema + table_name, attrs);
-        return attrs.id;
       });
     },
     table_name: function(parents) {

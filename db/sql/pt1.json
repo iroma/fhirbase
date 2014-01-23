@@ -41,6 +41,7 @@
             ,"code":"nl"
               ,"display":"Dutch"}]
               ,"text":"Nederlands"}]
-              ,"managingOrganization":{"reference":"Organization/f001"
-                ,"display":"Burgers University Medical Centre"}
+              ,"managingOrganization":{
+                "reference":"Organization/f001",
+                "display":"Burgers University Medical Centre"}
       ,"active":true}

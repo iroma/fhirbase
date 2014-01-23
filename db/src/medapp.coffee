@@ -6,15 +6,43 @@ self = this
   insert_record: (table_name, attrs) ->
     plv8.execute "insert into #{table_name} (select * from json_populate_recordset(null::#{table_name}, $1::json))", [JSON.stringify([attrs])]
 
+  table_exists: (table_name)->
+    self.sql.exited_tables ||= plv8.execute("select table_name from information_schema.tables where table_schema = 'fhir'").map((i)-> i.table_name)
+    self.sql.exited_tables.indexOf(table_name) > -1
+
   columns: (table_name) ->
-    plv8.execute "select column_name from information_schema.columns where table_name = $1", [table_name]
+    self.sql.columns_for ||= self.sql.collect_columns()
+    self.sql.columns_for[table_name]
+
+  collect_columns: ()->
+    cols = plv8.execute("select table_name, column_name from information_schema.columns where table_schema = 'fhir'", [])
+    cols.reduce ((acc, col)->
+      acc[col.table_name] = acc[col.table_name] || []
+      acc[col.table_name].push(col)
+      acc
+    ), {}
 
   collect_attributes: (table_name, obj) ->
     columns = self.sql.columns(table_name)
+    arr2lit = (v)->
+      v = v.map((i)-> "\"#{i}\"").join(',')
+      "{#{v}}"
+
     columns.reduce ((acc, m) ->
-      an = self.str.camelize(m.column_name)
-      self.sql.log(m)
-      acc[m.column_name] = obj[an] if obj[an]
+      column_name = m.column_name
+      an = self.str.camelize(column_name)
+      v = obj[an]
+      parts = column_name.match(/(.*)_reference/)
+      if parts
+        col_prefix = parts[1]
+        if v = obj[self.str.camelize(col_prefix)]
+          acc[column_name] = v.reference
+          acc["#{col_prefix}_display"] = v.display
+      else if v
+        if Array.isArray(v)
+          acc[column_name] = arr2lit(v)
+        else
+          acc[m.column_name] = v
       acc
     ), {}
 
@@ -30,21 +58,28 @@ self = this
     schema = 'fhir.'
 
     sql.walk [], s.underscore(resource_name), json, (parents, name, obj)->
-      attrs = sql.collect_attributes(s.pluralize(name), obj)
-      attrs.id ||= uuid()
+      parents_prefix = sql.table_name(parents)
+      table_name = s.underscore(name)
+      if parents_prefix.length > 0
+        table_name = parents_prefix + '_' + table_name
+      # TODO loose references
+      if sql.table_exists(table_name)
+        attrs = sql.collect_attributes(table_name, obj)
+        attrs.id ||= uuid()
 
-      table_name = s.pluralize(name)
-      if parents.length > 0
-        agg_key = parents[0].name + '_id'
-        attrs[agg_key] = parents[0].meta
-        table_name = sql.table_name(parents) + "_#{table_name}"
-      if parents.length > 1
-        parent_key = sql.table_name(parents) + '_id'
-        attrs[parent_key] = parents[parents.length - 1].meta
+        if parents.length > 0
+          agg_key = parents[0].name + '_id'
+          attrs[agg_key] = parents[0].meta
+        if parents.length > 1
+          parent_key = parents_prefix + '_id'
+          attrs[parent_key] = parents[parents.length - 1].meta
 
-      sql.insert_record(schema + table_name, attrs)
+        # sql.log(attrs)
+        sql.insert_record(schema + table_name, attrs)
 
-      attrs.id
+        attrs.id
+      else
+        # sql.log("Skip #{table_name}")
 
   table_name: (parents) ->
     parents.map((i)-> self.str.underscore(i.name)).join('_')

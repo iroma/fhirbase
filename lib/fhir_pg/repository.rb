@@ -17,12 +17,12 @@ module FhirPg
 
     def view_datasets(name)
       @view_dataset ||= {}
-      @view_dataset[name] ||= db["fhir__view_#{name.pluralize}".to_sym]
+      @view_dataset[name] ||= db["fhir__view_#{name}".to_sym]
     end
 
     def datasets(name)
       @datasets ||= {}
-      @datasets[name] ||= db["fhir__#{name.to_s.pluralize}".to_sym]
+      @datasets[name] ||= db["fhir__#{name.to_s}".to_sym]
     end
 
     def save(attributes)

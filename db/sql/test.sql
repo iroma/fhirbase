@@ -32,7 +32,9 @@ $$;
 
 \set json `cat ./pt1.json`
 
-select insert_resource(:'json');
+\timing
+select count(*) from (select insert_resource(:'json') from generate_series(1,10)) gen;
+-- select managing_organization_reference, managing_organization_display from fhir.patient
 
 --}}}
 
@@ -45,4 +47,10 @@ do language plv8 $$
   u.log(sql.fields_to_insert(columns, attrs))
 $$;
   select * from plv8_modules;
+--}}}
+
+--{{{
+--\d fhir.patients
+-- \d fhir.patient
+select managing_organization_reference, managing_organization_display from fhir.patient
 --}}}
