@@ -1,4 +1,4 @@
-require 'spec_helper'
+require __dir__ + '/spec_helper'
 
 describe FhirPg::Schema do
   subject { described_class }
@@ -25,7 +25,7 @@ describe FhirPg::Schema do
   let(:indexes) { subject.to_indexes(tables) }
 
   it "#to_tables" do
-    pt = find_by_name(tables, 'patients')
+    pt = find_by_name(tables, 'patient')
     pt.should_not be_nil
     %w[birth_date active].each do |col_name|
       col = find_by_name(pt[:columns], col_name)
@@ -40,7 +40,7 @@ describe FhirPg::Schema do
   end
 
   it "#to_tables" do
-    nm = find_by_name(tables, 'patient_names')
+    nm = find_by_name(tables, 'patient_name')
 
     id = find_by_name(nm[:columns], 'id')
     id.should_not be_nil
@@ -52,28 +52,28 @@ describe FhirPg::Schema do
     pid.should_not be_nil
     pid[:sql].should == :fk
     pid[:type].should == 'uuid'
-    pid[:parent_table].should == 'patients'
+    pid[:parent_table].should == 'patient'
   end
 
   it "#to_tables" do
-    cnt_nm = find_by_name(tables, 'patient_contact_names')
+    cnt_nm = find_by_name(tables, 'patient_contact_name')
     cnt_nm.should_not be_nil
 
     pid = find_by_name(cnt_nm[:columns], 'patient_id')
     pid.should_not be_nil
     pid[:sql].should == :fk
     pid[:type].should == 'uuid'
-    pid[:parent_table].should == 'patients'
+    pid[:parent_table].should == 'patient'
 
     cid = find_by_name(cnt_nm[:columns], 'patient_contact_id')
     cid.should_not be_nil
     cid[:sql].should == :fk
     cid[:type].should == 'uuid'
-    cid[:parent_table].should == 'patient_contacts'
+    cid[:parent_table].should == 'patient_contact'
   end
 
   it "regression" do
-    lnk = find_by_name(tables, 'patient_links')
+    lnk = find_by_name(tables, 'patient_link')
     names = lnk[:columns].map{|c| c[:name]}
     names.size.should == names.uniq.size
   end
@@ -86,12 +86,12 @@ describe FhirPg::Schema do
   end
 
   it 'indexes' do
-    lnk = find_by_name tables, 'patient_links'
+    lnk = find_by_name tables, 'patient_link'
     indexes = subject.to_indexes([lnk])
     indexes.size.should == 1
     index = indexes.first
     index[:sql].should == :index
-    index[:table].should == 'patient_links'
+    index[:table].should == 'patient_link'
     index[:name].should == 'patient_id'
   end
 

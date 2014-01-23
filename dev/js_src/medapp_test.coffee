@@ -53,11 +53,11 @@ fact 'collect_attributes', ->
   eq(attrs.birth_date, '1944-11-17')
 
 fact 'insert_resource', ->
-  @sql.insert_record = (table_name, attrs)->
-    console.log("insert into #{table_name} #{JSON.stringify(attrs)}")
+  # @sql.insert_record = (table_name, attrs)->
+  #   console.log("insert into #{table_name} #{JSON.stringify(attrs)}")
 
-  counter = 0
-  @sql.uuid = ()->
-    counter += 1
+  # counter = 0
+  # @sql.uuid = ()->
+  #   counter += 1
 
-  @sql.insert_resource(self.pt)
+  # @sql.insert_resource(self.pt)

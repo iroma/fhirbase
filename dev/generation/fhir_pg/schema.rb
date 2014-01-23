@@ -13,9 +13,7 @@ module FhirPg
     #public
 
     def generate_sql(meta, types_db, schema)
-      res = sql.to_sql(generate(meta, types_db), schema)
-      puts res
-      res
+      sql.to_sql(generate(meta, types_db), schema)
     end
 
     def generate(meta, types_db)

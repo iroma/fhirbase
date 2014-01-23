@@ -1,4 +1,4 @@
-require 'spec_helper'
+require __dir__ + '/spec_helper'
 require 'uuid'
 
 describe FhirPg::Relational do

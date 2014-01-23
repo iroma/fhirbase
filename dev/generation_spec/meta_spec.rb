@@ -1,4 +1,4 @@
-require 'spec_helper'
+require __dir__ + '/spec_helper'
 
 describe FhirPg::Meta do
   subject { described_class }

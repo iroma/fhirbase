@@ -12,7 +12,7 @@ module FhirPg
     private
 
     def from_root_path(path)
-      File.dirname(__FILE__) + "/../../vendor/#{path}"
+      File.dirname(__FILE__) + "/../../fhir/#{path}"
     end
     extend self
   end

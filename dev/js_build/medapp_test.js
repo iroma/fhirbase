@@ -81,16 +81,6 @@
     return eq(attrs.birth_date, '1944-11-17');
   });
 
-  fact('insert_resource', function() {
-    var counter;
-    this.sql.insert_record = function(table_name, attrs) {
-      return console.log("insert into " + table_name + " " + (JSON.stringify(attrs)));
-    };
-    counter = 0;
-    this.sql.uuid = function() {
-      return counter += 1;
-    };
-    return this.sql.insert_resource(self.pt);
-  });
+  fact('insert_resource', function() {});
 
 }).call(this);
