@@ -75,9 +75,9 @@ describe FhirPg::Extensions do
   example do
     json = load_json('extension')
     obj = subject.expand(subject.uniform(json), 'test')
-    puts obj.to_yaml
     obj['extension'].first['url'].should == 'test#participation_agreement'
-    obj['extension'].first['valueUri'].should == 'Some Agreement'
+    #obj['extension'].first['valueUri'].should == 'Some Agreement' # can not revert type without meta
+    obj['extension'].first['value'].should == 'Some Agreement'
   end
 
   example do
@@ -104,7 +104,7 @@ describe FhirPg::Extensions do
   let(:tables) { FhirPg::Schema.to_tables(db) }
 
   example do
-    nm = find_by_name(tables, 'patient_extensions')
+    nm = find_by_name(tables, 'patient_extension')
     nm.should_not be_nil
 
     id = find_by_name(nm[:columns], 'id')
@@ -117,11 +117,11 @@ describe FhirPg::Extensions do
     pid.should_not be_nil
     pid[:sql].should == :fk
     pid[:type].should == 'uuid'
-    pid[:parent_table].should == 'patients'
+    pid[:parent_table].should == 'patient'
   end
 
   example do
-    nm = find_by_name(tables, 'patient_contact_name_extension_kinds')
+    nm = find_by_name(tables, 'patient_contact_name_extension_kind')
     nm.should_not be_nil
 
     id = find_by_name(nm[:columns], 'id')
@@ -134,7 +134,7 @@ describe FhirPg::Extensions do
     pid.should_not be_nil
     pid[:sql].should == :fk
     pid[:type].should == 'uuid'
-    pid[:parent_table].should == 'patients'
+    pid[:parent_table].should == 'patient'
   end
 
   def load_json(name)

@@ -70,7 +70,6 @@ module FhirPg
               }
             end
           end
-          puts arr.to_yaml
           value.clear
           arr.each do |a|
             value << a
