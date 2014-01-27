@@ -19,8 +19,12 @@ module FhirPg
     @types_db ||= Datatypes.mk_db(Xml.load('test/fhir-base.xsd'))
   end
 
+  def resources_db
+    @resources_db ||= Resources.mk_db(Xml.load('test/adt.xml'), types_db)
+  end
+
   def meta
-    @meta ||= Resources.mk_db(Xml.load('test/adt.xml'), types_db)
+    @meta ||= Extensions.mk_db(Xml.load('test/extension.xml'), resources_db, types_db)
   end
 
   def schema

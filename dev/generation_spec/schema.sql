@@ -191,6 +191,21 @@ CREATE TABLE "fhir".patient_contact_name_period (
 "start" timestamp,
 "end" timestamp,
  PRIMARY KEY(id)) ;
+CREATE TABLE "fhir".patient_contact_name_extension (
+"id" uuid,
+"patient_id" uuid references fhir.patient(id),
+"patient_contact_name_id" uuid references fhir.patient_contact_name(id),
+ PRIMARY KEY(id)) ;
+CREATE TABLE "fhir".patient_contact_name_extension_kind (
+"id" uuid,
+"patient_id" uuid references fhir.patient(id),
+"patient_contact_name_extension_id" uuid references fhir.patient_contact_name_extension(id),
+"system" varchar,
+"version" varchar,
+"code" varchar,
+"display" varchar,
+"primary" boolean,
+ PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".patient_contact_telecom (
 "id" uuid,
 "patient_id" uuid references fhir.patient(id),
@@ -317,6 +332,11 @@ CREATE TABLE "fhir".patient_link (
 "other_reference" varchar,
 "other_inlined" boolean,
 "type" varchar,
+ PRIMARY KEY(id)) ;
+CREATE TABLE "fhir".patient_extension (
+"id" uuid,
+"patient_id" uuid references fhir.patient(id),
+"participation_agreement" varchar[],
  PRIMARY KEY(id)) ;
 CREATE TABLE "fhir".organization (
 "name" varchar,
@@ -960,6 +980,10 @@ CREATE INDEX pat_con_nam_pat_id_idx ON "fhir".patient_contact_name (patient_id);
 CREATE INDEX pat_con_nam_pat_con_id_idx ON "fhir".patient_contact_name (patient_contact_id);
 CREATE INDEX pat_con_nam_per_pat_id_idx ON "fhir".patient_contact_name_period (patient_id);
 CREATE INDEX pat_con_nam_per_pat_con_nam_id_idx ON "fhir".patient_contact_name_period (patient_contact_name_id);
+CREATE INDEX pat_con_nam_ext_pat_id_idx ON "fhir".patient_contact_name_extension (patient_id);
+CREATE INDEX pat_con_nam_ext_pat_con_nam_id_idx ON "fhir".patient_contact_name_extension (patient_contact_name_id);
+CREATE INDEX pat_con_nam_ext_kin_pat_id_idx ON "fhir".patient_contact_name_extension_kind (patient_id);
+CREATE INDEX pat_con_nam_ext_kin_pat_con_nam_ext_id_idx ON "fhir".patient_contact_name_extension_kind (patient_contact_name_extension_id);
 CREATE INDEX pat_con_tel_pat_id_idx ON "fhir".patient_contact_telecom (patient_id);
 CREATE INDEX pat_con_tel_pat_con_id_idx ON "fhir".patient_contact_telecom (patient_contact_id);
 CREATE INDEX pat_con_tel_per_pat_id_idx ON "fhir".patient_contact_telecom_period (patient_id);
@@ -989,6 +1013,7 @@ CREATE INDEX pat_com_pat_id_idx ON "fhir".patient_communication (patient_id);
 CREATE INDEX pat_com_cod_pat_id_idx ON "fhir".patient_communication_coding (patient_id);
 CREATE INDEX pat_com_cod_pat_com_id_idx ON "fhir".patient_communication_coding (patient_communication_id);
 CREATE INDEX pat_lin_pat_id_idx ON "fhir".patient_link (patient_id);
+CREATE INDEX pat_ext_pat_id_idx ON "fhir".patient_extension (patient_id);
 CREATE INDEX org_tex_org_id_idx ON "fhir".organization_text (organization_id);
 CREATE INDEX org_ide_org_id_idx ON "fhir".organization_identifier (organization_id);
 CREATE INDEX org_ide_per_org_id_idx ON "fhir".organization_identifier_period (organization_id);
@@ -1261,7 +1286,24 @@ CREATE VIEW "fhir".view_patient AS select t1.id, row_to_json(t1, true) as json f
                   from fhir.patient_contact_name_period t4
                   WHERE t4.patient_id = t1.id AND t4.patient_contact_name_id = t3.id
                 ) t4
-             ) as period, t3.use,t3.text,t3.family,t3.given,t3.prefix,t3.suffix
+             ) as period,
+            ( select
+              array_to_json(
+                array_agg(row_to_json(t4, true)), true) from
+                (
+                  select     ( select
+                  array_to_json(
+                    array_agg(row_to_json(t5, true)), true) from
+                    (
+                      select     t5.system,t5.version,t5.code,t5.display,t5.primary
+                      from fhir.patient_contact_name_extension_kind t5
+                      WHERE t5.patient_id = t1.id AND t5.patient_contact_name_extension_id = t4.id
+                    ) t5
+                 ) as kind
+                  from fhir.patient_contact_name_extension t4
+                  WHERE t4.patient_id = t1.id AND t4.patient_contact_name_id = t3.id
+                ) t4
+             ) as extension, t3.use,t3.text,t3.family,t3.given,t3.prefix,t3.suffix
               from fhir.patient_contact_name t3
               WHERE t3.patient_id = t1.id
             ) t3
@@ -1405,7 +1447,16 @@ CREATE VIEW "fhir".view_patient AS select t1.id, row_to_json(t1, true) as json f
           from fhir.patient_link t2
           WHERE t2.patient_id = t1.id
         ) t2
-     ) as link, t1.birth_date,t1.deceased_boolean,t1.deceased_date_time,t1.multiple_birth_boolean,t1.multiple_birth_integer,t1.active,t1.resource_type, hstore_to_json(hstore(ARRAY['reference', t1.care_provider_reference ,'display',t1.care_provider_display])) as care_provider,hstore_to_json(hstore(ARRAY['reference', t1.managing_organization_reference ,'display',t1.managing_organization_display])) as managing_organization
+     ) as link,
+    ( select
+      array_to_json(
+        array_agg(row_to_json(t2, true)), true) from
+        (
+          select     t2.participation_agreement
+          from fhir.patient_extension t2
+          WHERE t2.patient_id = t1.id
+        ) t2
+     ) as extension, t1.birth_date,t1.deceased_boolean,t1.deceased_date_time,t1.multiple_birth_boolean,t1.multiple_birth_integer,t1.active,t1.resource_type, hstore_to_json(hstore(ARRAY['reference', t1.care_provider_reference ,'display',t1.care_provider_display])) as care_provider,hstore_to_json(hstore(ARRAY['reference', t1.managing_organization_reference ,'display',t1.managing_organization_display])) as managing_organization
   from fhir.patient t1
 ) t1
 ;

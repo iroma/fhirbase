@@ -1,8 +1,6 @@
 require __dir__ + '/spec_helper'
 
 describe FhirPg::Extensions do
-  "Pending"
-  next
   subject { described_class }
 
   let(:types_xml) { FhirPg::Xml.load('test/fhir-base.xsd') }
@@ -83,6 +81,7 @@ describe FhirPg::Extensions do
   end
 
   example do
+    pending
     json = load_json('extension')
     obj = subject.uniform(json)
     FhirPg::Insert.insert(DB, db, obj)
@@ -96,6 +95,7 @@ describe FhirPg::Extensions do
   end
 
   example do
+    pending
     json = load_json('extension')
     obj = subject.uniform(json)
     FhirPg::Insert.insert(DB, db, obj)
