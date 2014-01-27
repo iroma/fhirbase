@@ -12,6 +12,6 @@ do language plv8 $$
   sql.generate_schema('0.12')
 $$;
 
-\dt fhirr.*
+\d fhirr.*
 
 --}}}

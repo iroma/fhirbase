@@ -4,6 +4,7 @@ log = (mess)->
   plv8.elog(NOTICE, JSON.stringify(mess))
 
 e = ()->
+  # log(arguments)
   plv8.execute.apply(plv8, arguments)
 
 underscore = (str) ->
@@ -12,6 +13,7 @@ underscore = (str) ->
 @sql =
   resources: (version) ->
     e("select * from meta.resources where version = $1", [version])
+
   pg_type:
     code: 'varchar'
     dateTime: 'timestamp'
@@ -34,7 +36,7 @@ underscore = (str) ->
       where array_to_string(parent_path,'.') = $1
       order by path
     """
-    e(q, [path.join('.')])
+    sql.extend_polimorpic(e(q, [path.join('.')]))
 
   mk_polimorphic: (name, type)->
     name = name.replace('[x]','')
@@ -44,6 +46,20 @@ underscore = (str) ->
         "\"#{name}_#{underscore(tp)}\" #{type}"
     .filter((i) -> i)
     .join(',')
+
+  name_from_path: (path)->
+    underscore(path[path.length - 1])
+
+  is_polimorphic: (a)->
+    name = sql.name_from_path(a.path)
+    name.indexOf('[x]') > -1
+
+  extend_polimorpic: (attrs)->
+    attrs.reduce ((i, acc)->
+      if sql.is_polimorphic(i)
+        log(i)
+      acc.push(i)
+    ), []
 
   mk_columns: (attrs)->
     attrs.map (a)->
@@ -64,7 +80,6 @@ underscore = (str) ->
      CREATE TABLE #{schema}.resource (
         id uuid PRIMARY KEY,
         resource_type varchar not null,
-        inline_id  uuid,
         container_id uuid
      );
 
@@ -80,7 +95,11 @@ underscore = (str) ->
       table_name = underscore(r.type)
       components = sql.table_attributes(version, [r.type])
       attrs = sql.mk_columns(components).join(',')
-      e "CREATE TABLE #{schema}.#{table_name} ( #{attrs}) inherits (#{schema}.resource)"
+      e """
+        CREATE TABLE #{schema}.#{table_name} (
+         #{attrs}
+        ) INHERITS (#{schema}.resource)
+      """
       components.forEach (a)->
         sql.create_components_table(schema, version, a)
 
@@ -90,6 +109,10 @@ underscore = (str) ->
       table_name = comp.path.map(underscore).join('_')
       attrs = sql.mk_columns(components).join(',')
       if attrs
-        e("CREATE TABLE #{schema}.#{table_name} (#{attrs}) inherits (#{schema}.resource_component)")
+        e """
+          CREATE TABLE #{schema}.#{table_name} (
+            #{attrs}
+          ) INHERITS (#{schema}.resource_component)
+        """
       components.forEach (a)->
         sql.create_components_table(schema, version, a)
