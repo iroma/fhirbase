@@ -1,4 +1,4 @@
-require __dir__ + '/../build.rb'
+require __dir__ + '/../build_fhirbase.rb'
 require 'sequel'
 
 Sequel.extension :pg_array_ops, :pg_row_ops

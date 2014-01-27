@@ -80,7 +80,7 @@ module FhirPg
 
     def fill_resources_table(db, xml)
       resources = db[:meta__resources]
-      elements = db[:meta__elements]
+      elements = db[:meta__resource_elements]
       version = '0.12'
 
       xml.xpath('//structure').each do |node|

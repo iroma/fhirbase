@@ -1,3 +1,5 @@
+--db:myfhir
+--{{{
 drop schema if exists meta cascade;
 create schema meta;
 
@@ -36,7 +38,7 @@ create table meta.resources (
   PRIMARY KEY(type)
 );
 
-create table meta.elements (
+create table meta.resource_elements (
   version varchar,
   path varchar[],
   is_modifier boolean,
@@ -51,3 +53,49 @@ create table meta.elements (
   mapping_map varchar,
   PRIMARY KEY(path)
 );
+--}}}
+
+--{{{
+drop view if exists meta.complex_datatypes;
+create view meta.complex_datatypes as (
+  select * from meta.datatypes
+  where extension is null and kind = 'complexType'
+);
+
+drop view if exists meta.primitive_datatypes;
+create view meta.primitive_datatypes as (
+  select * from meta.datatypes
+  where (type || '-primitive') = extension
+  OR type = 'xmlIdRef'
+);
+
+drop view if exists meta.enum_datatypes;
+create view meta.enum_datatypes as (
+  select * from meta.datatypes
+  where (type || '-list') = extension
+);
+
+drop view if exists meta.components;
+create view meta.components as (
+  select re.path as parent_path, se.*
+  from meta.resource_elements re , meta.resource_elements se
+  where se.path && re.path
+  and array_to_string(se.path,'.') like (array_to_string(re.path,'.') || '.%')
+  and array_length(se.path,1) = (array_length(re.path,1) + 1)
+  and (se.type <> Array['Extension'::varchar] OR se.type is null)
+  and se.path[array_length(se.path, 1)] <> 'contained'
+  order by se.path
+);
+
+select * from meta.datatypes
+where
+type not in (
+  select type from meta.complex_datatypes
+  union
+  select type from meta.primitive_datatypes
+  union
+  select type from meta.enum_datatypes
+)
+and type not like '%-list'
+and type not like '%-primitive'
+--}}}

@@ -1,6 +1,23 @@
 --db:test
 --db:medapp_dev
 --{{{
+do language plv8 $$
+  var log  = function(mess){plv8.elog(NOTICE,JSON.stringify(mess))};
+  ress = plv8.execute('select * from meta.resources')
+
+  ress.forEach(function(r){
+    log(r);
+    els = plv8.execute("select * from meta.resource_elements where resource = $1",[r.type])
+    els.forEach(function(e){
+      log('..' +JSON.stringify(e))
+    })
+  })
+$$;
+
+
+
+--}}}
+--{{{
 select datatype, array_agg(name)
 from meta.datatype_elements
 group by datatype

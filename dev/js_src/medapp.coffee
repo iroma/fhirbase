@@ -1,4 +1,10 @@
 self = this
+log = (mess)->
+  plv8.elog(NOTICE, JSON.stringify(mess))
+
+e = ()->
+  plv8.execute.apply(plv8, arguments)
+
 @sql =
   log: (mess)->
     plv8.elog(NOTICE, JSON.stringify(mess))
@@ -13,6 +19,9 @@ self = this
   columns: (table_name) ->
     self.sql.columns_for ||= self.sql.collect_columns()
     self.sql.columns_for[table_name]
+
+  resources: (version) ->
+    e("select * from meta.resources where version = $1", [version])
 
   collect_columns: ()->
     cols = plv8.execute("select table_name, column_name from information_schema.columns where table_schema = 'fhir'", [])
