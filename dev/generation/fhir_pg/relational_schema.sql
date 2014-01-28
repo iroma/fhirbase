@@ -53,6 +53,13 @@ create table meta.resource_elements (
   mapping_map varchar,
   PRIMARY KEY(path)
 );
+
+create table meta.resource_element_bindings (
+  version varchar,
+  path varchar[],
+  TODO varchar,
+  PRIMARY KEY(path)
+);
 --}}}
 
 --{{{
@@ -69,10 +76,11 @@ create view meta.primitive_datatypes as (
   OR type = 'xmlIdRef'
 );
 
-drop view if exists meta.enum_datatypes;
-create view meta.enum_datatypes as (
-  select * from meta.datatypes
-  where (type || '-list') = extension
+drop view if exists meta.enums;
+create view meta.enums as (
+  select replace(datatype, '-list','') as enum, array_agg(value) as options
+  from meta.datatype_enums
+  group by replace(datatype, '-list','')
 );
 
 drop view if exists meta.components;
@@ -86,6 +94,22 @@ create view meta.components as (
   and se.path[array_length(se.path, 1)] <> 'contained'
   order by se.path
 );
+
+drop view meta.datatype_deps;
+create view meta.datatype_deps as (
+  select cd.type as datatype,
+  de.type deps
+  from meta.complex_datatypes cd
+  left join
+  (
+    select dd.*
+    from meta.datatype_elements dd
+    join meta.complex_datatypes cdd on cdd.type = dd.type
+  ) de on de.datatype =  cd.type
+  where cd.type not in ('Resource', 'BackboneElement', 'Extension', 'Narrative')
+group by cd.type, de.type
+);
+
 
 select * from meta.datatypes
 where
