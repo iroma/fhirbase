@@ -100,7 +100,9 @@ clone = (obj)->
       ), {}
 
     types =  sql.tsort(deps)
-    log types
+    types.forEach (tp)->
+      log("TODO: create #{tp}")
+
     return
     dts = e """
       select de.datatype,

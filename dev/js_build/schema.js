@@ -82,7 +82,9 @@
         return acc;
       }), {});
       types = sql.tsort(deps);
-      log(types);
+      types.forEach(function(tp) {
+        return log("TODO: create " + tp);
+      });
       return;
       dts = e("select de.datatype,\narray_agg(row_to_json(de.*)) attrs\nfrom meta.complex_datatypes cd\njoin meta.datatype_elements de on de.datatype =  cd.type\njoin meta.complex_datatypes cdd on cdd.type = de.type\nwhere cd.type not in ('Resource', 'BackboneElement', 'Extension', 'Narrative')\ngroup by datatype");
       return dts.forEach(function(dt) {
