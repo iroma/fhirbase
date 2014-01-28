@@ -60,6 +60,7 @@ e = ()->
     plv8.execute(sql)[0]['uuid']
 
   insert_resource: (json) ->
+		sql.uniform(json)
     resource_name = json.resourceType
     s = self.str
     sql = self.sql
@@ -104,6 +105,58 @@ e = ()->
         value.map (v) ->
           if self.u.isObject(v)
             self.sql.walk(new_parents, key, v, cb)
+
+  uniform: (obj) ->
+    for key of obj
+      value = obj[key]
+      if key.to_s == 'extension'
+        ext = {}
+        value.each do |e|
+          e_key = e['url'].split("#").last.underscore
+          e_value = e.select{|x, y| x.start_with?('value')}.first
+          if e_value.present?
+            ext[e_key] = e_value.last
+        end
+        value.clear
+        value << ext
+      if value.is_a?(Array)
+        value.each do |v|
+          if v.is_a?(Hash)
+            sql.uniform(v)
+      elsif value.is_a?(Hash)
+        sql.uniform(value)
+    end
+  end
+
+  expand: (obj, url) ->
+    obj.each do |key, value|
+      if key.to_s == 'extension'
+        arr = []
+        e = value.first
+        if e
+          e.each do |k, v|
+            arr << {
+              'url' => "#{url}\##{k}",
+              'value' => v
+            }
+          end
+        end
+        value.clear
+        arr.each do |a|
+          value << a
+        end
+      end
+      if value.is_a?(Array)
+        value.each do |v|
+          if v.is_a?(Hash)
+            expand(v, url)
+          end
+        end
+      elsif value.is_a?(Hash)
+        expand(value, url)
+      end
+    end
+  end
 
 @u =
   log: (mess) ->
