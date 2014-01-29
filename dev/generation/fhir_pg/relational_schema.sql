@@ -63,7 +63,7 @@ create table meta.resource_element_bindings (
 --}}}
 
 --{{{
-drop view if exists meta.complex_datatypes;
+drop view if exists meta.complex_datatypes cascade;
 create view meta.complex_datatypes as (
   select * from meta.datatypes
   where extension is null and kind = 'complexType'
@@ -95,7 +95,7 @@ create view meta.components as (
   order by se.path
 );
 
-drop view meta.datatype_deps;
+DROP VIEW IF EXISTS meta.datatype_deps;
 create view meta.datatype_deps as (
   select cd.type as datatype,
   de.type deps
@@ -108,6 +108,81 @@ create view meta.datatype_deps as (
   ) de on de.datatype =  cd.type
   where cd.type not in ('Resource', 'BackboneElement', 'Extension', 'Narrative')
 group by cd.type, de.type
+);
+
+
+-- meta
+
+drop table meta.type_to_pg_type;
+create table meta.type_to_pg_type (
+  type varchar,
+  pg_type varchar
+);
+
+insert into meta.type_to_pg_type (type, pg_type)
+VALUES
+   ('code', 'varchar'),
+   ('dateTime', 'timestamp'),
+   ('string', 'varchar'),
+   ('uri', 'varchar'),
+   ('datetime', 'timestamp'),
+   ('instant', 'timestamp'),
+   ('boolean', 'boolean'),
+   ('base64_binary', 'bytea'),
+   ('integer', 'integer'),
+   ('decimal', 'decimal'),
+   ('sampled_data_data_type', 'text'),
+   ('date', 'date'),
+   ('id', 'varchar'),
+   ('oid', 'varchar');
+
+
+create OR replace function underscore(str varchar)
+  returns varchar
+  language plv8
+  as $$
+   return str.replace(/([a-z\d])([A-Z]+)/g, "$1_$2").replace(/[-\s]+/g, "_").replace('.','').toLowerCase();
+$$;
+
+create OR replace function column_name(name varchar, type varchar)
+  returns varchar
+  language plv8
+  as $$
+  if(name.indexOf('[x]')){
+    return name.replace('[x]', '_' + type)
+  } else {
+    return name;
+  }
+$$;
+
+DROP VIEW IF EXISTS meta.tables_ddl;
+CREATE ViEW meta.tables_ddl as (
+with ucomp as ( select *, unnest(c.type) as tp from meta.components c)
+select c.path,
+underscore(array_to_string(c.path, '_')) as table_name,
+underscore(coalesce(c.type[1], 'resource_component')) as parent_table,
+c.type,
+array(
+      select underscore(column_name(path[array_length(path,1)], cm1.tp)) || ' ' || tt.pg_type ||
+      case cm1.max
+        when '*' then '[]'
+        else ''
+      end
+      as name
+      from ucomp cm1
+      join meta.primitive_datatypes pd on pd.type = cm1.tp
+      join type_to_pg_type tt on tt.type = cm1.tp
+      where cm1.parent_path = c.path
+) as columns,
+array(
+    select path[array_length(path,1)] || ' ' || cm1.tp  as name
+    from ucomp cm1
+    join meta.complex_datatypes pd on pd.type = cm1.tp
+    where cm1.parent_path = c.path
+) as complex
+from meta.resource_elements c
+where type is null OR type = Array['Resource'::varchar]
+order by c.path
 );
 
 

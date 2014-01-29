@@ -16,77 +16,41 @@ $$;
 
 --}}}
 --{{{
---\dt fhirr.
-CREATE TABLE fhirr.range_low () INHERITS (fhirr.quantity)
---select * from meta.datatype_elements;
---}}}
+--select distinct(type) from meta.datatype_elements where type is not null;
+select ARRAY[datatype, name] as path, type
+from meta.datatype_elements
+order by path;
 
---{{{
-  select dd.*
-  from meta.datatype_elements dd
-  join meta.complex_datatypes cdd on cdd.type = dd.type;
-select row_to_json(foo.*) from (
-  select de.datatype,
-  array_agg(row_to_json(de.*)) attrs
-  from meta.complex_datatypes cd
-  join meta.datatype_elements de on de.datatype =  cd.type
-  where cd.type not in ('Resource', 'BackboneElement', 'Extension', 'Narrative')
-  group by datatype
-) as foo;
-
---{{{
-drop view dt_deps;
-create view dt_deps as (
-select cd.type as datatype,
-de.type deps
-from meta.complex_datatypes cd
-left join
-(
-  select dd.*
-  from meta.datatype_elements dd
-  join meta.complex_datatypes cdd on cdd.type = dd.type
-) de on de.datatype =  cd.type
-where cd.type not in ('Resource', 'BackboneElement', 'Extension', 'Narrative')
-group by cd.type, de.type
-);
-
-select * from dt_deps;
---}}}
---select * from dt_deps order by datatype;
-
---select * from dt_deps where deps is null order by deps;
---select * from dt_deps where deps is not null order by deps;
-
-with level1 as (select 1 as level, datatype from dt_deps where deps is null)
-
-with level2 as (
-  select min(level) as level, datatype from (
-    select 2 as level, datatype from dt_deps where deps not in (
-      select datatype from dt_deps where deps not in (select datatype from level1)
-    ) UNION (select * from level1)
-  ) foo group by datatype
-  order by level
+WITH RECURSIVE types(datatype, name, type, level) AS (
+  select  datatype, name, type, 1 as level
+  from meta.datatype_elements
+  where datatype not in (
+    select distinct(type) from meta.datatype_elements where type is not null
+  )
+  UNION ALL
+  select '','','',0 where true = false
 )
-select * from level2;
+SELECT * FROM types;
+
+
+
+
+--}}}
+--{{{
+DROP table if EXISTS deps;
+CREATE TABLE deps (name varchar, dep varchar);
+INSERT INTO deps (name, dep)
+VALUES
+('b', 'a'),
+('a', null),
+('d', 'c'),
+('c', 'b'),
+('c', 'a');
+
+select * from deps;
+with level1 as ( select * from deps where dep is null)
+select * from deps d
+join level1 l1
+on l1.name = d.dep
 ;
-
-select min(level) as level, datatype from (
-  select 3 as level, datatype from dt_deps where deps not in (
-    select datatype from dt_deps where deps not in (select datatype from level2)
-  ) UNION (select * from level2)
-) foo group by datatype
-order by level ;
-
---}}}
---{{{
-WITH RECURSIVE more_types(level1) AS (
-  select 1 as level, datatype from dt_deps where deps is null
-  UNION
-  select min(level) as level, datatype from (
-    select 2 as level, datatype from dt_deps where deps not in (
-      select datatype from dt_deps where deps not in (select datatype from level1)
-    ) UNION (select * from level1)
-  ) foo group by datatype
-  order by level
-)
 --}}}
