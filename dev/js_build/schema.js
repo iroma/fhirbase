@@ -13,7 +13,7 @@
   };
 
   underscore = function(str) {
-    return str.replace(/([a-z\d])([A-Z]+)/g, "$1_$2").replace(/[-\s]+/g, "_").toLowerCase();
+    return str.replace(/([a-z\d])([A-Z]+)/g, "$1_$2").replace(/[-\s]+/g, "_").replace('.', '').toLowerCase();
   };
 
   clone = function(obj) {
@@ -26,7 +26,7 @@
       schema = "fhirr";
       e("DROP SCHEMA IF EXISTS " + schema + " CASCADE;\nCREATE SCHEMA " + schema + ";");
       sql.generate_enums(schema, version);
-      e("CREATE TABLE " + schema + ".resource (\n   id uuid PRIMARY KEY,\n   resource_type " + schema + ".\"ResourceType\" not null,\n   language varchar,\n   text xml,\n   text_status " + schema + ".\"NarrativeStatus\",\n   container_id uuid references " + schema + ".resource (id)\n);\n\nCREATE TABLE " + schema + ".resource_component (\n  id uuid PRIMARY KEY,\n  parent_id uuid references " + schema + ".resource_component (id),\n  resource_id uuid references " + schema + ".resource (id),\n  compontent_type varchar,\n  container_id uuid references " + schema + ".resource (id)\n);\n\nCREATE TABLE " + schema + ".resource_values (\n  id uuid PRIMARY KEY,\n  parent_id uuid references " + schema + ".resource_component (id),\n  resource_id uuid references " + schema + ".resource (id),\n  value_type varchar,\n  container_id uuid references " + schema + ".resource (id)\n);");
+      e("CREATE TABLE " + schema + ".resource (\n   id uuid PRIMARY KEY,\n   resource_type " + schema + ".\"ResourceType\" not null,\n   language varchar,\n   text xml,\n   text_status " + schema + ".\"NarrativeStatus\",\n   container_id uuid references " + schema + ".resource (id)\n);\n\nCREATE TABLE " + schema + ".resource_component (\n  id uuid PRIMARY KEY,\n  parent_id uuid references " + schema + ".resource_component (id),\n  resource_id uuid references " + schema + ".resource (id),\n  compontent_type varchar,\n  container_id uuid references " + schema + ".resource (id)\n);\n\nCREATE TABLE " + schema + ".resource_value (\n  id uuid PRIMARY KEY,\n  parent_id uuid references " + schema + ".resource_component (id),\n  resource_id uuid references " + schema + ".resource (id),\n  value_type varchar,\n  container_id uuid references " + schema + ".resource (id)\n);");
       sql.generate_datatypes_tables(schema, version);
       return;
       return sql.resources(version).forEach(function(r) {
@@ -74,25 +74,66 @@
       return collect(deps, [], 10);
     },
     generate_datatypes_tables: function(schema, version) {
-      var deps, dts, types;
-      deps = e("select datatype, array_agg(deps) as deps from meta.datatype_deps group by datatype").reduce((function(acc, i) {
+      var deps, types;
+      deps = e("select datatype, array_agg(deps) as deps from meta.datatype_deps group by datatype order by datatype").reduce((function(acc, i) {
         acc[i.datatype] = i.deps.filter(function(i) {
           return i;
         });
         return acc;
       }), {});
       types = sql.tsort(deps);
-      types.forEach(function(tp) {
-        return log("TODO: create " + tp);
+      return types.forEach(function(tp) {
+        return sql.create_datatype_tables(schema, version, tp);
       });
-      return;
-      dts = e("select de.datatype,\narray_agg(row_to_json(de.*)) attrs\nfrom meta.complex_datatypes cd\njoin meta.datatype_elements de on de.datatype =  cd.type\njoin meta.complex_datatypes cdd on cdd.type = de.type\nwhere cd.type not in ('Resource', 'BackboneElement', 'Extension', 'Narrative')\ngroup by datatype");
-      return dts.forEach(function(dt) {
-        log(dt.datatype);
-        return log(dt.attrs.map(function(i) {
-          return i.type;
-        }));
+    },
+    mk_datatype_column: function(e) {
+      var mul;
+      if (e.max_occurs === 'unbounded') {
+        mul = '[]';
+      } else {
+        mul = '';
+      }
+      return "\"" + (underscore(e.name)) + "\" " + sql.primitive_pg_types[e.type] + mul;
+    },
+    elements_for_datatype: function(type) {
+      return e("select * from meta.datatype_elements where datatype = $1", [type]);
+    },
+    make_datatype_columns: function(elements) {
+      var attrs;
+      attrs = elements.filter(function(e) {
+        return sql.primitive_pg_types[e.type];
       });
+      return attrs.map(sql.mk_datatype_column).join(', ');
+    },
+    create_datatype_tables: function(schema, version, type) {
+      var cols, elements, table_name;
+      elements = sql.elements_for_datatype(type);
+      if (elements.length > 0) {
+        table_name = underscore(type);
+        cols = sql.make_datatype_columns(elements);
+        log(table_name);
+        e("CREATE TABLE " + schema + "." + table_name + " (" + cols + ") INHERITS (" + schema + ".resource_value)");
+        return elements.forEach(function(e) {
+          if (!sql.primitive_pg_types[e.type]) {
+            return sql.create_datatype_tables_nested(schema, version, [table_name], e);
+          }
+        });
+      }
+    },
+    create_datatype_tables_nested: function(schema, version, path, el) {
+      var elements, inh, table_name;
+      elements = sql.elements_for_datatype(el.type);
+      if (elements.length > 0) {
+        table_name = underscore(path.concat(el.name).join('_'));
+        inh = underscore(el.type);
+        log(table_name);
+        e("CREATE TABLE " + schema + "." + table_name + " () INHERITS (" + schema + "." + inh + ")");
+        return elements.forEach(function(ell) {
+          if (!sql.primitive_pg_types[ell.type]) {
+            return sql.create_datatype_tables_nested(schema, version, [table_name], ell);
+          }
+        });
+      }
     },
     resources: function(version) {
       return e("select * from meta.resources where version = $1", [version]);

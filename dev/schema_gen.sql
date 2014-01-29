@@ -15,6 +15,11 @@ $$;
 \dt fhirr.*
 
 --}}}
+--{{{
+--\dt fhirr.
+CREATE TABLE fhirr.range_low () INHERITS (fhirr.quantity)
+--select * from meta.datatype_elements;
+--}}}
 
 --{{{
   select dd.*

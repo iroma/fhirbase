@@ -8,7 +8,7 @@ e = ()->
   plv8.execute.apply(plv8, arguments)
 
 underscore = (str) ->
-  str.replace(/([a-z\d])([A-Z]+)/g, "$1_$2").replace(/[-\s]+/g, "_").toLowerCase()
+  str.replace(/([a-z\d])([A-Z]+)/g, "$1_$2").replace(/[-\s]+/g, "_").replace('.','').toLowerCase()
 
 clone = (obj)->
   JSON.parse(JSON.stringify(obj))
@@ -41,7 +41,7 @@ clone = (obj)->
        container_id uuid references #{schema}.resource (id)
      );
 
-     CREATE TABLE #{schema}.resource_values (
+     CREATE TABLE #{schema}.resource_value (
        id uuid PRIMARY KEY,
        parent_id uuid references #{schema}.resource_component (id),
        resource_id uuid references #{schema}.resource (id),
@@ -93,7 +93,7 @@ clone = (obj)->
     collect(deps, [], 10)
 
   generate_datatypes_tables: (schema, version)->
-    deps = e("select datatype, array_agg(deps) as deps from meta.datatype_deps group by datatype")
+    deps = e("select datatype, array_agg(deps) as deps from meta.datatype_deps group by datatype order by datatype")
       .reduce ((acc, i)->
         acc[i.datatype]= i.deps.filter((i)-> i)
         acc
@@ -101,22 +101,45 @@ clone = (obj)->
 
     types =  sql.tsort(deps)
     types.forEach (tp)->
-      log("TODO: create #{tp}")
+      sql.create_datatype_tables(schema, version, tp)
 
-    return
-    dts = e """
-      select de.datatype,
-      array_agg(row_to_json(de.*)) attrs
-      from meta.complex_datatypes cd
-      join meta.datatype_elements de on de.datatype =  cd.type
-      join meta.complex_datatypes cdd on cdd.type = de.type
-      where cd.type not in ('Resource', 'BackboneElement', 'Extension', 'Narrative')
-      group by datatype
-    """
+  mk_datatype_column: (e)->
+    if (e.max_occurs == 'unbounded')
+      mul = '[]'
+    else
+      mul = ''
+    "\"#{underscore(e.name)}\" #{sql.primitive_pg_types[e.type]}#{mul}"
 
-    dts.forEach (dt)->
-      log(dt.datatype)
-      log(dt.attrs.map((i)-> i.type))
+  elements_for_datatype: (type)->
+    e("select * from meta.datatype_elements where datatype = $1", [type])
+
+  make_datatype_columns: (elements)->
+    attrs = elements.filter (e)->
+      sql.primitive_pg_types[e.type]
+    attrs.map(sql.mk_datatype_column).join(', ')
+
+  create_datatype_tables: (schema, version, type)->
+    elements = sql.elements_for_datatype(type)
+    if elements.length > 0
+      table_name = underscore(type)
+      cols = sql.make_datatype_columns(elements)
+      log table_name
+      e "CREATE TABLE #{schema}.#{table_name} (#{cols}) INHERITS (#{schema}.resource_value)"
+
+      elements.forEach (e)->
+        if !sql.primitive_pg_types[e.type]
+          sql.create_datatype_tables_nested(schema, version, [table_name], e)
+
+  create_datatype_tables_nested: (schema, version, path, el)->
+    elements = sql.elements_for_datatype(el.type)
+    if elements.length > 0
+      table_name = underscore(path.concat(el.name).join('_'))
+      inh = underscore(el.type)
+      log table_name
+      e "CREATE TABLE #{schema}.#{table_name} () INHERITS (#{schema}.#{inh})"
+      elements.forEach (ell)->
+        if !sql.primitive_pg_types[ell.type]
+          sql.create_datatype_tables_nested(schema, version, [table_name], ell)
 
   resources: (version) ->
     e("select * from meta.resources where version = $1", [version])
