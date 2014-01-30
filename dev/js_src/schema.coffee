@@ -46,24 +46,16 @@ e = ()->
      );
     """
 
+    e("select * from meta.dt_types where table_name not in ('resource') ").forEach (tbl)->
+      e """
+        CREATE TABLE #{schema}.#{tbl.table_name} (
+          #{tbl.columns && tbl.columns.join(',')}
+        ) INHERITS (#{schema}.#{tbl.base_table})
+      """
+
     e("select * from meta.tables_ddl").forEach (tbl)->
       e """
         CREATE TABLE #{schema}.#{tbl.table_name} (
           #{tbl.columns}
         ) INHERITS (#{schema}.#{tbl.parent_table})
       """
-
-  tsort: (deps)->
-    deps_sutisfied = (deps, available)->
-      deps
-        .filter(((i)-> available.indexOf(i) == -1))
-        .length == 0
-
-    collect = (deps, resolved, guard)->
-      resolved.push(tp) for tp, dp of deps when resolved.indexOf(tp) == -1 && deps_sutisfied(dp, resolved)
-      if guard > 0
-        collect(deps, resolved, guard - 1)
-      else
-        resolved
-
-    collect(deps, [], 10)

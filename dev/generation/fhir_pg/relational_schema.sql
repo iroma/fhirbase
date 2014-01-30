@@ -113,7 +113,7 @@ group by cd.type, de.type
 
 -- meta
 
-drop table meta.type_to_pg_type;
+drop table meta.type_to_pg_type cascade;
 create table meta.type_to_pg_type (
   type varchar,
   pg_type varchar
@@ -196,5 +196,95 @@ type not in (
   select type from meta.enum_datatypes
 )
 and type not like '%-list'
-and type not like '%-primitive'
+and type not like '%-primitive';
+
+
+drop view if exists meta.dt_tree, meta.dt_raw cascade;
+
+create or replace view meta.dt_raw as (
+  select datatype as type_name,
+    datatype as base_name,
+    underscore(name) as column_name,
+    type as column_type,
+    '{}'::varchar[] as parent_path,
+    Array[underscore(name)] as path
+  from meta.datatype_elements
+  order by datatype
+);
+
+create or replace recursive view meta.dt_tree(type_name, base_name, column_name, column_type, parent_path, path) as (
+  select r.*
+  from meta.dt_raw r
+  union all
+  select t.type_name,
+    r.type_name as base_name,
+    r.column_name,
+    r.column_type,
+    t.path as parent_path,
+    t.path || Array[r.column_name] as path
+  from meta.dt_raw r
+  join dt_tree t on t.column_type = r.type_name
+);
+
+create or replace view meta.dt_dll as (
+  select t.type_name,
+    t.base_name,
+    t.column_name,
+    case
+      when exists(select * from meta.dt_raw r where r.type_name = t.column_type) then null
+      else t.column_type
+    end as column_type,
+    t.parent_path,
+    t.path
+  from meta.dt_tree t
+);
+
+create or replace view meta.dt_level as (
+  select type_name, max(array_length(path, 1) - 1) as level
+  from meta.dt_tree
+  group by type_name
+);
+
+create or replace view meta.dt_good as (
+  select array_to_string(dt.parent_path, '_') as table_name,
+  l.level,
+  dt.*
+  from meta.dt_dll dt
+  join meta.dt_level l on l.type_name = dt.type_name
+);
+create or replace view meta.dt_columns as (
+  select t.type_name, t.table_name,
+  case
+    when t.base_name = t.type_name then 'resource_value'
+    else underscore(t.base_name)
+  end as base_table,
+  t.level,
+  case
+    when t.base_name = t.type_name then array(
+      select distinct(tmp.*) from (
+        select c.column_name || ' ' || tt.pg_type || case
+          when dt.max_occurs = 'unbounded' then '[]'
+          else ''
+        end || case
+          when dt.min_occurs = '1' then ' not null'
+          else '' end as tp
+        from meta.dt_good c
+        join meta.type_to_pg_type tt on tt.type = c.column_type
+        join meta.datatype_elements dt on dt.name = c.column_type
+        where c.type_name = t.type_name and c.table_name = t.table_name and c.column_type is not null
+     ) tmp
+    )
+    else Array[]::varchar[]
+  end
+  as columns
+  from meta.dt_good t
+  group by t.type_name, t.table_name, t.base_name, t.level
+);
+create or replace view meta.dt_types as (
+  select base_table,
+  underscore(type_name) || case when table_name = '' then '' else '_' || table_name end as table_name,
+  columns
+  from meta.dt_columns
+  order by level, type_name, table_name
+);
 --}}}
