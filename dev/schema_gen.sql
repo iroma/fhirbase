@@ -13,9 +13,13 @@ do language plv8 $$
 $$;
 
 \dt fhirr.*
---}}}
 
+
+--}}}
 --{{{
+--\dt meta.
+--select * from meta.datatypes;
 select *
-from meta.dt_types;
+from meta.datatype_ddl
+where array_length(columns, 1) is not null;
 --}}}
