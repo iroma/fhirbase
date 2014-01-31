@@ -23,6 +23,26 @@ FUNCTION table_name(path varchar[])
   END
 $$;
 
+CREATE OR REPLACE
+FUNCTION column_ddl(path varchar[], pg_type varchar, min varchar, max varchar)
+  RETURNS varchar LANGUAGE plpgsql AS $$
+  BEGIN
+    return ('"' ||
+      underscore(path[array_length(path, 1)]) ||
+      '" ' ||
+      pg_type ||
+      case
+        when max = '*' then '[]'
+        else ''
+      end ||
+      case
+        when min = '1' then ' not null'
+        else ''
+      end);
+  END
+$$;
+
+
 -- expand polimorphic types
 DROP VIEW meta.expanded_resource_elements CASCADE;
 CREATE
@@ -31,7 +51,9 @@ VIEW meta.expanded_resource_elements as (
   FROM (
     SELECT
       path,
-      unnest(type) as type
+      unnest(type) as type,
+      min,
+      max
     FROM meta.resource_elements
   ) e
   WHERE type not in ('Extension', 'contained')
@@ -57,7 +79,7 @@ VIEW meta.resource_columns as (
     SELECT
       e.path,
       tt.pg_type,
-      (underscore(e.path[array_length(e.path, 1)]) || ' ' || tt.pg_type) as column_ddl
+      column_ddl(e.path, tt.pg_type, e.min, e.max) as column_ddl
     FROM meta.expanded_resource_elements e
     JOIN meta.type_to_pg_type tt ON tt.type = e.type
 );

@@ -76,6 +76,18 @@ SELECT is(
   'only 3 columns in encounter'
 );
 
+SELECT is(column_ddl, '"comment" varchar[]', 'should be array')
+FROM meta.resource_columns
+WHERE
+  path[1] = 'Specimen'
+  AND path[2] = 'collection'
+  AND path[3] = 'comment';
+
+SELECT is(column_ddl, '"note" varchar not null', 'should be not null')
+FROM meta.resource_columns
+WHERE
+  path[1] = 'Alert'
+  AND path[2] = 'note';
 
 SELECT is(
   (
