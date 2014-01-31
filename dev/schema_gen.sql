@@ -17,9 +17,6 @@ $$;
 
 --}}}
 --{{{
---\dt meta.
---select * from meta.datatypes;
 select *
-from meta.datatype_ddl
-where array_length(columns, 1) is not null;
+from meta.tables_ddl
 --}}}

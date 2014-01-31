@@ -310,3 +310,16 @@ Install nodejs (nvm)
 npm install -g coffee-script
 npm install js2coffee
 coffee --compile --output db/src/ db/js/
+
+
+## install pgTap (xUnit for SQL)
+
+```bash
+  cd tmp
+  git clone git@github.com:theory/pgtap.git
+  cd pgtap
+
+  make
+  make installcheck
+  sudo make install
+```
