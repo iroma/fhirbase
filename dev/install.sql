@@ -1,19 +1,28 @@
+--db:testfhir
+--{{{
 drop schema if exists meta cascade;
-\ir meta/schema.sql
-\ir meta/load_fhir.sql
-\ir meta/plv8.sql
-\ir meta/load_plv8_modules.sql
-\ir meta/functions.sql
-\ir meta/views.sql
-\ir meta/resource_generation.sql
+\ir sql/meta.sql
+\ir sql/load_meta.sql
+\ir sql/plv8.sql
+\ir sql/load_plv8_modules.sql
+\ir sql/functions.sql
+\ir sql/datatypes.sql
+\ir sql/schema.sql
+
 do language plv8 $$
   load_module('schema')
   sql.generate_schema('0.12')
 $$;
-create OR replace function public.insert_resource(json json)
-returns void
-language plv8
-as $$
-  load_module('medapp');
-  sql.insert_resource(json)
+--{{{
+
+\ir sql/schema.sql
+\ir sql/load_plv8_modules.sql
+do language plv8 $$
+  load_module('schema')
+  sql.generate_schema('0.12')
 $$;
+--}}}
+--{{{
+select * from meta.resource_tables
+limit 10;
+--}}}

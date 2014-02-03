@@ -53,9 +53,9 @@ e = ()->
         ) INHERITS (#{schema}.#{tbl.base_table})
       """
 
-    e("select * from meta.tables_ddl").forEach (tbl)->
-      e """
+    e("select * from meta.resource_tables").forEach (tbl)->
+      e  """
         CREATE TABLE #{schema}.#{tbl.table_name} (
           #{tbl.columns}
-        ) INHERITS (#{schema}.#{tbl.parent_table})
+        ) INHERITS (#{schema}.#{tbl.base_table})
       """

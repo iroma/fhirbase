@@ -1,1 +1,1 @@
-coffee --watch --compile --output js_build js_src
+coffee --watch --compile --output js js_src
