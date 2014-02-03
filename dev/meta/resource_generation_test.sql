@@ -20,7 +20,7 @@ CREATE EXTENSION IF NOT EXISTS pgtap;
 -- Plan the tests.
 BEGIN;
 
-SELECT plan(6);
+SELECT plan(9);
 
 -- test components
 
@@ -113,42 +113,6 @@ SELECT is(
   4,
   'check some tables in encounter'
 );
-
-SELECT * FROM finish();
-ROLLBACK;
---}}}
-
-select table_name, base_name, columns
-from (
-SELECT
-  c.path,
-  underscore(array_to_string(c.path, '_')) as table_name,
-  'resource' as base_name,
-  (
-    select
-      array_agg(ee.path[array_length(ee.path, 1)] || ' ' || ee.type)
-    from meta.expanded_resource_elements ee
-    left join meta.dt_raw tt on tt.type_name = ee.type
-    where tt.type_name is null and array_pop(ee.path) = c.path
-  ) as columns
-FROM meta.compound_resource_elements c
-UNION ALL
-SELECT
-  e.path,
-  underscore(array_to_string(e.path || t.path, '_')) as table_name,
-  underscore(array_to_string(array[t.type_name] || t.path, '_')) as base_name,
-  array[]::varchar[] as columns
-FROM meta.compound_resource_elements c
-JOIN meta.expanded_resource_elements e on array_pop(e.path) = c.path
-JOIN meta.dt_types t on t.type_name = e.type
-) x
-where path[1] = 'Encounter'
-order by table_name;
-
-
-
--- SELECT * from meta.resource_tables;
-
 
 SELECT * FROM finish();
 ROLLBACK;

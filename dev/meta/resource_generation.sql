@@ -79,7 +79,7 @@ VIEW meta.resource_columns as (
     SELECT
       e.path,
       tt.pg_type,
-      column_ddl(e.path, tt.pg_type, e.min, e.max) as column_ddl
+      column_ddl(e.path, tt.pg_type, e.min::varchar, e.max) as column_ddl
     FROM meta.expanded_resource_elements e
     JOIN meta.type_to_pg_type tt ON tt.type = e.type
 );
@@ -121,64 +121,4 @@ VIEW meta.resource_tables as (
     array[]::varchar[] as columns
   FROM meta.expanded_with_dt_resource_elements
 );
-
-
-
-
 ---}}}
-
--- select first leve children elements by parent_path
--- select tables to be created
-CREATE OR REPLACE
-VIEW meta.resource_tables as (
-  SELECT DISTINCT
-    c.resource,
-    table_name(c.parent_path)
-  FROM meta.components c
-  ORDER BY c.resource, table_name
-);
-
-
-table_name (primitive_columns)
-table_name_complex_name_(join data) -> multi table
-
-A * resource, table_name,
-column:
- -> primitive -> columns
- -> complex  -> tables
-result:
-A + agg(primitive) -> tables inherited from resource
-union all
-A + complex + (join) meta.datatypes_dll -> tables inherited from datatype table
-
---}}}
-
--- return tables with columns
-CREATE OR REPLACE VIEW meta.tables_ddl AS (
-SELECT c.path,
-underscore(array_to_string(c.path, '_')) as table_name,
-underscore(coalesce(c.type[1], 'resource_component')) as parent_table,
-c.type,
-array(
-      SELECT underscore(column_name(path[array_length(path,1)], cm1.ex_type)) || ' ' || tt.pg_type ||
-      case cm1.max
-        when '*' then '[]'
-        else ''
-      end
-      as name
-      from meta.components cm1
-      join meta.primitive_datatypes pd on pd.type = cm1.ex_type
-      join type_to_pg_type tt on tt.type = cm1.ex_type
-      where cm1.parent_path = c.path
-) as columns,
-array(
-    SELECT path[array_length(path,1)] || ' ' || cm1.ex_type  as name
-    from meta.components cm1
-    join meta.complex_datatypes pd on pd.type = cm1.ex_type
-    where cm1.parent_path = c.path
-) as complex
-from meta.resource_elements c
-where c.type is null OR c.type = Array['Resource'::varchar]
-order by c.path
-);
---}}}
