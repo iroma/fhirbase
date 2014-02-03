@@ -18,7 +18,7 @@ create table meta.datatype_elements (
   datatype varchar references meta.datatypes(type),
   name varchar,
   type varchar,
-  min_occurs integer,
+  min_occurs varchar,
   max_occurs varchar,
   documentation text,
   PRIMARY KEY(datatype, name)
