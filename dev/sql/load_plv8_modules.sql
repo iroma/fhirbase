@@ -1,7 +1,12 @@
+\set shared `cat $FHIR_HOME/js/shared.js`
 \set medapp `cat $FHIR_HOME/js/medapp.js`
 \set schema `cat $FHIR_HOME/js/schema.js`
+
+delete from plv8_modules where modname= 'shared';
 delete from plv8_modules where modname= 'medapp';
 delete from plv8_modules where modname= 'schema';
+
+insert into plv8_modules values ('shared', true, :'shared');
 insert into plv8_modules values ('medapp', true, :'medapp');
 insert into plv8_modules values ('schema', true, :'schema');
 

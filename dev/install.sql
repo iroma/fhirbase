@@ -14,8 +14,8 @@ do language plv8 $$
   sql.generate_schema('0.12')
 $$;
 --}}}
---{{{
-select table_name from meta.resource_tables;
 
+--{{{
+\dt fhirr.*
 --}}}
 

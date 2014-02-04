@@ -1,45 +1,22 @@
--- remove last item from array
-CREATE OR REPLACE
-FUNCTION array_pop(ar varchar[])
-  RETURNS varchar[] language plv8 AS $$
-  ar.pop()
-  return ar;
-$$;
-
-DROP FUNCTION array_last(varchar[]) CASCADE;
-CREATE OR REPLACE
-FUNCTION array_last(ar varchar[])
-  RETURNS varchar language plv8 AS $$
-  return ar[ar.length -1];
-$$;
-
 CREATE OR REPLACE
 FUNCTION column_name(name varchar, type varchar)
   RETURNS varchar language plv8 AS $$
-  return name.replace('[x]', '_' + type)
+  load_module('shared')
+  return column_name(name, type)
 $$;
 
 CREATE OR REPLACE
 FUNCTION table_name(path varchar[])
-  RETURNS varchar LANGUAGE plpgsql AS $$
-  BEGIN
-    return underscore(array_to_string(path, '_'));
-  END
+  RETURNS varchar LANGUAGE plv8 AS $$
+  load_module('shared')
+  return table_name(path)
 $$;
 
 CREATE OR REPLACE
 FUNCTION short_table_name(path varchar[])
   RETURNS varchar language plv8 AS $$
-  function underscore (str) {
-    return str.replace(/([a-z\d])([A-Z]+)/g, "$1_$2").replace(/[-\s]+/g, "_").toLowerCase();
-  }
-  var first = path[0]
-  var num_from_end = Math.min(path.length - 1, 2)
-  var name = [first]
-  for(var i = (path.length - num_from_end); i < path.length; i++){
-    name.push(path[i])
-  }
-  return underscore(name.join('_'));
+  load_module('shared')
+  return short_table_name(path)
 $$;
 
 CREATE OR REPLACE
