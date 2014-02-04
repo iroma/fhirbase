@@ -6,20 +6,6 @@ FUNCTION column_name(name varchar, type varchar)
 $$;
 
 CREATE OR REPLACE
-FUNCTION table_name(path varchar[])
-  RETURNS varchar LANGUAGE plv8 AS $$
-  load_module('shared')
-  return table_name(path)
-$$;
-
-CREATE OR REPLACE
-FUNCTION short_table_name(path varchar[])
-  RETURNS varchar language plv8 AS $$
-  load_module('shared')
-  return short_table_name(path)
-$$;
-
-CREATE OR REPLACE
 FUNCTION column_ddl(path varchar[], pg_type varchar, min varchar, max varchar)
   RETURNS varchar LANGUAGE plpgsql AS $$
   BEGIN
@@ -99,7 +85,7 @@ VIEW meta.expanded_with_dt_resource_elements as (
 CREATE
 VIEW meta.resource_tables as (
   SELECT
-    short_table_name(path) as table_name,
+    table_name(path) as table_name,
     case
       when array_length(path, 1) > 1 then 'resource_component'
       else 'resource'
@@ -112,7 +98,7 @@ VIEW meta.resource_tables as (
   FROM meta.compound_resource_elements e
   UNION
   SELECT
-    short_table_name(path) as table_name,
+    table_name(path) as table_name,
     base_table,
     array[]::varchar[] as columns
   FROM meta.expanded_with_dt_resource_elements

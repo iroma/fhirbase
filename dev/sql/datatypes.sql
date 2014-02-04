@@ -111,8 +111,8 @@ create or replace view meta.dt_types as (
 
 create or replace view meta.datatype_ddl as (
   select
-  base_name as base_table,
-  array_to_string(Array[underscore(type_name)] || path, '_') as table_name,
+  table_name(ARRAY[base_name]) as base_table,
+  table_name(Array[underscore(type_name)] || path) as table_name,
   columns
   from meta.dt_types
   order by level, type_name, path

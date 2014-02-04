@@ -13,9 +13,12 @@ do language plv8 $$
   load_module('schema')
   sql.generate_schema('0.12')
 $$;
+
+--}}}
 --}}}
 
 --{{{
-\dt fhirr.*
+select table_name(path) from meta.resource_elements
 --}}}
+
 
