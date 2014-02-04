@@ -8,17 +8,12 @@ drop schema if exists meta cascade;
 \ir sql/functions.sql
 \ir sql/datatypes.sql
 \ir sql/schema.sql
+\timing
+
+select * from meta.resource_tables;
 
 do language plv8 $$
   load_module('schema')
   sql.generate_schema('0.12')
 $$;
-
 --}}}
---}}}
-
---{{{
-select table_name(path) from meta.resource_elements
---}}}
-
-

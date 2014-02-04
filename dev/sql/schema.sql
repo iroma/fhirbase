@@ -1,16 +1,17 @@
 CREATE OR REPLACE
 FUNCTION column_name(name varchar, type varchar)
-  RETURNS varchar language plv8 AS $$
-  load_module('shared')
-  return column_name(name, type)
-$$;
+  RETURNS varchar language plpgsql AS $$
+  BEGIN
+    return replace(name, '[x]', type);
+  END
+$$  IMMUTABLE;
 
 CREATE OR REPLACE
 FUNCTION column_ddl(path varchar[], pg_type varchar, min varchar, max varchar)
   RETURNS varchar LANGUAGE plpgsql AS $$
   BEGIN
     return ('"' ||
-      underscore(path[array_length(path, 1)]) ||
+      underscore(array_last(path)) ||
       '" ' ||
       pg_type ||
       case
@@ -22,7 +23,7 @@ FUNCTION column_ddl(path varchar[], pg_type varchar, min varchar, max varchar)
         else ''
       end);
   END
-$$;
+$$ IMMUTABLE;
 
 
 -- expand polimorphic types
@@ -58,8 +59,7 @@ VIEW meta.compound_resource_elements as (
 -- 1. OR primitive OR enum (we suggest that no enums in resource elements)
 -- TODO: check invariant
 -- 2. expanded_resource_elements - compound_resource_elements - complex_types - resource_references
-CREATE
-VIEW meta.resource_columns as (
+CREATE TABLE meta.resource_columns as (
     SELECT
       e.path as path,
       tt.pg_type as pg_type,
