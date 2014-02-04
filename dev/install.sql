@@ -13,16 +13,9 @@ do language plv8 $$
   load_module('schema')
   sql.generate_schema('0.12')
 $$;
+--}}}
 --{{{
+select table_name from meta.resource_tables;
 
-\ir sql/schema.sql
-\ir sql/load_plv8_modules.sql
-do language plv8 $$
-  load_module('schema')
-  sql.generate_schema('0.12')
-$$;
 --}}}
---{{{
-select * from meta.resource_tables
-limit 10;
---}}}
+

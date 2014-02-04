@@ -28,6 +28,21 @@ FUNCTION table_name(path varchar[])
 $$;
 
 CREATE OR REPLACE
+FUNCTION short_table_name(path varchar[])
+  RETURNS varchar language plv8 AS $$
+  function underscore (str) {
+    return str.replace(/([a-z\d])([A-Z]+)/g, "$1_$2").replace(/[-\s]+/g, "_").toLowerCase();
+  }
+  var first = path[0]
+  var num_from_end = Math.min(path.length - 1, 2)
+  var name = [first]
+  for(var i = (path.length - num_from_end); i < path.length; i++){
+    name.push(path[i])
+  }
+  return underscore(name.join('_'));
+$$;
+
+CREATE OR REPLACE
 FUNCTION column_ddl(path varchar[], pg_type varchar, min varchar, max varchar)
   RETURNS varchar LANGUAGE plpgsql AS $$
   BEGIN
@@ -73,7 +88,7 @@ VIEW meta.compound_resource_elements as (
   SELECT DISTINCT
     array_pop(path) as path
   FROM meta.expanded_resource_elements
-  WHERE array_length(path,1) = 0
+  WHERE array_length(path,1) > 1
 );
 
 -- Two ways of calculate columns:
@@ -83,8 +98,8 @@ VIEW meta.compound_resource_elements as (
 CREATE
 VIEW meta.resource_columns as (
     SELECT
-      e.path,
-      tt.pg_type,
+      e.path as path,
+      tt.pg_type as pg_type,
       column_ddl(e.path, tt.pg_type, e.min::varchar, e.max) as column_ddl
     FROM meta.expanded_resource_elements e
     JOIN meta.type_to_pg_type tt ON tt.type = e.type
@@ -107,20 +122,20 @@ VIEW meta.expanded_with_dt_resource_elements as (
 CREATE
 VIEW meta.resource_tables as (
   SELECT
-    table_name(path) as table_name,
+    short_table_name(path) as table_name,
     case
       when array_length(path, 1) > 1 then 'resource_component'
       else 'resource'
     end as base_table,
-    (
+    coalesce((
       SELECT array_agg(column_ddl)
         FROM meta.resource_columns rc
        WHERE array_pop(rc.path) = e.path
-    ) as columns
+    ), ARRAY[]::varchar[]) as columns
   FROM meta.compound_resource_elements e
   UNION
   SELECT
-    table_name(path) as table_name,
+    short_table_name(path) as table_name,
     base_table,
     array[]::varchar[] as columns
   FROM meta.expanded_with_dt_resource_elements
