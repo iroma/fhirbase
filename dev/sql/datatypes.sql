@@ -16,7 +16,7 @@ VIEW meta.datatype_unified_elements AS (
       else max_occurs
     end as max
   FROM datatype elements
-)
+);
 
 -- datatypes
 -- unify datatype interface to make similar with resource elements
