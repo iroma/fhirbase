@@ -15,7 +15,7 @@ VIEW meta.datatype_unified_elements AS (
         then '*'
       else max_occurs
     end as max
-  FROM datatype elements
+  FROM meta.datatype_elements
 );
 
 -- datatypes

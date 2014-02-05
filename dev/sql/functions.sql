@@ -40,7 +40,7 @@ FUNCTION table_name(path varchar[])
           coalesce(
             (SELECT alias
                FROM meta.word_aliases
-              WHERE word = nm limit 1)
+              WHERE word = underscore(nm) limit 1)
             , nm)), '_'))
        FROM unnest(path) as nm;
   END
