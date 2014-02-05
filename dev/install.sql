@@ -19,6 +19,6 @@ $$;
 
 do language plv8 $$
   load_module('views')
-  views.generate_views()
+  views.generate_views('fhirr')
 $$;
 --}}}
