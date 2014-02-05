@@ -1,31 +1,4 @@
 -- FIXME: may be use underscore
-CREATE OR REPLACE
-FUNCTION column_name(name varchar, type varchar)
-  RETURNS varchar language plpgsql AS $$
-  BEGIN
-    return replace(name, '[x]', '_' || type);
-  END
-$$  IMMUTABLE;
-
-CREATE OR REPLACE
-FUNCTION column_ddl(path varchar[], pg_type varchar, min varchar, max varchar)
-  RETURNS varchar LANGUAGE plpgsql AS $$
-  BEGIN
-    return ('"' ||
-      underscore(array_last(path)) ||
-      '" ' ||
-      pg_type ||
-      case
-        when max = '*' then '[]'
-        else ''
-      end ||
-      case
-        when min = '1' then ' not null'
-        else ''
-      end);
-  END
-$$ IMMUTABLE;
-
 
 -- expand polimorphic types
 CREATE
@@ -64,7 +37,7 @@ CREATE TABLE meta.resource_columns as (
     SELECT
       e.path as path,
       tt.pg_type as pg_type,
-      column_ddl(e.path, tt.pg_type, e.min::varchar, e.max) as column_ddl
+      column_ddl(array_last(e.path), tt.pg_type, e.min::varchar, e.max) as column_ddl
     FROM meta.expanded_resource_elements e
     JOIN meta.type_to_pg_type tt ON tt.type = e.type
 );
@@ -74,10 +47,11 @@ CREATE TABLE meta.resource_columns as (
 CREATE
 VIEW meta.expanded_with_dt_resource_elements as (
     SELECT
-      e.path || t.path as path,
-      table_name(ARRAY[t.type_name] || t.path) as base_table
+      e.path || array_tail(t.path) as path,
+      table_name(t.path) as base_table
     FROM meta.expanded_resource_elements e
-    JOIN meta.dt_types t ON t.type_name = e.type AND t.type_name <> 'Resource'
+    JOIN meta.unified_complex_datatype t
+    ON t.path[1] = e.type
 );
 
 

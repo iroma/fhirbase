@@ -4,8 +4,16 @@ create view meta.enums as (
   group by replace(datatype, '-list','')
 );
 
+CREATE VIEW meta.primitive_types as (
+  SELECT type, pg_type
+  FROM meta.type_to_pg_type
+  UNION
+  SELECT enum, 'fhirr."' || enum  || '"'-- HACK
+  FROM meta.enums
+);
+
 CREATE OR REPLACE
-VIEW meta.datatype_unified_elements AS (
+VIEW meta._datatype_unified_elements AS (
   SELECT
     ARRAY[datatype, name] as path,
     type,
@@ -15,111 +23,64 @@ VIEW meta.datatype_unified_elements AS (
         then '*'
       else max_occurs
     end as max
-  FROM datatype elements
-)
-
--- datatypes
--- unify datatype interface to make similar with resource elements
-
-create or replace view meta.dt_raw as (
-  select
-    d.datatype as type_name,
-    Array[]::varchar[] as path,
-    underscore(d.name) as column_name,
-    d.type as column_type,
-    -- FIXME: hack schema name hardcoded
-    coalesce(coalesce(t.pg_type, case when d.type is not null then ('fhirr."' || d.type || '"') else null end), 'varchar') ||
-      case
-        when d.max_occurs = 'unbounded' then '[]'
-        else ''
-      end || case
-        when d.min_occurs = '1' then ' not null'
-        else ''
-      end as pg_type,
-    'resource_value'::varchar as base_name
-  from meta.datatype_elements d
-  left join meta.type_to_pg_type t on t.type = underscore(coalesce(d.type, 'unexisting'))
+  FROM meta.datatype_elements
+  where datatype <> 'Resource'
 );
 
--- recursively convert datatypes graph to collection with path
-
-create or replace view meta.dt_tree as (
+create or replace
+view meta.datatype_unified_elements as (
   with recursive tree(
-    type_name,
-    path,
-    column_name,
-    column_type,
-    pg_type,
-    base_name
+    path, type, min, max
   ) as (
-    select r.*
-    from meta.dt_raw r
+    select r.* from meta._datatype_unified_elements r
     union
-    select t.type_name,
-      t.path || Array[t.column_name] as path,
-      r.column_name,
-      r.column_type,
-      r.pg_type,
-      r.type_name as base_name
-    from meta.dt_raw r
-    join tree t on t.column_type = r.type_name
+    select
+      t.path || ARRAY[array_last(r.path)] as path,
+      r.type as type,
+      t.min as min,
+      t.max as max
+    from meta._datatype_unified_elements r
+    join tree t on t.type = r.path[1]
   )
-  select t.type_name,
-    t.path,
-    t.column_name,
+  select * from tree t limit 1000
+);
+
+CREATE VIEW meta.unified_complex_datatype AS (
+  select
+    ue.path as path,
+    coalesce(tp.type, ue.path[1]) as type
+    from (
+      select array_pop(path) as path
+      from meta.datatype_unified_elements
+      group by array_pop(path)
+    ) ue
+  LEFT JOIN meta.datatype_unified_elements tp
+  on tp.path = ue.path
+);
+
+CREATE VIEW meta.unified_datatype_columns AS (
+  SELECT dt.*,
+    pt.pg_type as pg_type,
+    column_ddl(array_last(dt.path), pt.pg_type, dt.min, dt.max) as column_ddl
+  FROM  meta.datatype_unified_elements dt
+  JOIN meta.primitive_types pt ON underscore(pt.type) = underscore(dt.type)
+  where array_length(dt.path,1) = 2
+);
+
+CREATE OR REPLACE
+VIEW meta.datatype_tables AS (
+  SELECT
+    table_name(path) as table_name,
     case
-      when exists(
-        select *
-        from meta.dt_raw r
-        where r.type_name = t.column_type) then null
-      else t.column_type
-    end as column_type,
-    t.pg_type,
-    t.base_name
-  from tree t
+    when array_length(path, 1) = 1 then 'resource_value'
+    else table_name(ARRAY[type])
+    end as base_table,
+    (SELECT coalesce(array_agg(column_ddl), ARRAY[]::varchar[])
+      FROM meta.unified_datatype_columns cls
+      WHERE array_pop(cls.path) = cd.path
+    ) as columns,
+    *
+  FROM  meta.unified_complex_datatype cd
+  order by array_length(cd.path,1), table_name
 );
 
-create or replace view meta.dt_tables as (
-  select
-  t.type_name,
-  t.path,
-  underscore(t.base_name) as base_name,
-  l.level
-  from (
-    select distinct type_name, path, base_name
-    from meta.dt_tree
-  ) t
-  join (
-    select type_name, coalesce(max(array_length(path, 1)), 0) as level
-    from meta.dt_tree
-    group by type_name
-  ) l on l.type_name = t.type_name
-);
-
-create or replace view meta.dt_types as (
-  select
-  t.type_name,
-  t.path,
-  t.base_name,
-  t.level,
-  case
-    when t.base_name = 'resource_value'
-      then array(
-        select '"' || c.column_name || '" ' || c.pg_type
-        from meta.dt_tree c
-        where c.type_name = t.type_name and c.path = t.path and c.column_type is not null
-      )
-      else Array[]::varchar[]
-  end
-  as columns
-  from meta.dt_tables t
-);
-
-create or replace view meta.datatype_ddl as (
-  select
-  table_name(ARRAY[base_name]) as base_table,
-  table_name(Array[underscore(type_name)] || path) as table_name,
-  columns
-  from meta.dt_types
-  order by level, type_name, path
-);

@@ -10,16 +10,19 @@ drop schema if exists meta cascade;
 \ir ../sql/datatypes.sql
 \ir ../sql/schema.sql
 
-BEGIN;
-SELECT plan(1);
-
 \timing
-select * from meta.resource_tables;
+--select * from meta.resource_tables;
 
 do language plv8 $$
   load_module('schema')
   sql.generate_schema('0.12')
 $$;
+
+BEGIN;
+SELECT plan(1);
+
+
+SELECT has_table('fhirr', 'vs_expansion_idn_assigner', 'should create tables');
 
 SELECT * FROM finish();
 ROLLBACK;

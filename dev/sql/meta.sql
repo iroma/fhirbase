@@ -69,7 +69,6 @@ create table meta.type_to_pg_type (
 insert into meta.type_to_pg_type (type, pg_type)
 VALUES
 ('code', 'varchar'),
-('dateTime', 'timestamp'),
 ('date_time', 'timestamp'),
 ('string', 'varchar'),
 ('uri', 'varchar'),

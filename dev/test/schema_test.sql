@@ -9,12 +9,9 @@ drop schema if exists meta cascade;
 \ir ../sql/functions.sql
 \ir ../sql/datatypes.sql
 \ir ../sql/schema.sql
---}}}
 
-
---{{{
 BEGIN;
-SELECT plan(9);
+SELECT plan(8);
 
 SELECT is (
   (
@@ -80,6 +77,7 @@ FROM meta.resource_columns
 WHERE
   path[1] = 'Alert'
   AND path[2] = 'note';
+
 
 SELECT is(
   (

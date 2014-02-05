@@ -47,7 +47,7 @@ e = ()->
      );
     """
 
-    e("select * from meta.datatype_ddl where table_name not in ('resource', 'backbone_element') ").forEach (tbl)->
+    e("select * from meta.datatype_tables where table_name not in ('resource', 'backbone_element') ").forEach (tbl)->
       e """
         CREATE TABLE #{schema}.#{tbl.table_name} (
           #{tbl.columns && tbl.columns.join(',')}

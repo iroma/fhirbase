@@ -10,31 +10,34 @@ drop schema if exists meta cascade;
 \ir ../sql/datatypes.sql
 
 BEGIN;
-SELECT plan(1);
+SELECT plan(6);
 
-SELECT * FROM meta.dt_raw;
+SELECT is(pg_type,'varchar','convert string') FROM meta.primitive_types
+WHERE type = 'string';
 
-\timing
+SELECT is(pg_type, 'fhirr."AddressUse"' ,'convert enum') FROM meta.primitive_types
+WHERE type = 'AddressUse';
+
+SELECT is(type, 'dateTime', 'should expand datatypes') FROM meta.datatype_unified_elements
+where path[1]='Address' and path[2] = 'period' and path[3]='end'
+order by path;
+
+SELECT is(type, 'ResourceReference', 'should expand datatypes')
+FROM meta.unified_complex_datatype
+where path[1]='CodeableConcept' and path[2] = 'coding' and path[3]='valueSet'
+order by path;
+
+SELECT is(pg_type, 'fhirr."AddressUse"', 'should collect columns')
+FROM meta.unified_datatype_columns
+where path[1]='Address' and path[2] = 'use'
+order by path;
+
+select
+  is(base_table, 'resource_value', 'base table'),
+  is(array_length(columns,1), 7, 'columns')
+from meta.datatype_tables
+where table_name = 'attachment';
 
 SELECT * FROM finish();
 ROLLBACK;
---}}}
---{{{
-select * from meta.resource_elements;
-
-CREATE OR REPLACE
-VIEW meta.datatype_unified_elements AS (
-  SELECT
-    ARRAY[datatype, name] as path,
-    type,
-    min_occurs as min,
-    case
-      when max_occurs = 'unbounded'
-        then '*'
-      else max_occurs
-    end as max
-  FROM meta.datatype_elements
-);
-
-select * from meta.datatype_unified_elements;
 --}}}
