@@ -16,4 +16,9 @@ do language plv8 $$
   load_module('schema')
   sql.generate_schema('0.12')
 $$;
+
+do language plv8 $$
+  load_module('views')
+  views.generate_views()
+$$;
 --}}}
