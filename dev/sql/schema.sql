@@ -1,8 +1,9 @@
+-- FIXME: may be use underscore
 CREATE OR REPLACE
 FUNCTION column_name(name varchar, type varchar)
   RETURNS varchar language plpgsql AS $$
   BEGIN
-    return replace(name, '[x]', type);
+    return replace(name, '[x]', '_' || type);
   END
 $$  IMMUTABLE;
 

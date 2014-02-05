@@ -22,7 +22,6 @@ FUNCTION array_pop(ar varchar[])
   END
 $$ IMMUTABLE;
 
-DROP FUNCTION array_last(varchar[]) CASCADE;
 CREATE OR REPLACE
 FUNCTION array_last(ar varchar[])
   RETURNS varchar language plpgsql AS $$
@@ -38,9 +37,12 @@ FUNCTION table_name(path varchar[])
     RETURN underscore(
       array_to_string(
          array_agg(
-          coalesce(wa.alias, nm)),'_'))
-       FROM unnest(path) as nm
-       LEFT JOIN meta.word_aliases wa on wa.word = underscore(nm);
+          coalesce(
+            (SELECT alias
+               FROM meta.word_aliases
+              WHERE word = nm limit 1)
+            , nm)), '_'))
+       FROM unnest(path) as nm;
   END
 $$ IMMUTABLE;
 

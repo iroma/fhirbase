@@ -111,8 +111,8 @@ INSERT INTO meta.resource_elements
 select
     '0.12' as version,
     regexp_split_to_array(xattr('./path/@value', el), '\.') as path,
+    xattr('./definition/min/@value', el) as min,
     xattr('./definition/max/@value', el) as max,
-    xattr('./definition/min/@value', el) as max,
     xarrattr('./definition/type/code/@value', el) as type
   FROM (
     SELECT unnest(fpath('//fh:structure/fh:element', :'fhir')) as el

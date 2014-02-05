@@ -1,54 +1,47 @@
 --db:testfhir
 --{{{
-CREATE EXTENSION IF NOT EXISTS pgtap;
+\ir 'spec_helper.sql'
+drop schema if exists meta cascade;
+\ir ../sql/meta.sql
+\ir ../sql/load_meta.sql
+\ir ../sql/plv8.sql
+\ir ../sql/load_plv8_modules.sql
+\ir ../sql/functions.sql
+\ir ../sql/datatypes.sql
+\ir ../sql/schema.sql
+--}}}
 
-\set ECHO
-\set QUIET 1
--- Turn off echo and keep things quiet.
 
--- Format the output for nice TAP.
-\pset format unaligned
---\pset tuples_only true
-\pset pager
-
--- Revert all changes on failure.
-\set ON_ERROR_ROLLBACK 1
-\set ON_ERROR_STOP true
-\set QUIET 1
-
--- Load the TAP functions.
--- Plan the tests.
+--{{{
 BEGIN;
-
 SELECT plan(9);
-
--- test components
-
-SELECT is(
-  (SELECT table_name(ARRAY['a','b','c']::varchar[])),
-  'a_b_c',
-  'table_name'
-);
-
 
 SELECT is (
   (
     SELECT array_agg(type)
     FROM meta.expanded_resource_elements
     WHERE path[1] = 'Patient'
-    and path[2] = 'deceased[x]'
+    and path[2] ~ '^deceased_'
   ),
   ARRAY['boolean','dateTime']::varchar[],
   'should expand polimorphic'
 );
 
+CREATE OR REPLACE
+FUNCTION array_sort(arr anyarray)
+  RETURNS anyarray language sql AS $$
+    select array_agg(x)
+      from
+        (select unnest(arr) as x order by x) x;
+$$  IMMUTABLE;
+
 SELECT is (
   (
-    select array_agg(path[array_length(path,1)])
+    select array_sort(array_agg(array_last(path))) as nm
     from meta.compound_resource_elements
     where path[1] = 'Encounter'
   ),
-  ARRAY['Encounter', 'hospitalization','accomodation','location','participant' ]::varchar[],
+  array_sort(ARRAY['Encounter', 'hospitalization','accomodation','location','participant' ]::varchar[]),
   'should select only compaund elements'
 );
 
@@ -58,8 +51,7 @@ SELECT is(
   FROM meta.expanded_resource_elements e
   JOIN meta.enums en ON en.enum = e.type
  ),
- 0, 'no enums in resource elements'
-);
+ 0, 'no enums in resource elements');
 
 SELECT is(
   (
@@ -72,9 +64,8 @@ SELECT is(
       ORDER BY attr
     ) pp
   ),
-  ARRAY['class','start','status']::varchar[],
-  'only 3 columns in encounter'
-);
+  ARRAY['class','status']::varchar[],
+  'only 3 columns in encounter');
 
 SELECT is(column_ddl, '"comment" varchar[]', 'should be array')
 FROM meta.resource_columns
@@ -82,6 +73,7 @@ WHERE
   path[1] = 'Specimen'
   AND path[2] = 'collection'
   AND path[3] = 'comment';
+
 
 SELECT is(column_ddl, '"note" varchar not null', 'should be not null')
 FROM meta.resource_columns
@@ -95,10 +87,11 @@ SELECT is(
     FROM meta.expanded_with_dt_resource_elements
     where path[1] = 'Encounter'
     AND path[3] = 'accomodation'
+    AND path[4] = 'period'
     order by path
   ),
   'period',
-  'only 3 columns in encounter'
+  'check base table'
 );
 
 SELECT is(
@@ -108,7 +101,7 @@ SELECT is(
     where table_name in ('encounter',
       'encounter_hospitalization',
       'encounter_hospitalization_accomodation',
-      'encounter_identifier_period')
+      'encounter_idn_period')
   ),
   4,
   'check some tables in encounter'
@@ -116,4 +109,9 @@ SELECT is(
 
 SELECT * FROM finish();
 ROLLBACK;
+--}}}
+--{{{
+    SELECT *
+    FROM meta.resource_tables
+    where table_name ilike 'encounter%'
 --}}}
