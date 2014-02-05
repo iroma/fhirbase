@@ -110,8 +110,3 @@ SELECT is(
 SELECT * FROM finish();
 ROLLBACK;
 --}}}
---{{{
-    SELECT *
-    FROM meta.resource_tables
-    where table_name ilike 'encounter%'
---}}}

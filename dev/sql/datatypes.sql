@@ -1,22 +1,25 @@
-create view meta.complex_datatypes as (
-  select * from meta.datatypes
-  where extension is null and kind = 'complexType'
-);
-
-create view meta.primitive_datatypes as (
-  select * from meta.datatypes
-  where (type || '-primitive') = extension
-  OR type = 'xmlIdRef'
-);
-
 create view meta.enums as (
   select replace(datatype, '-list','') as enum, array_agg(value) as options
   from meta.datatype_enums
   group by replace(datatype, '-list','')
 );
 
+CREATE OR REPLACE
+VIEW meta.datatype_unified_elements AS (
+  SELECT
+    ARRAY[datatype, name] as path,
+    type,
+    min_occurs as min,
+    case
+      when max_occurs = 'unbounded'
+        then '*'
+      else max_occurs
+    end as max
+  FROM datatype elements
+)
 
 -- datatypes
+-- unify datatype interface to make similar with resource elements
 
 create or replace view meta.dt_raw as (
   select
@@ -37,6 +40,8 @@ create or replace view meta.dt_raw as (
   from meta.datatype_elements d
   left join meta.type_to_pg_type t on t.type = underscore(coalesce(d.type, 'unexisting'))
 );
+
+-- recursively convert datatypes graph to collection with path
 
 create or replace view meta.dt_tree as (
   with recursive tree(
@@ -98,12 +103,13 @@ create or replace view meta.dt_types as (
   t.base_name,
   t.level,
   case
-    when t.base_name = 'resource_value' then array(
-      select '"' || c.column_name || '" ' || c.pg_type
-      from meta.dt_tree c
-      where c.type_name = t.type_name and c.path = t.path and c.column_type is not null
-    )
-    else Array[]::varchar[]
+    when t.base_name = 'resource_value'
+      then array(
+        select '"' || c.column_name || '" ' || c.pg_type
+        from meta.dt_tree c
+        where c.type_name = t.type_name and c.path = t.path and c.column_type is not null
+      )
+      else Array[]::varchar[]
   end
   as columns
   from meta.dt_tables t

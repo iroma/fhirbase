@@ -13,14 +13,13 @@ $$ language plpgsql;
 
 -- HACK: see http://joelonsql.com/2013/05/13/xml-madness/
 -- problems with namespaces
-drop function xspath(varchar, xml);
 create OR replace
 function xspath(pth varchar, x xml) returns xml[]
   as $$
   BEGIN
     return  xpath('/xml' || pth, xml('<xml xmlns:xs="xs">' || x || '</xml>'), ARRAY[ARRAY['xs','xs']]);
   END
-$$ language plpgsql;
+$$ language plpgsql IMMUTABLE;
 
 create OR replace
 function xsattr(pth varchar, x xml) returns varchar
@@ -28,7 +27,7 @@ function xsattr(pth varchar, x xml) returns varchar
   BEGIN
     return  unnest(xspath( pth,x)) limit 1;
   END
-$$ language plpgsql;
+$$ language plpgsql IMMUTABLE;
 
 
 create OR replace
@@ -37,7 +36,7 @@ function fpath(pth varchar, x xml) returns xml[]
   BEGIN
     return xpath(pth, x, ARRAY[ARRAY['fh', 'http://hl7.org/fhir']]);
   END
-$$ language plpgsql;
+$$ language plpgsql IMMUTABLE;
 
 create OR replace
 function xarrattr(pth varchar, x xml) returns varchar[]

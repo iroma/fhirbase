@@ -9,6 +9,7 @@
   };
 
   e = function() {
+    log(arguments[0]);
     return plv8.execute.apply(plv8, arguments);
   };
 

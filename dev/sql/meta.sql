@@ -1,4 +1,5 @@
 create schema meta;
+-- FIXME: foreign keys and indexes
 
 create table meta.datatypes (
   version varchar,
@@ -28,6 +29,7 @@ create table meta.datatype_enums (
   documentation text,
   PRIMARY KEY(datatype, value)
 );
+
 
 --create table meta.resources (
 --version varchar,
