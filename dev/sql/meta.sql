@@ -100,7 +100,7 @@ VALUES
 ('codeable_concept', 'cc'),
 ('value_set', 'vs'),
 ('recommentdaton', 'rcm'),
-('medication_dispense', 'med_desp'),
+('medication_dispense', 'med_disp'),
 ('medication_prescription', 'med_prs'),
 ('medication_administration', 'med_adm'),
 ('medication_statement', 'med_st'),
