@@ -54,6 +54,13 @@ FUNCTION table_name(path varchar[])
   END
 $$ IMMUTABLE;
 
+CREATE OR REPLACE FUNCTION indent(t text, l integer)
+  RETURNS text LANGUAGE plpgsql AS $$
+  BEGIN
+    RETURN regexp_replace(t, '^', repeat('  ', l), 'gm');
+  END
+$$;
+
 CREATE OR REPLACE
 FUNCTION column_name(name varchar, type varchar)
   RETURNS varchar language plpgsql AS $$
