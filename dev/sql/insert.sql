@@ -3,6 +3,6 @@ create OR replace function insert_resource(res json)
   returns varchar
   language plv8
   as $$
-  load_module('medapp');
+  load_module('persistence');
   return insert_resource(res);
 $$;

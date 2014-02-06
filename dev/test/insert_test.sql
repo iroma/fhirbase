@@ -39,12 +39,12 @@ is(_type, 'patient')
 FROM fhirr.resource;
 
 SELECT _type, * FROM fhirr.resource_component;
-select * from fhirr.patient_name;
+select * from fhirr.human_name;
+select * from fhirr.patient_managing_organization;
 
 SELECT * FROM finish();
 ROLLBACK;
 --}}}
 --{{{
---}}}
---{{{
+\dt fhirr.patient*
 --}}}
