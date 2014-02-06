@@ -90,9 +90,12 @@ SELECT
   datatype,
   coalesce(
     xsattr('/xs:element/@name', el),
-    xsattr('/xs:element/@ref', el)
+    (string_to_array(xsattr('/xs:element/@ref', el),':'))[2]
   ) as name,
-  xsattr('/xs:element/@type', el) as type,
+  coalesce(
+    xsattr('/xs:element/@type', el),
+    'text'
+  ) as type,
   xsattr('/xs:element/@minOccurs', el) as min_occurs,
   xsattr('/xs:element/@maxOccurs', el) as max_occurs
 FROM (

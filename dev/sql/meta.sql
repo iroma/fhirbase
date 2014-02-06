@@ -71,6 +71,7 @@ VALUES
 ('code', 'varchar'),
 ('date_time', 'timestamp'),
 ('string', 'varchar'),
+('text', 'text'),
 ('uri', 'varchar'),
 ('datetime', 'timestamp'),
 ('instant', 'timestamp'),

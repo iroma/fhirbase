@@ -62,35 +62,49 @@ collect_columns = ()->
     acc
   ), {}
 
-columns = (table_name) ->
-  columns.columns_for ||= collect_columns()
-  columns.columns_for[table_name]
+get_columns = (table_name) ->
+  get_columns.columns_for ||= collect_columns()
+  get_columns.columns_for[table_name]
 
 collect_attributes = (table_name, obj) ->
   arr2lit = (v)->
     v = v.map((i)-> "\"#{i}\"").join(',')
     "{#{v}}"
 
-  columns(table_name).reduce ((acc, m) ->
-    column_name = m.column_name
-    an = camelize(column_name)
-    v = obj[an]
-    parts = column_name.match(/(.*)_reference/)
-    if parts
-      col_prefix = parts[1]
-      if v = obj[camelize(col_prefix)]
-        acc[column_name] = v.reference
-        acc["#{col_prefix}_display"] = v.display
-    else if v
-      if Array.isArray(v)
-        acc[column_name] = arr2lit(v)
-      else
-        acc[column_name] = v
+  columns_index = get_columns(table_name).reduce ((acc,m)->
+    acc[m.column_name] = m
     acc
   ), {}
 
+  is_column = (k)->
+    columns_index[k]?
+
+  is_unknown_attribute = (v)->
+    !(isObject(v) || Array.isArray(v))
+
+  coerce = (v)->
+    if Array.isArray(v)
+      arr2lit(v)
+    else
+      v
+
+  attrs = {}
+
+  for k,v of obj
+    key = underscore(k)
+    if is_column(key)
+      attrs[key] = coerce(v)
+    else if is_unknown_attribute(v)
+      (attrs._unknown_attributes ||={})[k]=coerce(v)
+
+  if attrs._unknown_attributes
+    attrs._unknown_attributes = JSON.stringify(attrs._unknown_attributes)
+
+  attrs
+
 @insert_resource = (json) ->
   resource_name = json.resourceType
+  json.id ||= uuid()
   walk [], underscore(resource_name), json, (parents, name, obj)->
     pth = parents.map((i)-> underscore(i.name))
     pth.push(name)
@@ -111,3 +125,4 @@ collect_attributes = (table_name, obj) ->
       attrs.id
     else
       log("Skip #{table_name}")
+  json.id

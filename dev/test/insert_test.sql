@@ -24,27 +24,37 @@ $$;
 \set pt_json `cat $FHIR_HOME/test/fixtures/patient.json`
 
 BEGIN;
-SELECT plan(2);
-select insert_resource(:'pt_json'::json);
+SELECT plan(5);
+
+select insert_resource(:'pt_json'::json) as resource_id \gset
+
+SELECT :'resource_id';
 
 SELECT is(count(*)::integer, 1,'insert patient')
 FROM fhirr.patient;
 
 SELECT is(family, ARRAY['Bor']::varchar[],'should record name')
 FROM fhirr.patient_name
-WHERE text = 'Roel';
+WHERE text = 'Roel'
+AND resource_id = :'resource_id';
 
 SELECT
 is(_type, 'patient')
-FROM fhirr.resource;
+FROM fhirr.resource
+WHERE id = :'resource_id';
 
-SELECT _type, * FROM fhirr.resource_component;
-select * from fhirr.human_name;
-select * from fhirr.patient_managing_organization;
+SELECT
+is(count(*)::int, 2)
+FROM fhirr.patient_gender_cd
+WHERE resource_id = :'resource_id';
+
+SELECT is_empty(
+  'SELECT *
+  FROM fhirr.resource_component
+  WHERE _unknown_attributes IS NOT NULL',
+  'should not contain any _unknown_attributes'
+);
 
 SELECT * FROM finish();
 ROLLBACK;
---}}}
---{{{
-\dt fhirr.patient*
 --}}}

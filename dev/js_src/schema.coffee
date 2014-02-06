@@ -24,6 +24,7 @@ e = ()->
      CREATE TABLE #{schema}.resource (
         id UUID PRIMARY KEY,
         _type VARCHAR NOT NULL,
+        _unknown_attributes json,
         resource_type varchar,
         language VARCHAR,
         container_id UUID REFERENCES #{schema}.resource (id)
@@ -31,9 +32,10 @@ e = ()->
 
      CREATE TABLE #{schema}.resource_component (
        id uuid PRIMARY KEY,
+       _type VARCHAR NOT NULL,
+       _unknown_attributes json,
        parent_id UUID NOT NULL REFERENCES #{schema}.resource_component (id),
        resource_id UUID NOT NULL REFERENCES #{schema}.resource (id),
-       _type VARCHAR NOT NULL,
        container_id UUID REFERENCES #{schema}.resource (id)
      );
     """
