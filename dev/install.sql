@@ -78,6 +78,14 @@ select array_last(n.path), n.type
 from meta.nested n
 left join meta.primitive_types pt on underscore(pt.type) = underscore(n.type)
 where pt.type is null and array_pop(n.path) = array['Patient']::varchar[];
+create or replace function ident(str varchar, level integer, shift integer)
+  returns varchar
+  language plpgsql
+  as $$
+  BEGIN
+    return E'\n' || repeat(' ', (level - 1) * 6 + shift * 2) || str;
+  END
+$$;
 drop function if exists nested(varchar[]) cascade;
 create or replace function nested(var_path varchar[])
   returns varchar
@@ -96,29 +104,25 @@ create or replace function nested(var_path varchar[])
 				where array_pop(n.path) = var_path;
 
 				
-				select array_to_string(array_agg(E'\n' || repeat('    ', level - 1) || '  (' || nested(n.path) || E'\n' || repeat('    ', level - 1) || '  ) as ' || underscore(array_last(n.path)) || E',\n'), ', ')
+				select array_to_string(array_agg(ident('(', level, 2) || nested(n.path) || ident(') as ' || underscore(array_last(n.path)), level, 2)), ', ')
 				into selects
 				from meta.nested n
 				left join meta.primitive_types pt on underscore(pt.type) = underscore(n.type)
 				where pt.type is null and array_pop(n.path) = var_path;
 
-				return E'\n' || repeat('    ', level - 1) || 'select array_to_json(array_agg(row_to_json(t_' || level::varchar || ', true)), true)' ||
-        E'\n' || repeat('    ', level - 1) || 'from (' ||
-				E'\n' || repeat('    ', level - 1) || '  select ' ||
-				case when selects is not null then selects || repeat('    ', level - 1) else '' end ||
-				columns ||
-				E'\n' || repeat('    ', level - 1) || '  from ' || underscore(array_to_string(var_path, '_')) || ' t' || level::varchar ||
-				E'\n' || repeat('    ', level - 1) || '  where t' || level::varchar || '.root_id = t1.id and t' || level::varchar || '.parent_id = t' || (level - 1)::varchar || '.id' ||
-        E'\n' || repeat('    ', level - 1) || ') t_' || level::varchar;
-				--return level::varchar || ': (' ||
-			  --					columns ||
-				--				' from ' || underscore(array_to_string(var_path, '_')) || ')' ||
-				--case when selects is not null then E',\n' || repeat('  ', level) || '(' || selects || ')' else '' end;
-				--' || case when level = 1 then 'id, ' else '' end || '
-				--case when level > 1 then 
+				return
+				ident('select array_to_json(array_agg(row_to_json(t_' || level::varchar || ', true)), true)', level, 0) ||
+        ident('from (', level, 0) ||
+				ident('select ', level, 1) ||
+				coalesce(selects, '') ||
+				case when selects is not null and columns is not null then ',' else '' end ||
+				ident(columns, level, 2) ||
+				ident('from ' || underscore(array_to_string(var_path, '_')) || ' t' || level::varchar, level, 1) ||
+				ident('where t' || level::varchar || '.root_id = t1.id and t' || level::varchar || '.parent_id = t' || (level - 1)::varchar || '.id', level, 1) ||
+        ident(') t_' || level::varchar, level, 0);
   END
 $$;
-select nested(array['Patient']);--, 'address', 'period']);
+select nested(array['Patient',  'address']);
 select array_to_json(array_agg(row_to_json(t_4, true)), true)
 from (
 				select t4.system, t4.version, t4.code, t4.display, t4.primary
