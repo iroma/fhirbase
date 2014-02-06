@@ -4,5 +4,5 @@ create OR replace function insert_resource(res json)
   language plv8
   as $$
   load_module('medapp');
-  return sql.insert_resource(res);
+  return insert_resource(res);
 $$;

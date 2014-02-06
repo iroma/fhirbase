@@ -39,7 +39,7 @@ CREATE TABLE meta.resource_columns as (
       tt.pg_type as pg_type,
       column_ddl(array_last(e.path), tt.pg_type, e.min::varchar, e.max) as column_ddl
     FROM meta.expanded_resource_elements e
-    JOIN meta.type_to_pg_type tt ON tt.type = e.type
+    JOIN meta.type_to_pg_type tt ON tt.type = underscore(e.type)
 );
 
 

@@ -14,22 +14,40 @@ do language plv8 $$
   load_module('schema')
   sql.generate_schema('0.12')
 $$;
---}}}
 
---{{{
 --}}}
 --{{{
+
 \ir ../sql/load_plv8_modules.sql
 \ir ../sql/insert.sql
 
 \set pt_json `cat $FHIR_HOME/test/fixtures/patient.json`
 
 BEGIN;
-SELECT plan(1);
-
+SELECT plan(2);
 select insert_resource(:'pt_json'::json);
-select * from fhir.patient_contact_name;
+
+SELECT is(count(*)::integer, 1,'insert patient')
+FROM fhirr.patient;
+
+SELECT is(family, ARRAY['Bor']::varchar[],'should record name')
+FROM fhirr.patient_name
+WHERE text = 'Roel';
+
+SELECT
+is(_type, 'patient')
+FROM fhirr.resource;
+
+SELECT * FROM fhirr.resource_component;
+SELECT * FROM fhirr.resource_value;
 
 SELECT * FROM finish();
 ROLLBACK;
+--}}}
+--{{{
+select * from meta.resource_elements
+where path[1] = 'Patient';
+\d fhirr.patient
+--}}}
+--{{{
 --}}}

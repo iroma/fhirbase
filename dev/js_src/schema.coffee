@@ -22,28 +22,27 @@ e = ()->
 
     e """
      CREATE TABLE #{schema}.resource (
-        id uuid PRIMARY KEY,
-        resource_type #{schema}."ResourceType" not null,
-        language varchar,
-        text xml,
-        text_status #{schema}."NarrativeStatus",
-        container_id uuid references #{schema}.resource (id)
+        id UUID PRIMARY KEY,
+        _type VARCHAR NOT NULL,
+        resource_type varchar,
+        language VARCHAR,
+        container_id UUID REFERENCES #{schema}.resource (id)
      );
 
      CREATE TABLE #{schema}.resource_component (
        id uuid PRIMARY KEY,
-       parent_id uuid references #{schema}.resource_component (id),
-       resource_id uuid references #{schema}.resource (id),
-       resource_compontent_type varchar,
-       container_id uuid references #{schema}.resource (id)
+       parent_id UUID NOT NULL REFERENCES #{schema}.resource_component (id),
+       resource_id UUID NOT NULL REFERENCES #{schema}.resource (id),
+       _type VARCHAR NOT NULL,
+       container_id UUID REFERENCES #{schema}.resource (id)
      );
 
      CREATE TABLE #{schema}.resource_value (
        id uuid PRIMARY KEY,
-       parent_id uuid references #{schema}.resource_component (id),
-       resource_id uuid references #{schema}.resource (id),
-       resource_value_type varchar,
-       container_id uuid references #{schema}.resource (id)
+       parent_id UUID NOT NULL REFERENCES #{schema}.resource_component (id),
+       resource_id UUID NOT NULL REFERENCES #{schema}.resource (id),
+       _type VARCHAR NOT NULL,
+       container_id UUID REFERENCES #{schema}.resource (id)
      );
     """
 
@@ -58,5 +57,7 @@ e = ()->
       e  """
         CREATE TABLE #{schema}.#{tbl.table_name} (
           #{tbl.columns}
-        ) INHERITS (#{schema}.#{tbl.base_table})
+        ) INHERITS (#{schema}.#{tbl.base_table});
+        ALTER TABLE #{schema}.#{tbl.table_name}
+          ALTER COLUMN _type SET DEFAULT '#{tbl.table_name}';
       """
