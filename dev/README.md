@@ -58,8 +58,7 @@ There are two base tables:
 ### Base tables
 
 table resource - base table for all resource tables
-table resource_component - base table for all nested into resource value objects
-table resource_value - base table for all complex datatypes tables
+table resource_component - base table for all nested into resource value objects & base table for all complex datatypes tables
 
 ## Installation instructions
 

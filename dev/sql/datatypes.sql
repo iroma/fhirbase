@@ -72,7 +72,7 @@ VIEW meta.datatype_tables AS (
   SELECT
     table_name(path) as table_name,
     case
-    when array_length(path, 1) = 1 then 'resource_value'
+    when array_length(path, 1) = 1 then 'resource_component'
     else table_name(ARRAY[type])
     end as base_table,
     (SELECT coalesce(array_agg(column_ddl), ARRAY[]::varchar[])

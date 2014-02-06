@@ -38,16 +38,13 @@ SELECT
 is(_type, 'patient')
 FROM fhirr.resource;
 
-SELECT * FROM fhirr.resource_component;
-SELECT * FROM fhirr.resource_value;
+SELECT _type, * FROM fhirr.resource_component;
+select * from fhirr.patient_name;
 
 SELECT * FROM finish();
 ROLLBACK;
 --}}}
 --{{{
-select * from meta.resource_elements
-where path[1] = 'Patient';
-\d fhirr.patient
 --}}}
 --{{{
 --}}}

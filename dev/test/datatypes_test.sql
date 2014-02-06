@@ -33,7 +33,7 @@ where path[1]='Address' and path[2] = 'use'
 order by path;
 
 select
-  is(base_table, 'resource_value', 'base table'),
+  is(base_table, 'resource_component', 'base table'),
   is(array_length(columns,1), 7, 'columns')
 from meta.datatype_tables
 where table_name = 'attachment';

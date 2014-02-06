@@ -36,14 +36,6 @@ e = ()->
        _type VARCHAR NOT NULL,
        container_id UUID REFERENCES #{schema}.resource (id)
      );
-
-     CREATE TABLE #{schema}.resource_value (
-       id uuid PRIMARY KEY,
-       parent_id UUID NOT NULL REFERENCES #{schema}.resource_component (id),
-       resource_id UUID NOT NULL REFERENCES #{schema}.resource (id),
-       _type VARCHAR NOT NULL,
-       container_id UUID REFERENCES #{schema}.resource (id)
-     );
     """
 
     e("select * from meta.datatype_tables where table_name not in ('resource', 'backbone_element') ").forEach (tbl)->
