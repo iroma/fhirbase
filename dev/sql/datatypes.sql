@@ -1,4 +1,4 @@
-create view meta.enums as (
+create view meta.enums as (     --
   select replace(datatype, '-list','') as enum, array_agg(value) as options
   from meta.datatype_enums
   group by replace(datatype, '-list','')

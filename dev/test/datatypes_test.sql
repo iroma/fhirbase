@@ -33,10 +33,14 @@ where path[1]='Address' and path[2] = 'use'
 order by path;
 
 select
-  is(base_table, 'resource_component', 'base table'),
   is(array_length(columns,1), 7, 'columns')
-from meta.datatype_tables
-where table_name = 'attachment';
+  from meta.datatype_tables
+  where table_name = 'attachment';
+
+select
+  is(base_table, 'resource_component', 'base table')
+  from meta.datatype_tables
+  where table_name = 'attachment';
 
 SELECT * FROM finish();
 ROLLBACK;

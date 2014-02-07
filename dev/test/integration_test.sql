@@ -15,7 +15,7 @@ drop schema if exists meta cascade;
 
 do language plv8 $$
   load_module('schema')
-  sql.generate_schema('0.12')
+  sql.generate_schema('fhir', '0.12')
 $$;
 
 BEGIN;

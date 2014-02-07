@@ -9,7 +9,7 @@ e = ()->
   log(arguments[0])
   plv8.execute.apply(plv8, arguments)
 
-schema = 'fhirr'
+schema = 'fhir'
 
 uuid = ()->
   sql = 'select uuid_generate_v4() as uuid'
