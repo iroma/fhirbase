@@ -43,39 +43,49 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[])
     LEFT JOIN meta.primitive_types pt on underscore(pt.type) = underscore(n.type)
     WHERE pt.type IS NULL AND array_pop(n.path) = var_path;
 
-    subselect :=
-       E'\nselect ' ||
+    IF selects IS NULL AND columns IS NULL THEN
+      RETURN 'NULL';
+    ELSE
+      subselect :=
+         CASE WHEN level = 1 THEN '' ELSE E'\nselect ' END ||
 
-       COALESCE(selects, '') ||
-       (CASE WHEN selects IS NOT NULL AND columns IS NOT NULL THEN E',\n' ELSE '' END) ||
-       COALESCE(columns, '') ||
+         COALESCE(selects, '') ||
+         (CASE WHEN selects IS NOT NULL AND columns IS NOT NULL THEN E',\n' ELSE '' END) ||
+         COALESCE(columns, '') ||
 
-       E'\nfrom ' ||
-         '"' || underscore(array_to_string(var_path, '_')) || '" t' || level::varchar ||
+         E'\nfrom ' ||
+           '"' || 'fhirr' || '"."' || table_name(var_path) || '" t' || level::varchar ||
 
-       E'\nwhere t' ||
-         level::varchar || '."resource_id" = t1."id" and t' ||
-         level::varchar || '."parent_id" = t' ||
-         (level - 1)::varchar || '."id"';
+         CASE WHEN level = 1 THEN '' ELSE
+           E'\nwhere t' ||
+             level::varchar || '."resource_id" = t1."id" and t' ||
+             level::varchar || '."parent_id" = t' ||
+             (level - 1)::varchar || '."id"'
+         END;
 
-    RETURN
-       'select array_to_json(array_agg(row_to_json(t_' || level::varchar || ', true)), true) from (' ||
-       indent(subselect, 1) ||
-       E'\n) t_' || level::varchar;
-
+      IF level = 1 THEN
+        RETURN 'select t1.id, ' || subselect;
+      ELSE
+        RETURN 'select array_to_json(array_agg(row_to_json(t_' || level::varchar || ', true)), true) from ('
+         || indent(subselect, 1)
+         || E'\n) t_' || level::varchar;
+      END IF;
+    END IF;
   END
 $$;
 
-DROP FUNCTION IF EXISTS gen_resource_view_sql(varchar) CASCADE;
-CREATE OR REPLACE FUNCTION gen_resource_view_sql(resource_name varchar)
-  RETURNS varchar
+DROP FUNCTION IF EXISTS create_resource_view(varchar) CASCADE;
+CREATE OR REPLACE FUNCTION create_resource_view(resource_name varchar)
+  RETURNS void
   LANGUAGE plpgsql
   AS $$
   DECLARE
   create_sql text;
   BEGIN
+    RAISE NOTICE 'Create JSON view for %', resource_name;
+
     create_sql :=
-      'CREATE OR REPLACE VIEW "fhirr"."view_' || resource_name || '" AS SELECT t_1.id, row_to_json(t_1, true) AS json FROM (' ||
+      'CREATE OR REPLACE VIEW "fhirr"."view_' || underscore(resource_name) || '" AS SELECT t_1.id, row_to_json(t_1, true) AS json FROM (' ||
       E'\n' || indent(gen_select_sql(ARRAY[resource_name]), 1) ||
       ') t_1;';
 
@@ -83,4 +93,7 @@ CREATE OR REPLACE FUNCTION gen_resource_view_sql(resource_name varchar)
   END
 $$;
 
-SELECT gen_resource_view_sql('Patient'::varchar);
+-- run view generator for all resources
+SELECT create_resource_view(path[1])
+  FROM meta.expanded_resource_elements
+  WHERE array_length(path, 1) = 1;
