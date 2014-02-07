@@ -1,5 +1,5 @@
-\set persistence `cat $FHIR_HOME/js/persistence.js`
-\set schema `cat $FHIR_HOME/js/schema.js`
+\set persistence `cat $FHIRBASE_HOME/js/persistence.js`
+\set schema `cat $FHIRBASE_HOME/js/schema.js`
 
 delete from plv8_modules where modname IN ('persistence', 'schema', 'views');
 

@@ -9,12 +9,14 @@ else
 fi
 
 cd $FHIRBASE_HOME;
+export FHIRBASE_HOME;
 
 function help_cmd {
     cat <<EOF
 Usage: $0 [command] [args]
 
 Available commands:
+
 -h || help             this help text
 test                   run tests from dev/test dir
 install dbname         generate and install fhirbase schema into specified DB
@@ -22,12 +24,16 @@ build                  build fhirbase.sql file
 EOF
 }
 
+function compile_js {
+    coffee --compile --output $FHIRBASE_HOME/js $FHIRBASE_HOME/js_src
+}
+
 function install_cmd {
     if [ -z "$1" ]; then
         echo "install command requires dbname argument"
         exit 1
     else
-        coffee --compile --output js js_src
+        compile_js
         $PG_BIN_DIR/psql $PSQL_ARGS -d $1 < install.sql
     fi
 }
@@ -37,6 +43,7 @@ function recreate_db {
 }
 
 function test_cmd {
+    compile_js
     recreate_db $TEST_DB_NAME
     cd $FHIRBASE_HOME/test && $FHIRBASE_HOME/pg_prove $PSQL_ARGS -d $TEST_DB_NAME $FHIRBASE_HOME/test/*_test.sql
 }
