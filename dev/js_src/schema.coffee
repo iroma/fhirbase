@@ -4,7 +4,6 @@ log = (mess)->
   plv8.elog(NOTICE, JSON.stringify(mess))
 
 e = ()->
-  log(arguments[0])
   plv8.execute.apply(plv8, arguments)
 
 @sql =
