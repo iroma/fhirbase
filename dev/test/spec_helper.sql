@@ -12,3 +12,4 @@
 \set ON_ERROR_STOP true
 \set QUIET 1
 
+CREATE EXTENSION IF NOT EXISTS pgtap ;
