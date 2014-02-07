@@ -1,7 +1,7 @@
 --db:testfhir
 --{{{
-\set fhir `cat $FHIR_HOME/fhir/test/profiles-resources.xml`
-\set datatypes `cat $FHIR_HOME/fhir/test/fhir-base.xsd`
+\set fhir `cat $FHIRBASE_HOME/fhir/test/profiles-resources.xml`
+\set datatypes `cat $FHIRBASE_HOME/fhir/test/fhir-base.xsd`
 
 create OR replace
 function xattr(pth varchar, x xml) returns varchar

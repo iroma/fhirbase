@@ -12,7 +12,7 @@ drop schema if exists meta cascade;
 
 do language plv8 $$
   load_module('schema')
-  sql.generate_schema('0.12')
+  sql.generate_schema('fhir', '0.12')
 $$;
 
 --}}}
@@ -21,7 +21,7 @@ $$;
 \ir ../sql/load_plv8_modules.sql
 \ir ../sql/insert.sql
 
-\set pt_json `cat $FHIR_HOME/test/fixtures/patient.json`
+\set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`
 
 BEGIN;
 SELECT plan(5);
@@ -31,27 +31,25 @@ select insert_resource(:'pt_json'::json) as resource_id \gset
 
 SELECT :'resource_id';
 
-SELECT is(count(*)::integer, 1,'insert patient')
-FROM fhirr.patient;
+SELECT is(count(*)::integer, 1, 'insert patient')
+       FROM fhir.patient;
 
-SELECT is(family, ARRAY['Bor']::varchar[],'should record name')
-FROM fhirr.patient_name
-WHERE text = 'Roel'
-AND resource_id = :'resource_id';
+SELECT is(family, ARRAY['Bor']::varchar[], 'should record name')
+       FROM fhir.patient_name
+       WHERE text = 'Roel'
+       AND resource_id = :'resource_id';
 
-SELECT
-is(_type, 'patient')
-FROM fhirr.resource
-WHERE id = :'resource_id';
+SELECT is(_type, 'patient')
+       FROM fhir.resource
+       WHERE id = :'resource_id';
 
-SELECT
-is(count(*)::int, 2)
-FROM fhirr.patient_gender_cd
-WHERE resource_id = :'resource_id';
+SELECT is(count(*)::int, 2)
+       FROM fhir.patient_gender_cd
+       WHERE resource_id = :'resource_id';
 
 SELECT is_empty(
   'SELECT *
-  FROM fhirr.resource_component
+  FROM fhir.resource_component
   WHERE _unknown_attributes IS NOT NULL',
   'should not contain any _unknown_attributes'
 );

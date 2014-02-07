@@ -10,7 +10,7 @@ drop schema if exists meta cascade;
 \ir ../sql/datatypes.sql
 
 BEGIN;
-SELECT plan(6);
+SELECT plan(7);
 
 SELECT is(pg_type,'varchar','convert string') FROM meta.primitive_types
 WHERE type = 'string';
