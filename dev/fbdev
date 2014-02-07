@@ -34,12 +34,12 @@ function install_cmd {
         exit 1
     else
         compile_js
-        $PG_BIN_DIR/psql $PSQL_ARGS -d $1 < install.sql
+        psql $PSQL_ARGS -d $1 < install.sql
     fi
 }
 
 function recreate_db {
-    echo "DROP DATABASE $1; CREATE DATABASE $1;" | $PG_BIN_DIR/psql $PSQL_ARGS -d postgres;
+    echo "DROP DATABASE $1; CREATE DATABASE $1;" | psql $PSQL_ARGS -d postgres;
 }
 
 function test_cmd {
@@ -59,7 +59,7 @@ case "$1" in
         recreate_db $BUILD_DB_NAME
         install_cmd $BUILD_DB_NAME
 
-        $PG_BIN_DIR/pg_dump $PSQL_ARGS \
+        pg_dump $PSQL_ARGS \
           --format=plain \
           --schema=fhir $BUILD_DB_NAME \
           --no-owner > $FHIRBASE_HOME/../fhirbase.sql &&
@@ -69,3 +69,5 @@ case "$1" in
         help_cmd
         exit
 esac
+
+exit 0
