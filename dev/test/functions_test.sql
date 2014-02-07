@@ -3,7 +3,7 @@
 \ir 'spec_helper.sql'
 \ir '../sql/functions.sql'
 BEGIN;
-SELECT plan(1);
+SELECT plan(5);
 
 SELECT is(
   (SELECT array_last(ARRAY['a','b','c'])),
