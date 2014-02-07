@@ -15,6 +15,7 @@ function help_cmd {
 Usage: $0 [command] [args]
 
 Available commands:
+
 -h || help             this help text
 test                   run tests from dev/test dir
 install dbname         generate and install fhirbase schema into specified DB
