@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW meta.resource_elements_expanded_with_types AS
+CREATE TABLE meta.resource_elements_expanded_with_types AS
 SELECT * FROM (
   SELECT
   r.path || t.subpath AS path,
