@@ -1,13 +1,19 @@
 #!/bin/bash
 
-. ./fbdev_config.sh
+if [ -f ./fbdev_config.sh ]; then
+    . ./fbdev_config.sh
+else
+    echo "ERROR: No fbdev_config.sh file found!"
+    echo "Please create your own config from template file fbdev_config.sh.template"
+    exit 1
+fi
 
 cd $FHIRBASE_HOME;
 
 function install_cmd {
     if [ -z "$1" ]; then
         echo "install command requires dbname argument"
-        exit
+        exit 1
     else
         coffee --compile --output js js_src
         $PG_BIN_DIR/psql $PSQL_ARGS -d $1 < install.sql
