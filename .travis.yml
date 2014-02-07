@@ -1,0 +1,4 @@
+# .travis.yml
+before_script:
+  - echo 'before'
+script: echo 'ok'
