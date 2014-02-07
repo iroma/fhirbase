@@ -131,6 +131,22 @@ from (
 ) t_4;
 --}}}
 --{{{
+0 select array_to_json(array_agg(row_to_json(t_2, true)), true)
+0 from (
+2   select
+4     (
+6       select array_to_json(array_agg(row_to_json(t_3, true)), true)
+6       from (
+8         select
+10           t3.start,t3.end
+8         from fhir.patient_name_period t3
+8         WHERE t3.patient_id = t1.id
+6       ) t_3
+4     ) as period,
+4     t2.use,t2.text,t2.family,t2.given,t2.prefix,t2.suffix
+2   from fhir.patient_name t2
+2   WHERE t2.patient_id = t1.id
+0 ) t_2
 select array_to_json(array_agg(row_to_json(t2, true)), true)
 from (
 				select
