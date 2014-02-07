@@ -9,15 +9,10 @@ drop schema if exists meta cascade;
 \ir sql/datatypes.sql
 \ir sql/schema.sql
 
-select * from meta.resource_tables;
-
 do language plv8 $$
   load_module('schema')
   sql.generate_schema('0.12')
 $$;
 
-do language plv8 $$
-  load_module('views')
-  views.generate_views('fhirr')
-$$;
+\ir sql/views.sql
 --}}}

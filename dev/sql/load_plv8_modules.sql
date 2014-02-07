@@ -6,7 +6,6 @@ delete from plv8_modules where modname IN ('persistence', 'schema', 'views');
 
 insert into plv8_modules values ('persistence', true, :'persistence');
 insert into plv8_modules values ('schema', true, :'schema');
-insert into plv8_modules values ('views', true, :'views');
 
 -- TODO: move to test
 do language plv8 $$
