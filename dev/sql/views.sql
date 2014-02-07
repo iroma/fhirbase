@@ -19,7 +19,7 @@ SELECT * FROM (
   ) r
 ) w ORDER BY array_to_string(w.path, '_');
 
-DROP FUNCTION IF EXISTS gen_select_sql(varchar[]) CASCADE;
+DROP FUNCTION IF EXISTS gen_select_sql(varchar[], varchar) CASCADE;
 CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
   RETURNS varchar
   LANGUAGE plpgsql
@@ -85,7 +85,7 @@ CREATE OR REPLACE FUNCTION create_resource_view(resource_name varchar, schm varc
     RAISE NOTICE 'Create JSON view for %', resource_name;
 
     create_sql :=
-      'CREATE OR REPLACE VIEW "fhirr"."view_' || underscore(resource_name) || '" AS SELECT t_1.id, row_to_json(t_1, true) AS json FROM (' ||
+      'CREATE OR REPLACE VIEW "' || schm ||'"."view_' || underscore(resource_name) || '" AS SELECT t_1.id, row_to_json(t_1, true) AS json FROM (' ||
       E'\n' || indent(gen_select_sql(ARRAY[resource_name], schm), 1) ||
       ') t_1;';
 
