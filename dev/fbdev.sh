@@ -10,6 +10,18 @@ fi
 
 cd $FHIRBASE_HOME;
 
+function help_cmd {
+    cat <<EOF
+Usage: $0 [command] [args]
+
+Available commands:
+-h || help             this help text
+test                   run tests from dev/test dir
+install dbname         generate and install fhirbase schema into specified DB
+build                  build fhirbase.sql file
+EOF
+}
+
 function install_cmd {
     if [ -z "$1" ]; then
         echo "install command requires dbname argument"
@@ -46,4 +58,7 @@ case "$1" in
           --no-owner > $FHIRBASE_HOME/../fhirbase.sql &&
           echo "FhirBase schema successfully dumped to $FHIRBASE_HOME/../fhirbase.sql"
         ;;
+    *)
+        help_cmd
+        exit
 esac
