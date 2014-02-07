@@ -8,6 +8,8 @@ else
     exit 1
 fi
 
+ARGV=$@
+
 cd $FHIRBASE_HOME;
 export FHIRBASE_HOME;
 
@@ -17,10 +19,10 @@ Usage: $0 [command] [args]
 
 Available commands:
 
--h || help             this help text
-test                   run tests from dev/test dir
-install dbname         generate and install fhirbase schema into specified DB
-build                  build fhirbase.sql file
+-h || help                this help text
+test [test1, test2, ...]  run tests from dev/test dir. if test names are provided, run specified tests
+install dbname            generate and install fhirbase schema into specified DB
+build                     build fhirbase.sql file
 EOF
 }
 
@@ -43,9 +45,19 @@ function recreate_db {
 }
 
 function test_cmd {
+    glob=''
+
+    for word in $ARGV; do
+        if [ "$word" != "test" ]; then
+            glob="$glob $FHIRBASE_HOME/test/${word}_test.sql"
+        fi
+    done
+
+    if [ "$glob" = "" ]; then glob="$FHIRBASE_HOME/test/*_test.sql"; fi
+
     compile_js
     recreate_db $TEST_DB_NAME
-    cd $FHIRBASE_HOME/test && $FHIRBASE_HOME/pg_prove $PSQL_ARGS -d $TEST_DB_NAME $FHIRBASE_HOME/test/*_test.sql
+    cd $FHIRBASE_HOME/test && $FHIRBASE_HOME/pg_prove $PSQL_ARGS -d $TEST_DB_NAME $glob
 }
 
 case "$1" in
