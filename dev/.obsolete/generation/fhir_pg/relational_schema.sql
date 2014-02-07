@@ -210,7 +210,7 @@ create or replace view meta.dt_raw as (
     underscore(d.name) as column_name,
     d.type as column_type,
     -- FIXME: hack schema name hardcoded
-    coalesce(coalesce(t.pg_type, case when d.type is not null then ('fhirr."' || d.type || '"') else null end), 'varchar') ||
+    coalesce(coalesce(t.pg_type, case when d.type is not null then ('fhir."' || d.type || '"') else null end), 'varchar') ||
       case
         when d.max_occurs = 'unbounded' then '[]'
         else ''

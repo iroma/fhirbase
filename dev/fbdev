@@ -8,6 +8,8 @@ else
     exit 1
 fi
 
+ARGV=$@
+
 cd $FHIRBASE_HOME;
 export FHIRBASE_HOME;
 
@@ -17,10 +19,10 @@ Usage: $0 [command] [args]
 
 Available commands:
 
--h || help             this help text
-test                   run tests from dev/test dir
-install dbname         generate and install fhirbase schema into specified DB
-build                  build fhirbase.sql file
+-h || help                this help text
+test [test1, test2, ...]  run tests from dev/test dir. if test names are provided, run specified tests
+install dbname            generate and install fhirbase schema into specified DB
+build                     build fhirbase.sql file
 EOF
 }
 
@@ -34,18 +36,28 @@ function install_cmd {
         exit 1
     else
         compile_js
-        $PG_BIN_DIR/psql $PSQL_ARGS -d $1 < install.sql
+        psql $PSQL_ARGS -d $1 < install.sql
     fi
 }
 
 function recreate_db {
-    echo "DROP DATABASE $1; CREATE DATABASE $1;" | $PG_BIN_DIR/psql $PSQL_ARGS -d postgres;
+    echo "DROP DATABASE $1; CREATE DATABASE $1;" | psql $PSQL_ARGS -d postgres;
 }
 
 function test_cmd {
+    glob=''
+
+    for word in $ARGV; do
+        if [ "$word" != "test" ]; then
+            glob="$glob $FHIRBASE_HOME/test/${word}_test.sql"
+        fi
+    done
+
+    if [ "$glob" = "" ]; then glob="$FHIRBASE_HOME/test/*_test.sql"; fi
+
     compile_js
     recreate_db $TEST_DB_NAME
-    cd $FHIRBASE_HOME/test && $FHIRBASE_HOME/pg_prove $PSQL_ARGS -d $TEST_DB_NAME $FHIRBASE_HOME/test/*_test.sql
+    cd $FHIRBASE_HOME/test && $FHIRBASE_HOME/pg_prove $PSQL_ARGS -d $TEST_DB_NAME $glob
 }
 
 case "$1" in
@@ -59,7 +71,7 @@ case "$1" in
         recreate_db $BUILD_DB_NAME
         install_cmd $BUILD_DB_NAME
 
-        $PG_BIN_DIR/pg_dump $PSQL_ARGS \
+        pg_dump $PSQL_ARGS \
           --format=plain \
           --schema=fhir $BUILD_DB_NAME \
           --no-owner > $FHIRBASE_HOME/../fhirbase.sql &&
@@ -69,3 +81,5 @@ case "$1" in
         help_cmd
         exit
 esac
+
+exit 0

@@ -10,18 +10,28 @@ drop schema if exists meta cascade;
 \ir ../sql/datatypes.sql
 \ir ../sql/schema.sql
 
-\timing
---select * from meta.resource_tables;
-
 do language plv8 $$
   load_module('schema')
-  sql.generate_schema('0.12')
+  sql.generate_schema('fhir', '0.12')
 $$;
 
-BEGIN;
-SELECT plan(1);
+\ir ../sql/views.sql
+\ir ../sql/insert.sql
 
-SELECT has_table('fhir', 'vs_expansion_idn_assigner', 'should create tables');
+\set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`
+
+BEGIN;
+SELECT plan(2);
+
+SELECT insert_resource(:'pt_json'::json) as resource_id \gset
+
+SELECT is(count(*)::integer, 1, 'patient was inserted')
+       FROM fhir.patient
+       WHERE id = :'resource_id';
+
+SELECT is((((json->'name')->0)->>'text')::varchar, 'Roel', 'patient name is correct')
+       FROM fhir.view_patient
+       WHERE id = :'resource_id';
 
 SELECT * FROM finish();
 ROLLBACK;

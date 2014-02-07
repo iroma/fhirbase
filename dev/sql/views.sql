@@ -2,7 +2,7 @@ CREATE TABLE meta.resource_elements_expanded_with_types AS
 SELECT * FROM (
   SELECT
   r.path || t.subpath AS path,
-  COALESCE(t.type, r.type) AS type,
+  underscore(COALESCE(t.type, r.type)) AS type,
   COALESCE(t.min, r.min) AS min,
   COALESCE(t.max, r.max) AS max
   FROM (
@@ -19,6 +19,12 @@ SELECT * FROM (
   ) r
 ) w ORDER BY array_to_string(w.path, '_');
 
+CREATE INDEX resource_elements_expanded_with_types_type_idx
+       ON meta.resource_elements_expanded_with_types (type);
+
+CREATE INDEX resource_elements_expanded_with_types_popped_path_idx
+       ON meta.resource_elements_expanded_with_types (array_pop(path));
+
 DROP FUNCTION IF EXISTS gen_select_sql(varchar[], varchar) CASCADE;
 CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
   RETURNS varchar
@@ -34,13 +40,13 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
     SELECT array_to_string(array_agg('t' || level::varchar || '."' || underscore(array_last(n.path)) || '"'), ', ')
     INTO columns
     FROM meta.resource_elements_expanded_with_types n
-    JOIN meta.primitive_types pt ON underscore(pt.type) = underscore(n.type)
+    JOIN meta.primitive_types pt ON pt.type = n.type
     WHERE array_pop(n.path) = var_path;
 
     SELECT array_to_string(array_agg(E'(\n' || indent(gen_select_sql(n.path, schm), 3) || E'\n) as "' || underscore(array_last(n.path)) || '"'), E',\n')
     INTO selects
     FROM meta.resource_elements_expanded_with_types n
-    LEFT JOIN meta.primitive_types pt on underscore(pt.type) = underscore(n.type)
+    LEFT JOIN meta.primitive_types pt on pt.type = n.type
     WHERE pt.type IS NULL AND array_pop(n.path) = var_path;
 
     IF selects IS NULL AND columns IS NULL THEN
