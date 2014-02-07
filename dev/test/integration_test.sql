@@ -21,8 +21,7 @@ $$;
 BEGIN;
 SELECT plan(1);
 
-
-SELECT has_table('fhirr', 'vs_expansion_idn_assigner', 'should create tables');
+SELECT has_table('fhir', 'vs_expansion_idn_assigner', 'should create tables');
 
 SELECT * FROM finish();
 ROLLBACK;

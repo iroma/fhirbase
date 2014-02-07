@@ -21,6 +21,6 @@ case "$1" in
     "build" )
         # echo "DROP DATABASE $BUILD_DB_NAME; CREATE DATABASE $BUILD_DB_NAME;" | $PG_BIN_DIR/psql $PSQL_ARGS -d postgres;
         # install_cmd $BUILD_DB_NAME
-        $PG_BIN_DIR/pg_dump $PSQL_ARGS --format=plain --schema=fhirr $BUILD_DB_NAME > $FHIRBASE_HOME/../fhirbase.sql &&
+        $PG_BIN_DIR/pg_dump $PSQL_ARGS --format=plain --schema=fhir $BUILD_DB_NAME > $FHIRBASE_HOME/../fhirbase.sql &&
           echo "FhirBase schema successfully dumped to $FHIRBASE_HOME/../fhirbase.sql"
 esac

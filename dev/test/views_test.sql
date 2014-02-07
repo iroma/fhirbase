@@ -4,11 +4,6 @@ BEGIN;
 
 SELECT plan(2);
 
-do language plv8 $$
-  load_module('views')
-  views.generate_views('fhirr')
-$$;
-
 INSERT INTO fhirr.patient (id, resource_type, birth_date)
        VALUES(uuid_generate_v1(), 'Patient', '12-12-1987');
 

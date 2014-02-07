@@ -8,7 +8,7 @@ CREATE VIEW meta.primitive_types as (
   SELECT type, pg_type
   FROM meta.type_to_pg_type
   UNION
-  SELECT enum, 'fhirr."' || enum  || '"'-- HACK
+  SELECT enum, 'fhir."' || enum  || '"'-- HACK
   FROM meta.enums
 );
 
