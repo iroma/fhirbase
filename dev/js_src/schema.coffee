@@ -7,9 +7,7 @@ e = ()->
   plv8.execute.apply(plv8, arguments)
 
 @sql =
-
-  generate_schema: (version)->
-    schema = "fhirr"
+  generate_schema: (schema, version)->
     e """
      DROP SCHEMA IF EXISTS #{schema} CASCADE;
      CREATE SCHEMA #{schema};

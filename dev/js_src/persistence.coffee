@@ -25,7 +25,6 @@ camelize = (str) ->
 underscore = (str) ->
   str.replace(/([a-z\d])([A-Z]+)/g, "$1_$2").replace(/[-\s]+/g, "_").toLowerCase()
 
-
 get_table_name = (pth) ->
   plv8.execute('SELECT table_name($1)',[pth])[0].table_name
 

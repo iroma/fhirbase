@@ -23,7 +23,6 @@ BEGIN;
 
 SELECT plan(2);
 
-DELETE from fhirr.patient;
 INSERT INTO fhirr.patient (id, resource_type, birth_date)
        VALUES(uuid_generate_v1(), 'Patient', '12-12-1987');
 
@@ -41,7 +40,5 @@ SELECT is(
 SELECT * FROM finish();
 ROLLBACK;
 
---}}}
---{{{
 --}}}
 

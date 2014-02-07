@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW meta.resource_elements_expanded_with_types AS
+CREATE TABLE meta.resource_elements_expanded_with_types AS
 SELECT * FROM (
   SELECT
   r.path || t.subpath AS path,
@@ -20,7 +20,7 @@ SELECT * FROM (
 ) w ORDER BY array_to_string(w.path, '_');
 
 DROP FUNCTION IF EXISTS gen_select_sql(varchar[]) CASCADE;
-CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[])
+CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
   RETURNS varchar
   LANGUAGE plpgsql
   AS $$
@@ -37,7 +37,7 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[])
     JOIN meta.primitive_types pt ON underscore(pt.type) = underscore(n.type)
     WHERE array_pop(n.path) = var_path;
 
-    SELECT array_to_string(array_agg(E'(\n' || indent(gen_select_sql(n.path), 3) || E'\n) as "' || underscore(array_last(n.path)) || '"'), E',\n')
+    SELECT array_to_string(array_agg(E'(\n' || indent(gen_select_sql(n.path, schm), 3) || E'\n) as "' || underscore(array_last(n.path)) || '"'), E',\n')
     INTO selects
     FROM meta.resource_elements_expanded_with_types n
     LEFT JOIN meta.primitive_types pt on underscore(pt.type) = underscore(n.type)
@@ -54,7 +54,7 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[])
          COALESCE(columns, '') ||
 
          E'\nfrom ' ||
-           '"' || 'fhirr' || '"."' || table_name(var_path) || '" t' || level::varchar ||
+           '"' || schm || '"."' || table_name(var_path) || '" t' || level::varchar ||
 
          CASE WHEN level = 1 THEN '' ELSE
            E'\nwhere t' ||
@@ -74,8 +74,8 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[])
   END
 $$;
 
-DROP FUNCTION IF EXISTS create_resource_view(varchar) CASCADE;
-CREATE OR REPLACE FUNCTION create_resource_view(resource_name varchar)
+DROP FUNCTION IF EXISTS create_resource_view(varchar, varchar) CASCADE;
+CREATE OR REPLACE FUNCTION create_resource_view(resource_name varchar, schm varchar)
   RETURNS void
   LANGUAGE plpgsql
   AS $$
@@ -86,7 +86,7 @@ CREATE OR REPLACE FUNCTION create_resource_view(resource_name varchar)
 
     create_sql :=
       'CREATE OR REPLACE VIEW "fhirr"."view_' || underscore(resource_name) || '" AS SELECT t_1.id, row_to_json(t_1, true) AS json FROM (' ||
-      E'\n' || indent(gen_select_sql(ARRAY[resource_name]), 1) ||
+      E'\n' || indent(gen_select_sql(ARRAY[resource_name], schm), 1) ||
       ') t_1;';
 
     EXECUTE create_sql;
@@ -94,6 +94,6 @@ CREATE OR REPLACE FUNCTION create_resource_view(resource_name varchar)
 $$;
 
 -- run view generator for all resources
-SELECT create_resource_view(path[1])
+SELECT create_resource_view(path[1], 'fhir')
   FROM meta.expanded_resource_elements
   WHERE array_length(path, 1) = 1;

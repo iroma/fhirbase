@@ -15,7 +15,7 @@ SELECT plan(6);
 SELECT is(pg_type,'varchar','convert string') FROM meta.primitive_types
 WHERE type = 'string';
 
-SELECT is(pg_type, 'fhirr."AddressUse"' ,'convert enum') FROM meta.primitive_types
+SELECT is(pg_type, 'fhir."AddressUse"' ,'convert enum') FROM meta.primitive_types
 WHERE type = 'AddressUse';
 
 SELECT is(type, 'dateTime', 'should expand datatypes') FROM meta.datatype_unified_elements
@@ -27,7 +27,7 @@ FROM meta.unified_complex_datatype
 where path[1]='CodeableConcept' and path[2] = 'coding' and path[3]='valueSet'
 order by path;
 
-SELECT is(pg_type, 'fhirr."AddressUse"', 'should collect columns')
+SELECT is(pg_type, 'fhir."AddressUse"', 'should collect columns')
 FROM meta.unified_datatype_columns
 where path[1]='Address' and path[2] = 'use'
 order by path;
