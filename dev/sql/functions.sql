@@ -87,3 +87,16 @@ FUNCTION column_ddl(column_name varchar, pg_type varchar, min varchar, max varch
       end);
   END
 $$ IMMUTABLE;
+
+CREATE OR REPLACE
+FUNCTION camelize(str varchar) RETURNS varchar LANGUAGE plpythonu AS $$
+  import re
+
+  def _camelize(string, uppercase_first_letter=True):
+    if uppercase_first_letter:
+      return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), string)
+    else:
+      return string[0].lower() + _camelize(string)[1:]
+
+  return _camelize(str, False)
+$$;

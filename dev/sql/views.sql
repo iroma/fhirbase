@@ -46,13 +46,13 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
 
     -- RAISE NOTICE '% %', var_path, isArray;
 
-    SELECT array_to_string(array_agg('t' || level::varchar || '."' || underscore(array_last(n.path)) || '" as "' || array_last(n.path) || '"'), ', ')
+    SELECT array_to_string(array_agg('t' || level::varchar || '."' || underscore(array_last(n.path)) || '" as "' || camelize(array_last(n.path)) || '"'), ', ')
     INTO columns
     FROM meta.resource_elements_expanded_with_types n
     JOIN meta.primitive_types pt ON underscore(pt.type) = underscore(n.type)
     WHERE array_pop(n.path) = var_path;
 
-    SELECT array_to_string(array_agg(E'(\n' || indent(gen_select_sql(n.path, schm), 3) || E'\n) as "' || array_last(n.path) || '"'), E',\n')
+    SELECT array_to_string(array_agg(E'(\n' || indent(gen_select_sql(n.path, schm), 3) || E'\n) as "' || camelize(array_last(n.path)) || '"'), E',\n')
     INTO selects
     FROM meta.resource_elements_expanded_with_types n
     LEFT JOIN meta.primitive_types pt on underscore(pt.type) = underscore(n.type)
