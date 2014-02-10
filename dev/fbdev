@@ -27,7 +27,7 @@ EOF
 }
 
 function compile_js {
-    coffee --compile --output $FHIRBASE_HOME/js $FHIRBASE_HOME/js_src
+    coffee --version  && coffee --compile --output $FHIRBASE_HOME/js $FHIRBASE_HOME/js_src
 }
 
 function install_cmd {
@@ -55,7 +55,7 @@ function test_cmd {
 
     if [ "$glob" = "" ]; then glob="$FHIRBASE_HOME/test/*_test.sql"; fi
 
-    # compile_js
+    compile_js
     recreate_db $TEST_DB_NAME
     cd $FHIRBASE_HOME/test && $FHIRBASE_HOME/pg_prove $PSQL_ARGS -d $TEST_DB_NAME $glob
 }
