@@ -24,6 +24,7 @@ if [ ! `which coffee`]; then
   sudo su -l vagrant -c 'nvm install 0.10'
   sudo su -l vagrant -c 'nvm alias default 0.10'
   sudo su -l vagrant -c 'node -v'
+  sudo su -l vagrant -c 'npm install -g coffee-script'
 fi
 
 exit
