@@ -55,7 +55,7 @@ function test_cmd {
 
     if [ "$glob" = "" ]; then glob="$FHIRBASE_HOME/test/*_test.sql"; fi
 
-    compile_js
+    # compile_js
     recreate_db $TEST_DB_NAME
     cd $FHIRBASE_HOME/test && $FHIRBASE_HOME/pg_prove $PSQL_ARGS -d $TEST_DB_NAME $glob
 }
