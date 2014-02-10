@@ -87,4 +87,3 @@ FUNCTION column_ddl(column_name varchar, pg_type varchar, min varchar, max varch
       end);
   END
 $$ IMMUTABLE;
-

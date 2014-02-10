@@ -12,8 +12,8 @@ SELECT * FROM (
   LEFT JOIN (
     SELECT path[1] AS type_name, array_tail(path) AS subpath, *
     FROM meta.datatype_unified_elements
-  ) t ON t.type_name = r.type
-  UNION SELECT r.path, r.type, r.min, r.max FROM (
+  ) t ON underscore(t.type_name) = underscore(r.type)
+  UNION SELECT r.path, underscore(r.type), r.min, r.max FROM (
     SELECT path, type, min, max
     FROM meta.expanded_resource_elements
   ) r
@@ -32,22 +32,31 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
   AS $$
   DECLARE
   level integer;
+  isArray boolean;
   columns varchar;
   selects varchar;
   subselect text;
   BEGIN
     level := array_length(var_path, 1);
-    SELECT array_to_string(array_agg('t' || level::varchar || '."' || underscore(array_last(n.path)) || '"'), ', ')
+
+    SELECT n."max" = '*'
+    INTO isArray
+    FROM meta.resource_elements_expanded_with_types n
+    WHERE n.path = var_path;
+
+    -- RAISE NOTICE '% %', var_path, isArray;
+
+    SELECT array_to_string(array_agg('t' || level::varchar || '."' || underscore(array_last(n.path)) || '" as "' || array_last(n.path) || '"'), ', ')
     INTO columns
     FROM meta.resource_elements_expanded_with_types n
-    JOIN meta.primitive_types pt ON pt.type = n.type
+    JOIN meta.primitive_types pt ON underscore(pt.type) = underscore(n.type)
     WHERE array_pop(n.path) = var_path;
 
-    SELECT array_to_string(array_agg(E'(\n' || indent(gen_select_sql(n.path, schm), 3) || E'\n) as "' || underscore(array_last(n.path)) || '"'), E',\n')
+    SELECT array_to_string(array_agg(E'(\n' || indent(gen_select_sql(n.path, schm), 3) || E'\n) as "' || array_last(n.path) || '"'), E',\n')
     INTO selects
     FROM meta.resource_elements_expanded_with_types n
-    LEFT JOIN meta.primitive_types pt on pt.type = n.type
-    WHERE pt.type IS NULL AND array_pop(n.path) = var_path;
+    LEFT JOIN meta.primitive_types pt on underscore(pt.type) = underscore(n.type)
+    WHERE pt.type IS NULL AND array_pop(n.path) = var_path and array_last(n.path) not in ('contained');
 
     IF selects IS NULL AND columns IS NULL THEN
       RETURN 'NULL';
@@ -72,9 +81,16 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
       IF level = 1 THEN
         RETURN 'select t1.id, ' || subselect;
       ELSE
-        RETURN 'select array_to_json(array_agg(row_to_json(t_' || level::varchar || ', true)), true) from ('
-         || indent(subselect, 1)
-         || E'\n) t_' || level::varchar;
+        RETURN
+          CASE WHEN isArray THEN
+            'select array_to_json(array_agg(row_to_json(t_' || level::varchar || ', true)), true) from ('
+            || indent(subselect, 1)
+            || E'\n) t_' || level::varchar
+          ELSE
+            'select row_to_json(t_' || level::varchar || ', true) from ('
+            || indent(subselect, 1)
+            || E'\n) t_' || level::varchar
+          END;
       END IF;
     END IF;
   END
