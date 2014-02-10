@@ -13,7 +13,8 @@ create or replace function insert_resource_py(jdata json) returns uuid language 
 
   def walk(parents, name, obj, cb):
     res = cb(parents, name, obj)
-    new_parents = parents.append({'name': name, 'obj': obj, 'meta': res})
+    new_parents = list(parents)
+    new_parents.append({'name': name, 'obj': obj, 'meta': res})
     for key, value in obj.items():
       if isinstance(value, dict):
         walk(new_parents, key, value, cb)
@@ -24,7 +25,7 @@ create or replace function insert_resource_py(jdata json) returns uuid language 
         map(walk_through_list, value)
 
   def walk_function(parents, name, obj):
-    pth = map(lambda x: underscore(x.name), parents)
+    pth = map(lambda x: underscore(x['name']), parents)
     pth.append(name)
     table_name = get_table_name(pth)
 
@@ -42,7 +43,7 @@ create or replace function insert_resource_py(jdata json) returns uuid language 
         attrs['id'] = uuid()
 
       insert_record('fhir', table_name, attrs)
-      return attrs.id
+      return attrs['id']
     else:
       log('Skip %' % table_name)
 
@@ -51,9 +52,8 @@ create or replace function insert_resource_py(jdata json) returns uuid language 
     query = """
       INSERT INTO %(schema)s.%(table)s
       SELECT * FROM json_populate_recordset(null::%(schema)s.%(table)s, '%(json)s'::json)
-    """ % { 'schema': schema, 'table': table_name, 'json': json.dumps(attrs) }
-    log(query)
-    #plpy.execute(query)
+    """ % { 'schema': schema, 'table': table_name, 'json': json.dumps([attrs]) }
+    plpy.execute(query)
 
   def uuid():
     sql = 'select uuid_generate_v4() as uuid'
@@ -112,7 +112,7 @@ create or replace function insert_resource_py(jdata json) returns uuid language 
   def collect_attributes(table_name, obj):
     #TODO: quote literal
     def arr2lit(v):
-      return '{{0}}' % ','.join(map(lambda e: '"{0}"' % e, v))
+      return '{%s}' % ','.join(map(lambda e: '"%s"' % e, v))
 
     columns = get_columns(table_name)
     def is_column(k):
@@ -136,8 +136,9 @@ create or replace function insert_resource_py(jdata json) returns uuid language 
         if '_unknown_attributes' not in attrs:
           attrs['_unknown_attributes'] = {}
         attrs['_unknown_attributes'][k] = coerce(v)
+    if '_unknown_attributes' in attrs:
+      attrs['_unknown_attributes'] = json.dumps(attrs['_unknown_attributes'])
     return attrs
-  insert_record('fhir', 'patient', { 'name': 'John Doe', 'address': [{'street': '5th Avenue'}]})
 
 
   data = json.loads(jdata)
