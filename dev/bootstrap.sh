@@ -11,7 +11,7 @@ sudo apt-get install -y libv8-dev libpq-dev
 
 test -d plv8js || git clone https://code.google.com/p/plv8js/
 cd plv8js
-sudo make
+make
 sudo make install
 
 cd
