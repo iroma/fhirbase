@@ -1,7 +1,12 @@
 --db:testfhir
 --{{{
 \ir 'spec_helper.sql'
+drop schema if exists meta cascade;
+\ir '../sql/extensions.sql'
+\ir ../sql/meta.sql
+\ir ../sql/load_meta.sql
 \ir '../sql/functions.sql'
+
 BEGIN;
 SELECT plan(5);
 

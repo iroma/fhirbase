@@ -4,3 +4,4 @@ dev/fbdev_config.sh
 tmp
 *sw?
 *~
+dev/.vagrant/
