@@ -4,6 +4,8 @@
 
 Document/Relational hybryde database for FHIR
 
+![https://travis-ci.org/fhirbase/fhirbase.png]
+
 ## Installation
 
 

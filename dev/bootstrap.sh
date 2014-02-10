@@ -24,6 +24,7 @@ if [ ! -d /tmp/pgtap ]; then
   sudo make install
   sudo make installcheck
   sudo service postgresql restart
+  echo y | sudo perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP'
 fi
 
 
