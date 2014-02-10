@@ -5,4 +5,6 @@ node_js:
 
 before_script:
   - npm install -g coffee-script
+  - sudo ./dev/apt.postgresql.org.sh
+  - sudo apt-get install -y git build-essential libv8-dev libpq-dev postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3
 script: ls
