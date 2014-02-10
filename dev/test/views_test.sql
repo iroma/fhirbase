@@ -6,6 +6,7 @@ drop schema if exists meta cascade;
 \ir ../sql/functions.sql
 \ir ../sql/datatypes.sql
 \ir ../sql/schema.sql
+\ir ../sql/generate_schema.sql
 
 \ir ../sql/views.sql
 
@@ -22,7 +23,7 @@ SELECT is(
        'only one patient was inserted');
 
 SELECT is(
-       (SELECT (json->'birth_date')::varchar
+       (SELECT (json->'birthDate')::varchar
          FROM fhir.view_patient LIMIT 1),
        '"1987-12-12 00:00:00"'::varchar,
        'receive correct birth_date from patient view');
