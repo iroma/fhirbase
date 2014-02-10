@@ -26,16 +26,12 @@ build                     build fhirbase.sql file
 EOF
 }
 
-function compile_js {
-    coffee --version  && coffee --compile --output $FHIRBASE_HOME/js $FHIRBASE_HOME/js_src
-}
-
 function install_cmd {
     if [ -z "$1" ]; then
         echo "install command requires dbname argument"
         exit 1
     else
-        compile_js
+        echo "BEFORE INSTALL"
         psql $PSQL_ARGS -d $1 < install.sql
     fi
 }
@@ -55,7 +51,6 @@ function test_cmd {
 
     if [ "$glob" = "" ]; then glob="$FHIRBASE_HOME/test/*_test.sql"; fi
 
-    compile_js
     recreate_db $TEST_DB_NAME
     cd $FHIRBASE_HOME/test && $FHIRBASE_HOME/pg_prove $PSQL_ARGS -d $TEST_DB_NAME $glob
 }

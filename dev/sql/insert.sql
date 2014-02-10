@@ -1,13 +1,4 @@
-DROP function if exists insert_resource(json);
-create OR replace function insert_resource(res json)
-  returns uuid
-  language plv8
-  as $$
-  load_module('persistence');
-  return insert_resource(res);
-$$;
-
-create or replace function insert_resource_py(jdata json) returns uuid language plpythonu as $$
+create or replace function fhir.insert_resource(jdata json) returns uuid language plpythonu as $$
   import json
   import re
 

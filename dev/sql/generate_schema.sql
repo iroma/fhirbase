@@ -1,17 +1,29 @@
-CREATE OR REPLACE FUNCTION generate_schema2(schema text, version text)
+CREATE OR REPLACE FUNCTION generate_schema2(schema TEXT, version TEXT)
   RETURNS VOID LANGUAGE plpythonu AS $$
+
   def exe(query):
     return plpy.execute(query)
+
+  def create_object(func, query):
+    return map(func, exe(query))
+
+  def q(literal):
+    return '"%s"' % literal
+
+  def make_columns(e):
+    if 'columns' in e:
+      cols = map(lambda c: '%s' % c, e['columns'])
+      return ",\n".join(cols)
+    else:
+      return ''
 
   def make_enums(en):
     return "CREATE TYPE %(schema)s.%(enum)s AS ENUM (%(opts)s)" % {
       "schema": schema,
-      "enum": en['enum'],
-      "opts": map(lambda i: "'%s'" % i, en['options']) }
+      "enum": q(en['enum']),
+      "opts": ','.join(map(lambda i: "'%s'" % i, en['options'])) }
 
   def make_datatypes(e):
-    columns = "\n".join(e['columns']) if 'columns' in e else ''
-
     return """
       CREATE TABLE %(schema)s.%(table)s (
         %(columns)s
@@ -19,30 +31,26 @@ CREATE OR REPLACE FUNCTION generate_schema2(schema text, version text)
       "schema": schema,
       "table": e['table_name'],
       "base_table": e['base_table'],
-      "columns": columns }
+      "columns": make_columns(e) }
 
   def make_resources(e):
-    columns = "\n".join(e['columns']) if 'columns' in e else ''
-
     return """
       CREATE TABLE %(schema)s.%(table)s (
         %(columns)s
       ) INHERITS (%(schema)s.%(base_table)s);
 
       ALTER TABLE %(schema)s.%(table)s
-        ALTER COLUMN _type SET DEFAULT '%(table)s'
+        ALTER COLUMN _type SET DEFAULT '%(table)s';
       """ % {
       "schema": schema,
       "table": e['table_name'],
       "base_table": e['base_table'],
-      "columns": columns }
+      "columns": make_columns(e) }
 
   queries = [
     "DROP SCHEMA IF EXISTS %s CASCADE" % schema,
-    "CREATE SCHEMA %s" % schema
-  ]
-
-  queries.append("""
+    "CREATE SCHEMA %s" % schema,
+    """
     CREATE TABLE %(schema)s.resource (
       id UUID PRIMARY KEY,
       _type VARCHAR NOT NULL,
@@ -60,12 +68,15 @@ CREATE OR REPLACE FUNCTION generate_schema2(schema text, version text)
      resource_id UUID NOT NULL REFERENCES %(schema)s.resource (id),
      container_id UUID REFERENCES %(schema)s.resource (id)
     );
-  """ % { "schema": schema })
+    """ % { "schema": schema }
+  ]
 
-  queries += map(make_enums, exe("SELECT * FROM meta.enums"))
-  queries += map(make_datatypes, exe("SELECT * FROM meta.datatype_tables WHERE table_name NOT IN ('resource', 'backbone_element')"))
-  queries += map(make_resources, exe("SELECT * FROM meta.resource_tables"))
-
-  plpy.notice("\n".join(queries))
+  queries += create_object(make_enums, "SELECT * FROM meta.enums")
+  queries += create_object(make_datatypes, "SELECT * FROM meta.datatype_tables WHERE table_name NOT IN ('resource', 'backbone_element')")
+  queries += create_object(make_resources, "SELECT * FROM meta.resource_tables")
+  for query in queries:
+    #plpy.notice(query)
+    exe(query)
 $$;
 
+select generate_schema2('fhir'::text, '0.12'::text);

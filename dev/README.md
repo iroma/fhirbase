@@ -6,7 +6,7 @@ Document/Relational hybryde database for FHIR
 
 * postgresql 9.3
 * postgresql-contrib
-* plv8
+* plpython
 * pgtap (for development)
 * npm && node && coffeescript (for development)
 
@@ -27,7 +27,7 @@ Document/Relational hybryde database for FHIR
 
 * end user build
   * build script (fhirbase.sql)
-  * documentation (plv8 installation & postgresql configuration)
+  * documentation (plpython installation & postgresql configuration)
 
 ## Development
 
@@ -62,43 +62,25 @@ table resource_component - base table for all nested into resource value objects
 
 ## Installation instructions
 
-Install plv8 on ubuntu 13.04
-apt-source deb http://apt.postgresql.org/pub/repos/apt/ squeeze-pgdg main
 
 ```bash
-git clone https://code.google.com/p/plv8js/
-cd plv8js
 
-sudo apt-get install libv8 libv8-dev libpq
-sudo apt-get install postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3
+sudo apt-get install libpq
+sudo apt-get install postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3 postgresql-plpython-9.3
 sudo apt-get install libpq-dev
-sudo make
-sudo make install
 
 ubuntu 13.10
 
 sudo add-apt-repository ppa:chris-lea/postgresql-9.3
 sudo apt-get install postgresql-server-dev-9.3
-sudo apt-get install postgresql-contrib-9.3
+sudo apt-get install postgresql-contrib-9.3 postgresql-plpython-9.3
 
-git clone https://code.google.com/p/plv8js/
-cd plv8js
-make
-sudo make install
 ```
 
 on ubuntu 14.04 (trusty)
-sudo apt-get install postgresql-9.3 postgresql-9.3-plv8 ...
+sudo apt-get install postgresql-9.3 postgresql-plpython-9.3
 
 sudo vim /etc/postgresql/9.3/main/postgresql.conf
-plv8.start_proc = 'plv8_init'
-
-
-Install nodejs (nvm)
-
-npm install -g coffee-script
-npm install js2coffee
-coffee --compile --output db/src/ db/js/
 
 
 install pgTap (xUnit for SQL)

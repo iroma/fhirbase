@@ -2,18 +2,13 @@
 --{{{
 \ir 'spec_helper.sql'
 drop schema if exists meta cascade;
+\ir ../sql/extensions.sql
 \ir ../sql/meta.sql
 \ir ../sql/load_meta.sql
-\ir ../sql/plv8.sql
-\ir ../sql/load_plv8_modules.sql
 \ir ../sql/functions.sql
 \ir ../sql/datatypes.sql
 \ir ../sql/schema.sql
-
-do language plv8 $$
-  load_module('schema')
-  sql.generate_schema('fhir', '0.12')
-$$;
+\ir ../sql/generate_schema.sql
 
 \ir ../sql/views.sql
 \ir ../sql/insert.sql
@@ -36,7 +31,7 @@ FUNCTION dump_json(a json, fname varchar) RETURNS void LANGUAGE plpythonu AS $$
   f.close()
 $$;
 
-SELECT insert_resource(:'pt_json'::json) as resource_id \gset
+SELECT fhir.insert_resource(:'pt_json'::json) as resource_id \gset
 
 SELECT is(count(*)::integer, 1, 'patient was inserted')
        FROM fhir.patient

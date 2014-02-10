@@ -2,23 +2,16 @@
 --{{{
 \ir 'spec_helper.sql'
 drop schema if exists meta cascade;
+\ir ../sql/extensions.sql
 \ir ../sql/meta.sql
 \ir ../sql/load_meta.sql
-\ir ../sql/plv8.sql
-\ir ../sql/load_plv8_modules.sql
 \ir ../sql/functions.sql
 \ir ../sql/datatypes.sql
 \ir ../sql/schema.sql
-
-do language plv8 $$
-  load_module('schema')
-  sql.generate_schema('fhir', '0.12')
-$$;
-
+\ir ../sql/generate_schema.sql
 --}}}
 --{{{
 
-\ir ../sql/load_plv8_modules.sql
 \ir ../sql/insert.sql
 
 \set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`
@@ -27,7 +20,7 @@ BEGIN;
 SELECT plan(5);
 
 \timing
-select insert_resource(:'pt_json'::json) as resource_id \gset
+select fhir.insert_resource(:'pt_json'::json) as resource_id \gset
 
 SELECT :'resource_id';
 
