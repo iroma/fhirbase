@@ -1,7 +1,6 @@
 --db:myfhir
 --{{{
 \ir 'spec_helper.sql'
-drop schema if exists meta cascade;
 \ir ../sql/extensions.sql
 \ir ../sql/py_init.sql
 \ir ../sql/meta.sql
@@ -49,9 +48,12 @@ SELECT is((((json->'name')->0)->>'use')::varchar, 'official', 'patient name.use 
        FROM fhir.view_patient
        WHERE id = :'resource_id';
 
-SELECT is((((json->'maritalStatus')->'coding')->1)->>'code', '36629006', 'json attributes are correctly capitalized')
-       FROM fhir.view_patient
-       WHERE id = :'resource_id';
+SELECT ok((SELECT (ARRAY['maritalStatus', 'deceasedDateTime']::varchar[] <@ array_agg(keys.k)::varchar[])
+           FROM (
+            SELECT json_object_keys(json) k
+            FROM fhir.view_patient
+            WHERE id = :'resource_id'
+           ) keys), 'json attributes are correctly capitalized');
 
 SELECT * FROM finish();
 ROLLBACK;
