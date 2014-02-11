@@ -8,7 +8,6 @@ Document/Relational hybryde database for FHIR
 * postgresql-contrib
 * plpython
 * pgtap (for development)
-* npm && node && coffeescript (for development)
 
 ## Installation
 
@@ -31,7 +30,6 @@ Document/Relational hybryde database for FHIR
 
 ## Development
 
-* javascript (cofee) for functions (insert_resource, utilities, schema generation)
 * classic postgresql views for manipulating fhir structure data
 
 ## Build
