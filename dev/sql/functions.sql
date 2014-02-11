@@ -40,18 +40,37 @@ $$ IMMUTABLE;
 
 CREATE OR REPLACE
 FUNCTION table_name(path varchar[])
-  RETURNS varchar LANGUAGE plpgsql AS $$
-  BEGIN
-    RETURN underscore(
-      array_to_string(
-         array_agg(
-          coalesce(
-            (SELECT alias
-               FROM meta.word_aliases
-              WHERE word = underscore(nm) limit 1)
-            , nm)), '_'))
-       FROM unnest(path) as nm;
-  END
+RETURNS varchar LANGUAGE plpythonu AS $$
+  word_aliases = {
+    'capabilities': 'cap',
+    'chanel': 'chnl',
+    'codeable_concept': 'cc',
+    'coding': 'cd',
+    'identifier': 'idn',
+    'immunization': 'imm',
+    'immunization_recommendation': 'imm_rec',
+    'location': 'loc',
+    'medication': 'med',
+    'medication_administration': 'med_adm',
+    'medication_dispense': 'med_disp',
+    'medication_prescription': 'med_prs',
+    'medication_statement': 'med_st',
+    'prescription': 'prs',
+    'recommentdaton': 'rcm',
+    'value': 'val',
+    'value_set': 'vs'}
+
+  def underscore(x):
+    return plpy.execute("select underscore('%s')" % x)[0]['underscore']
+
+  acc = []
+  for nm in path:
+    word = underscore(nm)
+    if word in word_aliases:
+      acc.append(word_aliases[word])
+    else:
+      acc.append(nm)
+  return underscore('_'.join(acc))
 $$ IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION indent(t text, l integer)

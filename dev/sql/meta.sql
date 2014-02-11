@@ -83,28 +83,3 @@ VALUES
 ('date', 'date'),
 ('id', 'varchar'),
 ('oid', 'varchar');
-
-create table meta.word_aliases (
-  word varchar,
-  alias varchar
-);
-
-insert into meta.word_aliases (word, alias)
-VALUES
-('immunization', 'imm'),
-('immunization_recommendation', 'imm_rec'),
-('identifier', 'idn'),
-('chanel', 'chnl'),
-('medication', 'med'),
-('capabilities', 'cap'),
-('prescription', 'prs'),
-('codeable_concept', 'cc'),
-('value_set', 'vs'),
-('recommentdaton', 'rcm'),
-('medication_dispense', 'med_disp'),
-('medication_prescription', 'med_prs'),
-('medication_administration', 'med_adm'),
-('medication_statement', 'med_st'),
-('coding', 'cd'),
-('location', 'loc'),
-('value', 'val');

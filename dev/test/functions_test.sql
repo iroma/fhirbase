@@ -1,14 +1,12 @@
 --db:testfhir
 --{{{
 \ir 'spec_helper.sql'
-drop schema if exists meta cascade;
-\ir '../sql/extensions.sql'
+\ir ../sql/extensions.sql
 \ir ../sql/meta.sql
 \ir ../sql/load_meta.sql
-\ir '../sql/functions.sql'
-
+\ir ../sql/functions.sql
 BEGIN;
-SELECT plan(5);
+SELECT plan(6);
 
 SELECT is(
   (SELECT array_last(ARRAY['a','b','c'])),
@@ -31,6 +29,12 @@ SELECT is(
 SELECT is(
   (SELECT table_name(ARRAY['abay','baran','cidr']::varchar[])),
   'abay_baran_cidr',
+  'table_name'
+);
+
+SELECT is(
+  (SELECT table_name(ARRAY['schedule.repeat']::varchar[])),
+  'schedulerepeat',
   'table_name'
 );
 

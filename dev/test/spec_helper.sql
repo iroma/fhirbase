@@ -12,4 +12,9 @@
 \set ON_ERROR_STOP true
 \set QUIET 1
 
+\c postgres
+\set test_db_name `echo $TEST_DB_NAME`
+drop database :test_db_name;
+create database :test_db_name;
+\c :test_db_name
 CREATE EXTENSION IF NOT EXISTS pgtap ;
