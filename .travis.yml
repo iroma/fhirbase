@@ -4,9 +4,9 @@ before_script:
   - sudo apt-get install -y curl build-essential git libpq-dev postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3 postgresql-plpython-9.3
   - grep -v 'max_locks_per_transaction = 200' /etc/postgresql/9.3/main/postgresql.conf && (sudo bash -c "echo 'max_locks_per_transaction = 200' >> /etc/postgresql/9.3/main/postgresql.conf" && sudo service postgresql restart)
   - sudo su postgres -c 'createuser -s root'
-  - echo y | sudo perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP'
+  - echo y | perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP'
   - git clone https://github.com/theory/pgtap.git /tmp/pgtap
-  - cd /tmp/pgtap && sudo make && sudo make install && sudo make installcheck
+  - cd /tmp/pgtap && make && sudo make install && sudo make installcheck
   - sudo service postgresql restart
   - cp $TRAVIS_BUILD_DIR/dev/fbdev_config.sh.travis $TRAVIS_BUILD_DIR/dev/fbdev_config.sh
 script: cd $TRAVIS_BUILD_DIR/dev  && ./fbdev test
