@@ -1,6 +1,7 @@
 # .travis.yml
 before_script:
-  - echo 'y\nsudo\n' | perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP'
+  - echo y | perl -MCPAN -e 'install Test::Pod'
+  - source ~/.bashrc && echo y | perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP'
   - sudo ./dev/apt.postgresql.org.sh
   - sudo apt-get install -y curl build-essential git libpq-dev postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3 postgresql-plpython-9.3
   - grep -v 'max_locks_per_transaction = 200' /etc/postgresql/9.3/main/postgresql.conf && (sudo bash -c "echo 'max_locks_per_transaction = 200' >> /etc/postgresql/9.3/main/postgresql.conf" && sudo service postgresql restart)
