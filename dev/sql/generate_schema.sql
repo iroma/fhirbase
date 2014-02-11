@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION generate_schema2(schema TEXT, version TEXT)
+CREATE OR REPLACE FUNCTION generate_schema(version TEXT)
   RETURNS VOID LANGUAGE plpythonu AS $$
 
   def exe(query):
@@ -18,34 +18,31 @@ CREATE OR REPLACE FUNCTION generate_schema2(schema TEXT, version TEXT)
       return ''
 
   def make_enums(en):
-    return "CREATE TYPE %(schema)s.%(enum)s AS ENUM (%(opts)s)" % {
-      "schema": schema,
+    return "CREATE TYPE fhir.%(enum)s AS ENUM (%(opts)s)" % {
       "enum": q(en['enum']),
       "opts": ','.join(map(lambda i: "'%s'" % i, en['options'])) }
 
   def make_datatypes(e):
     return """
-      CREATE TABLE %(schema)s.%(table)s (
+      CREATE TABLE fhir.%(table)s (
         %(columns)s
-      ) INHERITS (%(schema)s.%(base_table)s)""" % {
-      "schema": schema,
+      ) INHERITS (fhir.%(base_table)s)""" % {
       "table": e['table_name'],
       "base_table": e['base_table'],
       "columns": make_columns(e) }
 
   def make_resources(e):
     create_table = """
-      CREATE TABLE %(schema)s.%(table)s (
+      CREATE TABLE fhir.%(table)s (
         %(columns)s
-      ) INHERITS (%(schema)s.%(base_table)s);
+      ) INHERITS (fhir.%(base_table)s);
 
-      ALTER TABLE %(schema)s.%(table)s
+      ALTER TABLE fhir.%(table)s
         ALTER COLUMN _type SET DEFAULT '%(table)s';
 
-      ALTER TABLE %(schema)s.%(table)s
+      ALTER TABLE fhir.%(table)s
         ADD PRIMARY KEY (id);
       """ % {
-      "schema": schema,
       "table": e['table_name'],
       "base_table": e['base_table'],
       "columns": make_columns(e) }
@@ -67,35 +64,35 @@ CREATE OR REPLACE FUNCTION generate_schema2(schema TEXT, version TEXT)
     return ";\n".join([create_table, create_fk, create_indexes])
 
   queries = [
-    "DROP SCHEMA IF EXISTS %s CASCADE" % schema,
-    "CREATE SCHEMA %s" % schema,
+    "DROP SCHEMA IF EXISTS fhir CASCADE",
+    "CREATE SCHEMA fhir",
     """
-    CREATE TABLE %(schema)s.resource (
+    CREATE TABLE fhir.resource (
       id UUID PRIMARY KEY,
       _type VARCHAR NOT NULL,
       _unknown_attributes json,
       resource_type varchar,
       language VARCHAR,
-      container_id UUID REFERENCES %(schema)s.resource (id)
+      container_id UUID REFERENCES fhir.resource (id)
     );
 
-    CREATE TABLE %(schema)s.resource_component (
+    CREATE TABLE fhir.resource_component (
      id uuid PRIMARY KEY,
      _type VARCHAR NOT NULL,
      _unknown_attributes json,
-     parent_id UUID NOT NULL REFERENCES %(schema)s.resource_component (id),
-     resource_id UUID NOT NULL REFERENCES %(schema)s.resource (id),
-     container_id UUID REFERENCES %(schema)s.resource (id)
+     parent_id UUID NOT NULL REFERENCES fhir.resource_component (id),
+     resource_id UUID NOT NULL REFERENCES fhir.resource (id),
+     container_id UUID REFERENCES fhir.resource (id)
     );
-    """ % { "schema": schema }
+    """
   ]
 
   queries += create_object(make_enums, "SELECT * FROM meta.enums")
   queries += create_object(make_datatypes, "SELECT * FROM meta.datatype_tables WHERE table_name NOT IN ('resource', 'backbone_element')")
-  queries += create_object(make_resources, "SELECT * FROM meta.resource_tables")
+  queries += create_object(make_resources, "SELECT * FROM meta.resource_tables WHERE table_name !~ '^profile'")
   for query in queries:
     #plpy.notice(query)
     exe(query)
 $$;
 
-select generate_schema2('fhir'::text, '0.12'::text);
+select generate_schema('0.12'::text);
