@@ -1,6 +1,7 @@
 --db:testfhir
 --{{{
-drop schema if exists meta cascade;
+DROP SCHEMA IF EXISTS meta CASCADE;
+
 \ir sql/extensions.sql
 \ir sql/meta.sql
 \ir sql/load_meta.sql
@@ -9,4 +10,6 @@ drop schema if exists meta cascade;
 \ir sql/schema.sql
 \ir sql/generate_schema.sql
 \ir sql/views.sql
+\ir sql/insert.sql
+
 --}}}

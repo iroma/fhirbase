@@ -69,9 +69,13 @@ case "$1" in
 
         pg_dump $PSQL_ARGS \
           --format=plain \
-          --schema=fhir $BUILD_DB_NAME \
-          --no-owner > $FHIRBASE_HOME/../fhirbase.sql &&
-          echo "FhirBase schema successfully dumped to $FHIRBASE_HOME/../fhirbase.sql"
+          --schema=fhir \
+          --no-owner \
+          --file=$FHIRBASE_HOME/../fhirbase.sql \
+          $BUILD_DB_NAME && echo "FhirBase schema successfully dumped to $FHIRBASE_HOME/../fhirbase.sql"
+
+        cd $FHIRBASE_HOME/.. && psql $PSQL_ARGS -d $BUILD_DB_NAME < fhirbase_test.sql
+
         ;;
     *)
         help_cmd

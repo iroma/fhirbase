@@ -232,6 +232,154 @@ CREATE TYPE "ValueSetStatus" AS ENUM (
 );
 
 
+--
+-- Name: insert_resource(json); Type: FUNCTION; Schema: fhir; Owner: -
+--
+
+CREATE FUNCTION insert_resource(jdata json) RETURNS uuid
+    LANGUAGE plpythonu
+    AS $$
+  import json
+  import re
+
+  def walk(parents, name, obj, cb):
+    res = cb(parents, name, obj)
+    new_parents = list(parents)
+    new_parents.append({'name': name, 'obj': obj, 'meta': res})
+    for key, value in obj.items():
+      if isinstance(value, dict):
+        walk(new_parents, key, value, cb)
+      elif isinstance(value, list):
+        def walk_through_list(elem):
+          if isinstance(elem, dict):
+            walk(new_parents, key, elem, cb)
+        map(walk_through_list, value)
+
+  def walk_function(parents, name, obj):
+    pth = map(lambda x: underscore(x['name']), parents)
+    pth.append(name)
+    table_name = get_table_name(pth)
+
+    if table_exists(table_name):
+      attrs = collect_attributes(table_name, obj)
+      if len(parents) > 1 and 'parent_id' not in attrs:
+        attrs['parent_id'] = parents[-1]['meta']
+      if len(parents) > 0:
+        if 'parent_id' not in attrs:
+          attrs['parent_id'] = parents[0]['meta']
+        if 'resource_id' not in attrs:
+          attrs['resource_id'] = parents[0]['meta']
+
+      if 'id' not in attrs:
+        attrs['id'] = uuid()
+
+      insert_record('fhir', table_name, attrs)
+      return attrs['id']
+    else:
+      log('Skip %' % table_name)
+
+  def insert_record(schema, table_name, attrs):
+    attrs['_type'] = table_name
+    query = """
+      INSERT INTO %(schema)s.%(table)s
+      SELECT * FROM json_populate_recordset(null::%(schema)s.%(table)s, '%(json)s'::json)
+    """ % { 'schema': schema, 'table': table_name, 'json': json.dumps([attrs]) }
+    plpy.execute(query)
+
+  def uuid():
+    sql = 'select uuid_generate_v4() as uuid'
+    return plpy.execute(sql)[0]['uuid']
+
+  # http://inflection.readthedocs.org/en/latest/_modules/inflection.html#camelize
+  def camelize(string, uppercase_first_letter=True):
+    if uppercase_first_letter:
+      return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), string)
+    else:
+      return string[0].lower() + camelize(string)[1:]
+
+  # http://inflection.readthedocs.org/en/latest/_modules/inflection.html#underscore
+  def underscore(word):
+    word = re.sub(r"([A-Z]+)([A-Z][a-z])", r'\1_\2', word)
+    word = re.sub(r"([a-z\d])([A-Z])", r'\1_\2', word)
+    word = word.replace("-", "_")
+    return word.lower()
+
+  def get_table_name(path):
+    args = ','.join(map(lambda e: plpy.quote_literal(e), path))
+    sql = 'SELECT table_name(ARRAY[%s])' % args
+    return plpy.execute(sql)[0]['table_name']
+
+  def table_exists(table_name):
+    query =  """
+      select table_name
+      from information_schema.tables
+      where table_schema = 'fhir'
+      """
+    if not('table_names' in SD):
+      SD['table_names'] = map(lambda d: d['table_name'], plpy.execute(query))
+
+    return table_name in SD['table_names']
+
+  def log(x):
+    plpy.notice(x)
+
+  def get_columns(table_name):
+    if not('columns' in SD):
+      query = """
+        SELECT table_name, column_name
+        FROM information_schema.columns
+        WHERE table_schema = 'fhir'
+      """
+      def reduce_function(acc, value):
+        key = value['table_name']
+        if key not in acc:
+          acc[key] = set([])
+        acc[key].add(value['column_name'])
+        return acc
+
+      SD['columns'] = reduce(reduce_function, plpy.execute(query), {})
+    return SD['columns'][table_name]
+
+  def collect_attributes(table_name, obj):
+    #TODO: quote literal
+    def arr2lit(v):
+      return '{%s}' % ','.join(map(lambda e: '"%s"' % e, v))
+
+    columns = get_columns(table_name)
+    def is_column(k):
+      return k in columns
+
+    def is_unknown_attribute(v):
+      return not(isinstance(v, dict) or isinstance(v, list))
+
+    def coerce(v):
+      if isinstance(v, list):
+        return arr2lit(v)
+      else:
+        return v;
+
+    attrs = {}
+    for k, v in obj.items():
+      key = underscore(k)
+      if is_column(key):
+        attrs[key] = coerce(v)
+      elif is_unknown_attribute(v):
+        if '_unknown_attributes' not in attrs:
+          attrs['_unknown_attributes'] = {}
+        attrs['_unknown_attributes'][k] = coerce(v)
+    if '_unknown_attributes' in attrs:
+      attrs['_unknown_attributes'] = json.dumps(attrs['_unknown_attributes'])
+    return attrs
+
+
+  data = json.loads(jdata)
+  if 'id' not in data:
+    data['id'] = uuid()
+  walk([], underscore(data['resourceType']), data, walk_function)
+  return data['id']
+$$;
+
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -11508,44 +11656,41 @@ CREATE VIEW view_adverse_reaction AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            NULL::unknown AS date,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM adverse_reaction_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM adverse_reaction_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM adverse_reaction_idn_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM adverse_reaction_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
                             t2.value,
                             t2.label,
+                            t2.use,
                             t2.system
                            FROM adverse_reaction_idn t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM adverse_reaction_recorder t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS recorder,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM adverse_reaction_subject t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM adverse_reaction_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM adverse_reaction_recorder t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS recorder,
             t1.date,
-            t1.did_not_occur_flag
-           FROM adverse_reaction t1) t_1(id, contained, contained_1, date, identifier, recorder, subject, text, date_1, did_not_occur_flag);
+            t1.did_not_occur_flag AS "didNotOccurFlag"
+           FROM adverse_reaction t1) t_1;
 
 
 --
@@ -11556,18 +11701,13 @@ CREATE VIEW view_alert AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM alert_author t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM alert_category_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -11578,38 +11718,41 @@ CREATE VIEW view_alert AS
                             t2.text
                            FROM alert_category t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS category,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM alert_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM alert_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM alert_idn_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM alert_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
                             t2.value,
                             t2.label,
+                            t2.use,
                             t2.system
                            FROM alert_idn t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM alert_subject t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM alert_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM alert_author t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
             t1.note,
             t1.status
-           FROM alert t1) t_1(id, author, category, contained, contained_1, identifier, subject, text, note, status);
+           FROM alert t1) t_1;
 
 
 --
@@ -11620,42 +11763,34 @@ CREATE VIEW view_allergy_intolerance AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM allergy_intolerance_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM allergy_intolerance_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM allergy_intolerance_idn_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM allergy_intolerance_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
                             t2.value,
                             t2.label,
+                            t2.use,
                             t2.system
                            FROM allergy_intolerance_idn t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
-                           FROM allergy_intolerance_reaction t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS reaction,
-            NULL::unknown AS recorded_date,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM allergy_intolerance_recorder t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS recorder,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM allergy_intolerance_sensitivity_test t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS sensitivity_test,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                           FROM allergy_intolerance_substance t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS substance,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM allergy_intolerance_subject t2
@@ -11663,18 +11798,23 @@ CREATE VIEW view_allergy_intolerance AS
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
-                           FROM allergy_intolerance_substance t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS substance,
+                           FROM allergy_intolerance_sensitivity_test t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "sensitivityTest",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM allergy_intolerance_recorder t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS recorder,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM allergy_intolerance_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM allergy_intolerance_reaction t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS reaction,
             t1.status,
-            t1.sensitivity_type,
+            t1.sensitivity_type AS "sensitivityType",
             t1.criticality,
-            t1.recorded_date
-           FROM allergy_intolerance t1) t_1(id, contained, contained_1, identifier, reaction, recorded_date, recorder, sensitivity_test, subject, substance, text, status, sensitivity_type, criticality, recorded_date_1);
+            t1.recorded_date AS "recordedDate"
+           FROM allergy_intolerance t1) t_1;
 
 
 --
@@ -11685,50 +11825,47 @@ CREATE VIEW view_care_plan AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM care_plan_concern t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS concern,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM care_plan_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM care_plan_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM care_plan_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            NULL::unknown AS modified,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM care_plan_patient t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS patient,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM care_plan_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.start,
                             t2."end"
                            FROM care_plan_period t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS period,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM care_plan_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM care_plan_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM care_plan_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM care_plan_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM care_plan_patient t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS patient,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM care_plan_concern t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS concern,
             t1.notes,
             t1.status,
             t1.modified
-           FROM care_plan t1) t_1(id, concern, contained, contained_1, identifier, modified, patient, period, text, notes, status, modified_1);
+           FROM care_plan t1) t_1;
 
 
 --
@@ -11739,88 +11876,13 @@ CREATE VIEW view_composition AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM composition_author t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM composition_class_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM composition_class_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM composition_class t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS class,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM composition_confidentiality_vs t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS value_set,
-                            t2.version,
-                            t2.display,
-                            t2.code,
-                            t2.system,
-                            t2."primary"
-                           FROM composition_confidentiality t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS confidentiality,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM composition_custodian t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS custodian,
-            NULL::unknown AS date,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM composition_encounter t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS encounter,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM composition_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM composition_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM composition_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM composition_subject t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM composition_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM composition_type_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -11831,10 +11893,82 @@ CREATE VIEW view_composition AS
                             t2.text
                            FROM composition_type t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS type,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM composition_class_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM composition_class_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM composition_class t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS class,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM composition_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM composition_confidentiality_vs t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS "valueSet",
+                            t2.version,
+                            t2.display,
+                            t2.code,
+                            t2.system,
+                            t2."primary"
+                           FROM composition_confidentiality t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS confidentiality,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM composition_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM composition_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM composition_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM composition_subject t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM composition_encounter t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS encounter,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM composition_custodian t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS custodian,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM composition_author t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
             t1.title,
             t1.status,
             t1.date
-           FROM composition t1) t_1(id, author, class, confidentiality, contained, contained_1, custodian, date, encounter, identifier, subject, text, type, title, status, date_1);
+           FROM composition t1) t_1;
 
 
 --
@@ -11845,35 +11979,32 @@ CREATE VIEW view_concept_map AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            NULL::unknown AS date,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM concept_map_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM concept_map_target t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS target,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM concept_map_source t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS source,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM concept_map_target t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS target,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM concept_map_telecom_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS system,
-                            NULL::unknown AS use,
-                            t2.value
+                            t2.use,
+                            t2.value,
+                            t2.system
                            FROM concept_map_telecom t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS telecom,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM concept_map_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             t1.version,
             t1.publisher,
             t1.name,
@@ -11883,7 +12014,7 @@ CREATE VIEW view_concept_map AS
             t1.status,
             t1.date,
             t1.experimental
-           FROM concept_map t1) t_1(id, contained, contained_1, date, source, target, telecom, text, version, publisher, name, identifier, description, copyright, status, date_1, experimental);
+           FROM concept_map t1) t_1;
 
 
 --
@@ -11894,97 +12025,13 @@ CREATE VIEW view_condition AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS abatement_age,
-            NULL::unknown AS abatement_age,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM condition_asserter t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS asserter,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM condition_category_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM condition_category_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM condition_category t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS category,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM condition_certainty_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM condition_certainty_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM condition_certainty t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS certainty,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM condition_code_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM condition_code_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM condition_code t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS code,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM condition_encounter t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS encounter,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM condition_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM condition_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM condition_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            NULL::unknown AS onset_age,
-            NULL::unknown AS onset_age,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM condition_severity_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -11995,23 +12042,103 @@ CREATE VIEW view_condition AS
                             t2.text
                            FROM condition_severity t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS severity,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM condition_code_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM condition_code_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM condition_code t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS code,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM condition_certainty_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM condition_certainty_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM condition_certainty t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS certainty,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM condition_category_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM condition_category_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM condition_category t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS category,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM condition_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            NULL::unknown AS "onsetAge",
+            NULL::unknown AS "abatementAge",
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM condition_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM condition_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM condition_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM condition_subject t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM condition_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM condition_encounter t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS encounter,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM condition_asserter t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS asserter,
             t1.notes,
             t1.status,
-            t1.abatement_boolean,
-            t1.onset_date,
-            t1.date_asserted,
-            t1.abatement_date
-           FROM condition t1) t_1(id, abatement_age, abatement_age_1, asserter, category, certainty, code, contained, contained_1, encounter, identifier, onset_age, onset_age_1, severity, subject, text, notes, status, abatement_boolean, onset_date, date_asserted, abatement_date);
+            t1.abatement_boolean AS "abatementBoolean",
+            t1.onset_date AS "onsetDate",
+            t1.date_asserted AS "dateAsserted",
+            t1.abatement_date AS "abatementDate"
+           FROM condition t1) t_1;
 
 
 --
@@ -12022,31 +12149,28 @@ CREATE VIEW view_conformance AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            NULL::unknown AS date,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM conformance_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM conformance_profile t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS profile,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM conformance_telecom_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS system,
-                            NULL::unknown AS use,
-                            t2.value
+                            t2.use,
+                            t2.value,
+                            t2.system
                            FROM conformance_telecom t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS telecom,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM conformance_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            t1.fhir_version,
+            t1.fhir_version AS "fhirVersion",
             t1.version,
             t1.publisher,
             t1.name,
@@ -12056,8 +12180,8 @@ CREATE VIEW view_conformance AS
             t1.format,
             t1.date,
             t1.experimental,
-            t1.accept_unknown
-           FROM conformance t1) t_1(id, contained, contained_1, date, profile, telecom, text, fhir_version, version, publisher, name, identifier, description, status, format, date_1, experimental, accept_unknown);
+            t1.accept_unknown AS "acceptUnknown"
+           FROM conformance t1) t_1;
 
 
 --
@@ -12068,63 +12192,13 @@ CREATE VIEW view_device AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM device_contact_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS system,
-                            NULL::unknown AS use,
-                            t2.value
-                           FROM device_contact t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS contact,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM device_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM device_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM device_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM device_loc t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS location,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM device_owner t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS owner,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM device_patient t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS patient,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM device_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM device_type_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -12135,14 +12209,62 @@ CREATE VIEW view_device AS
                             t2.text
                            FROM device_type t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS type,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM device_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM device_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM device_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM device_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM device_patient t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS patient,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM device_owner t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS owner,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM device_loc t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS location,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM device_contact_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.use,
+                            t2.value,
+                            t2.system
+                           FROM device_contact t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS contact,
             t1.version,
             t1.udi,
             t1.model,
             t1.manufacturer,
-            t1.lot_number,
+            t1.lot_number AS "lotNumber",
             t1.url,
             t1.expiry
-           FROM device t1) t_1(id, contact, contained, contained_1, identifier, location, owner, patient, text, type, version, udi, model, manufacturer, lot_number, url, expiry);
+           FROM device t1) t_1;
 
 
 --
@@ -12153,42 +12275,40 @@ CREATE VIEW view_device_observation_report AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM device_observation_report_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM device_observation_report_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM device_observation_report_idn_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM device_observation_report_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
                             t2.value,
                             t2.label,
+                            t2.use,
                             t2.system
                            FROM device_observation_report_idn t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM device_observation_report_source t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS source,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM device_observation_report_subject t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM device_observation_report_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM device_observation_report_source t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS source,
             t1.instant
-           FROM device_observation_report t1) t_1(id, contained, contained_1, identifier, source, subject, text, instant);
+           FROM device_observation_report t1) t_1;
 
 
 --
@@ -12199,54 +12319,52 @@ CREATE VIEW view_diagnostic_order AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM diagnostic_order_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM diagnostic_order_encounter t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS encounter,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM diagnostic_order_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM diagnostic_order_idn_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM diagnostic_order_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
                             t2.value,
                             t2.label,
+                            t2.use,
                             t2.system
                            FROM diagnostic_order_idn t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM diagnostic_order_orderer t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS orderer,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM diagnostic_order_specimen t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS specimen,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM diagnostic_order_subject t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM diagnostic_order_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            t1.clinical_notes,
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM diagnostic_order_specimen t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS specimen,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM diagnostic_order_orderer t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS orderer,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM diagnostic_order_encounter t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS encounter,
+            t1.clinical_notes AS "clinicalNotes",
             t1.status,
             t1.priority
-           FROM diagnostic_order t1) t_1(id, contained, contained_1, encounter, identifier, orderer, specimen, subject, text, clinical_notes, status, priority);
+           FROM diagnostic_order t1) t_1;
 
 
 --
@@ -12257,61 +12375,30 @@ CREATE VIEW view_diagnostic_report AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
-                                                           FROM diagnostic_report_coded_diagnosis_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                           FROM diagnostic_report_service_category_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
                                             t3.system,
                                             t3."primary"
-                                           FROM diagnostic_report_coded_diagnosis_cd t3
+                                           FROM diagnostic_report_service_category_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
-                           FROM diagnostic_report_coded_diagnosis t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS coded_diagnosis,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            NULL::unknown AS diagnostic_date_time,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.start,
-                            t2."end"
-                           FROM diagnostic_report_diagnostic_period t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS diagnostic_period,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM diagnostic_report_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM diagnostic_report_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM diagnostic_report_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM diagnostic_report_imaging_study t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS imaging_study,
-            NULL::unknown AS issued,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                           FROM diagnostic_report_service_category t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "serviceCategory",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM diagnostic_report_name_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -12323,47 +12410,54 @@ CREATE VIEW view_diagnostic_report AS
                            FROM diagnostic_report_name t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS name,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM diagnostic_report_performer t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS performer,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.hash,
-                            t2.data,
-                            t2.title,
-                            t2.language,
-                            t2.content_type,
-                            t2.size,
-                            t2.url
-                           FROM diagnostic_report_presented_form t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS presented_form,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM diagnostic_report_request_detail t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS request_detail,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM diagnostic_report_result t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS result,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
-                                                           FROM diagnostic_report_service_category_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                           FROM diagnostic_report_coded_diagnosis_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
                                             t3.system,
                                             t3."primary"
-                                           FROM diagnostic_report_service_category_cd t3
+                                           FROM diagnostic_report_coded_diagnosis_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
-                           FROM diagnostic_report_service_category t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS service_category,
+                           FROM diagnostic_report_coded_diagnosis t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "codedDiagnosis",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM diagnostic_report_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.start,
+                            t2."end"
+                           FROM diagnostic_report_diagnostic_period t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "diagnosticPeriod",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM diagnostic_report_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM diagnostic_report_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM diagnostic_report_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM diagnostic_report_subject t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
@@ -12372,18 +12466,38 @@ CREATE VIEW view_diagnostic_report AS
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
-                           FROM diagnostic_report_subject t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
+                           FROM diagnostic_report_result t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS result,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM diagnostic_report_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM diagnostic_report_request_detail t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "requestDetail",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM diagnostic_report_performer t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS performer,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM diagnostic_report_imaging_study t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "imagingStudy",
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.hash,
+                            t2.data,
+                            t2.title,
+                            t2.language,
+                            t2.content_type AS "contentType",
+                            t2.size,
+                            t2.url
+                           FROM diagnostic_report_presented_form t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "presentedForm",
             t1.conclusion,
             t1.status,
             t1.issued,
-            t1.diagnostic_date_time
-           FROM diagnostic_report t1) t_1(id, coded_diagnosis, contained, contained_1, diagnostic_date_time, diagnostic_period, identifier, imaging_study, issued, name, performer, presented_form, request_detail, result, service_category, specimen, subject, text, conclusion, status, issued_1, diagnostic_date_time_1);
+            t1.diagnostic_date_time AS "diagnosticDateTime"
+           FROM diagnostic_report t1) t_1;
 
 
 --
@@ -12394,97 +12508,13 @@ CREATE VIEW view_document_manifest AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM document_manifest_author t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM document_manifest_confidentiality_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM document_manifest_confidentiality_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM document_manifest_confidentiality t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS confidentiality,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM document_manifest_content t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS content,
-            NULL::unknown AS created,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM document_manifest_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM document_manifest_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM document_manifest_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM document_manifest_master_identifier_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM document_manifest_master_identifier_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM document_manifest_master_identifier t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS master_identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM document_manifest_recipient t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS recipient,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM document_manifest_subject t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM document_manifest_supercedes t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS supercedes,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM document_manifest_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM document_manifest_type_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -12495,11 +12525,92 @@ CREATE VIEW view_document_manifest AS
                             t2.text
                            FROM document_manifest_type t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS type,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM document_manifest_confidentiality_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM document_manifest_confidentiality_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM document_manifest_confidentiality t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS confidentiality,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM document_manifest_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM document_manifest_master_identifier_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM document_manifest_master_identifier_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM document_manifest_master_identifier t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "masterIdentifier",
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM document_manifest_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM document_manifest_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM document_manifest_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM document_manifest_supercedes t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS supercedes,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM document_manifest_subject t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM document_manifest_recipient t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS recipient,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM document_manifest_content t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS content,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM document_manifest_author t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
             t1.description,
             t1.status,
             t1.source,
             t1.created
-           FROM document_manifest t1) t_1(id, author, confidentiality, contained, contained_1, content, created, identifier, master_identifier, recipient, subject, supercedes, text, type, description, status, source, created_1);
+           FROM document_manifest t1) t_1;
 
 
 --
@@ -12510,126 +12621,13 @@ CREATE VIEW view_document_reference AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM document_reference_authenticator t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS authenticator,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM document_reference_author t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM document_reference_class_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM document_reference_class_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM document_reference_class t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS class,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM document_reference_confidentiality_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM document_reference_confidentiality_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM document_reference_confidentiality t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS confidentiality,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            NULL::unknown AS created,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM document_reference_custodian t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS custodian,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM document_reference_doc_status_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM document_reference_doc_status_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM document_reference_doc_status t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS doc_status,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM document_reference_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM document_reference_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM document_reference_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM document_reference_master_identifier_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM document_reference_master_identifier_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM document_reference_master_identifier t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS master_identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM document_reference_subject t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM document_reference_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM document_reference_type_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -12640,18 +12638,128 @@ CREATE VIEW view_document_reference AS
                             t2.text
                            FROM document_reference_type t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS type,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM document_reference_doc_status_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM document_reference_doc_status_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM document_reference_doc_status t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "docStatus",
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM document_reference_confidentiality_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM document_reference_confidentiality_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM document_reference_confidentiality t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS confidentiality,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM document_reference_class_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM document_reference_class_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM document_reference_class t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS class,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM document_reference_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM document_reference_master_identifier_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM document_reference_master_identifier_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM document_reference_master_identifier t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "masterIdentifier",
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM document_reference_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM document_reference_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM document_reference_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM document_reference_subject t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM document_reference_custodian t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS custodian,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM document_reference_author t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM document_reference_authenticator t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS authenticator,
             t1.hash,
             t1.description,
             t1.status,
-            t1.primary_language,
-            t1.mime_type,
+            t1.primary_language AS "primaryLanguage",
+            t1.mime_type AS "mimeType",
             t1.size,
-            t1.policy_manager,
+            t1.policy_manager AS "policyManager",
             t1.location,
             t1.format,
             t1.indexed,
             t1.created
-           FROM document_reference t1) t_1(id, authenticator, author, class, confidentiality, contained, contained_1, created, custodian, doc_status, identifier, master_identifier, subject, text, type, hash, description, status, primary_language, mime_type, size, policy_manager, location, format, indexed, created_1);
+           FROM document_reference t1) t_1;
 
 
 --
@@ -12662,98 +12770,13 @@ CREATE VIEW view_encounter AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM encounter_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM encounter_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM encounter_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM encounter_indication t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS indication,
-            NULL::unknown AS length,
-            NULL::unknown AS length,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM encounter_part_of t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS part_of,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.start,
-                            t2."end"
-                           FROM encounter_period t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS period,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM encounter_priority_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM encounter_priority_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM encounter_priority t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS priority,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM encounter_reason_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM encounter_reason_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM encounter_reason t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS reason,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM encounter_service_provider t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS service_provider,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM encounter_subject t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM encounter_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM encounter_type_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -12764,9 +12787,91 @@ CREATE VIEW view_encounter AS
                             t2.text
                            FROM encounter_type t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS type,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM encounter_reason_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM encounter_reason_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM encounter_reason t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS reason,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM encounter_priority_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM encounter_priority_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM encounter_priority t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS priority,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM encounter_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.start,
+                            t2."end"
+                           FROM encounter_period t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS period,
+            NULL::unknown AS length,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM encounter_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM encounter_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM encounter_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM encounter_subject t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM encounter_service_provider t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "serviceProvider",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM encounter_part_of t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "partOf",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM encounter_indication t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS indication,
             t1.status,
             t1.class
-           FROM encounter t1) t_1(id, contained, contained_1, identifier, indication, length, length_1, part_of, period, priority, reason, service_provider, subject, text, type, status, class);
+           FROM encounter t1) t_1;
 
 
 --
@@ -12777,37 +12882,35 @@ CREATE VIEW view_family_history AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM family_history_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM family_history_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM family_history_idn_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM family_history_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
                             t2.value,
                             t2.label,
+                            t2.use,
                             t2.system
                            FROM family_history_idn t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM family_history_subject t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM family_history_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             t1.note
-           FROM family_history t1) t_1(id, contained, contained_1, identifier, subject, text, note);
+           FROM family_history t1) t_1;
 
 
 --
@@ -12818,13 +12921,13 @@ CREATE VIEW view_group AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM group_code_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -12835,22 +12938,25 @@ CREATE VIEW view_group AS
                             t2.text
                            FROM group_code t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS code,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM group_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM group_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM group_idn_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM group_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
                             t2.value,
                             t2.label,
+                            t2.use,
                             t2.system
                            FROM group_idn t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
@@ -12859,16 +12965,11 @@ CREATE VIEW view_group AS
                             t2.display
                            FROM group_member t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS member,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM group_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             t1.name,
             t1.type,
             t1.quantity,
             t1.actual
-           FROM "group" t1) t_1(id, code, contained, contained_1, identifier, member, text, name, type, quantity, actual);
+           FROM "group" t1) t_1;
 
 
 --
@@ -12879,59 +12980,17 @@ CREATE VIEW view_imaging_study AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM imaging_study_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM imaging_study_accession_no_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM imaging_study_accession_no_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM imaging_study_accession_no t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS accession_no,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            NULL::unknown AS date_time,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM imaging_study_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM imaging_study_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM imaging_study_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM imaging_study_interpreter t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS interpreter,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM imaging_study_order t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "order",
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.reference,
                                             t3.display
                                            FROM imaging_study_procedure_vs t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS value_set,
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS "valueSet",
                             t2.version,
                             t2.display,
                             t2.code,
@@ -12940,6 +12999,45 @@ CREATE VIEW view_imaging_study AS
                            FROM imaging_study_procedure t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS procedure,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM imaging_study_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM imaging_study_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM imaging_study_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM imaging_study_accession_no_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM imaging_study_accession_no_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM imaging_study_accession_no t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "accessionNo",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM imaging_study_subject t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM imaging_study_referrer t2
@@ -12947,23 +13045,23 @@ CREATE VIEW view_imaging_study AS
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
-                           FROM imaging_study_subject t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM imaging_study_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+                           FROM imaging_study_order t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "order",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM imaging_study_interpreter t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS interpreter,
             t1.description,
-            t1.clinical_information,
+            t1.clinical_information AS "clinicalInformation",
             t1.modality,
             t1.availability,
-            t1.number_of_series,
-            t1.number_of_instances,
+            t1.number_of_series AS "numberOfSeries",
+            t1.number_of_instances AS "numberOfInstances",
             t1.url,
             t1.uid,
-            t1.date_time
-           FROM imaging_study t1) t_1(id, accession_no, contained, contained_1, date_time, identifier, interpreter, "order", procedure, referrer, subject, text, description, clinical_information, modality, availability, number_of_series, number_of_instances, url, uid, date_time_1);
+            t1.date_time AS "dateTime"
+           FROM imaging_study t1) t_1;
 
 
 --
@@ -12974,78 +13072,30 @@ CREATE VIEW view_immunization AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            NULL::unknown AS date,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS comparator,
-                            t2.units,
-                            t2.code,
-                            t2.system,
-                            t2.value
-                           FROM imm_dose_quantity t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS dose_quantity,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM imm_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM imm_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM imm_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM imm_loc t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS location,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM imm_manufacturer t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS manufacturer,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM imm_performer t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS performer,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM imm_requester t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS requester,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
-                                                           FROM imm_route_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                           FROM imm_vaccine_type_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
                                             t3.system,
                                             t3."primary"
-                                           FROM imm_route_cd t3
+                                           FROM imm_vaccine_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
-                           FROM imm_route t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS route,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                           FROM imm_vaccine_type t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "vaccineType",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM imm_site_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -13056,39 +13106,84 @@ CREATE VIEW view_immunization AS
                             t2.text
                            FROM imm_site t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS site,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM imm_subject t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM imm_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
-                                                           FROM imm_vaccine_type_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                           FROM imm_route_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
                                             t3.system,
                                             t3."primary"
-                                           FROM imm_vaccine_type_cd t3
+                                           FROM imm_route_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
-                           FROM imm_vaccine_type t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS vaccine_type,
-            t1.lot_number,
+                           FROM imm_route t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS route,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM imm_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.units,
+                            t2.code,
+                            t2.system,
+                            t2.value,
+                            t2.comparator
+                           FROM imm_dose_quantity t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "doseQuantity",
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM imm_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM imm_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM imm_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM imm_subject t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM imm_requester t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS requester,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM imm_performer t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS performer,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM imm_manufacturer t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS manufacturer,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM imm_loc t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS location,
+            t1.lot_number AS "lotNumber",
             t1.date,
             t1.reported,
-            t1.refused_indicator,
-            t1.expiration_date
-           FROM imm t1) t_1(id, contained, contained_1, date, dose_quantity, identifier, location, manufacturer, performer, requester, route, site, subject, text, vaccine_type, lot_number, date_1, reported, refused_indicator, expiration_date);
+            t1.refused_indicator AS "refusedIndicator",
+            t1.expiration_date AS "expirationDate"
+           FROM imm t1) t_1;
 
 
 --
@@ -13099,36 +13194,34 @@ CREATE VIEW view_immunization_recommendation AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM imm_rec_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM imm_rec_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM imm_rec_idn_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM imm_rec_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
                             t2.value,
                             t2.label,
+                            t2.use,
                             t2.system
                            FROM imm_rec_idn t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM imm_rec_subject t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM imm_rec_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text
-           FROM imm_rec t1) t_1(id, contained, contained_1, identifier, subject, text);
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject
+           FROM imm_rec t1) t_1;
 
 
 --
@@ -13139,13 +13232,30 @@ CREATE VIEW view_list AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM list_empty_reason_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM list_empty_reason_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM list_empty_reason t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "emptyReason",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM list_code_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -13156,62 +13266,42 @@ CREATE VIEW view_list AS
                             t2.text
                            FROM list_code t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS code,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            NULL::unknown AS date,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM list_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM list_empty_reason_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM list_empty_reason_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM list_empty_reason t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS empty_reason,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM list_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM list_idn_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM list_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
                             t2.value,
                             t2.label,
+                            t2.use,
                             t2.system
                            FROM list_idn t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM list_source t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS source,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM list_subject t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM list_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM list_source t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS source,
             t1.mode,
             t1.date,
             t1.ordered
-           FROM list t1) t_1(id, code, contained, contained_1, date, empty_reason, identifier, source, subject, text, mode, date_1, ordered);
+           FROM list t1) t_1;
 
 
 --
@@ -13222,90 +13312,13 @@ CREATE VIEW view_location AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM loc_address_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.zip,
-                            t2.text,
-                            t2.state,
-                            t2.line,
-                            t2.country,
-                            t2.city
-                           FROM loc_address t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM loc_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM loc_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM loc_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM loc_managing_organization t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS managing_organization,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM loc_part_of t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS part_of,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM loc_physical_type_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM loc_physical_type_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM loc_physical_type t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS physical_type,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM loc_telecom_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS system,
-                            NULL::unknown AS use,
-                            t2.value
-                           FROM loc_telecom t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS telecom,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM loc_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM loc_type_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -13316,11 +13329,86 @@ CREATE VIEW view_location AS
                             t2.text
                            FROM loc_type t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS type,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM loc_physical_type_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM loc_physical_type_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM loc_physical_type t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "physicalType",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM loc_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM loc_address_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.zip,
+                            t2.text,
+                            t2.state,
+                            t2.line,
+                            t2.country,
+                            t2.city,
+                            t2.use
+                           FROM loc_address t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM loc_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM loc_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM loc_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM loc_part_of t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "partOf",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM loc_managing_organization t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "managingOrganization",
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM loc_telecom_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.use,
+                            t2.value,
+                            t2.system
+                           FROM loc_telecom t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS telecom,
             t1.name,
             t1.description,
             t1.status,
             t1.mode
-           FROM loc t1) t_1(id, address, contained, contained_1, identifier, managing_organization, part_of, physical_type, telecom, text, type, name, description, status, mode);
+           FROM loc t1) t_1;
 
 
 --
@@ -13331,75 +13419,13 @@ CREATE VIEW view_media AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.hash,
-                            t2.data,
-                            t2.title,
-                            t2.language,
-                            t2.content_type,
-                            t2.size,
-                            t2.url
-                           FROM media_content t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS content,
-            NULL::unknown AS date_time,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM media_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM media_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM media_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM media_operator t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS operator,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM media_subject t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM media_subtype_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM media_subtype_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM media_subtype t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subtype,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM media_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM media_view_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -13410,14 +13436,73 @@ CREATE VIEW view_media AS
                             t2.text
                            FROM media_view t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS view,
-            t1.device_name,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM media_subtype_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM media_subtype_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM media_subtype t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subtype,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM media_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM media_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM media_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM media_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM media_subject t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM media_operator t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS operator,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.hash,
+                            t2.data,
+                            t2.title,
+                            t2.language,
+                            t2.content_type AS "contentType",
+                            t2.size,
+                            t2.url
+                           FROM media_content t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS content,
+            t1.device_name AS "deviceName",
             t1.type,
             t1.width,
             t1.length,
             t1.height,
             t1.frames,
-            t1.date_time
-           FROM media t1) t_1(id, contained, contained_1, content, date_time, identifier, operator, subject, subtype, text, view, device_name, type, width, length, height, frames, date_time_1);
+            t1.date_time AS "dateTime"
+           FROM media t1) t_1;
 
 
 --
@@ -13428,13 +13513,13 @@ CREATE VIEW view_medication AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM med_code_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -13445,22 +13530,20 @@ CREATE VIEW view_medication AS
                             t2.text
                            FROM med_code t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS code,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM med_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM med_manufacturer t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS manufacturer,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM med_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             t1.name,
             t1.kind,
-            t1.is_brand
-           FROM med t1) t_1(id, code, contained, contained_1, manufacturer, text, name, kind, is_brand);
+            t1.is_brand AS "isBrand"
+           FROM med t1) t_1;
 
 
 --
@@ -13471,62 +13554,13 @@ CREATE VIEW view_medication_administration AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM med_adm_device t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS device,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM med_adm_encounter t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS encounter,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM med_adm_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM med_adm_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM med_adm_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM med_adm_med t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS medication,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM med_adm_patient t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS patient,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM med_adm_practitioner t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS practitioner,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM med_adm_prs t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS prescription,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM med_adm_reason_not_given_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -13536,20 +13570,67 @@ CREATE VIEW view_medication_administration AS
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
                            FROM med_adm_reason_not_given t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS reason_not_given,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "reasonNotGiven",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
                            FROM med_adm_text t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.start,
                             t2."end"
                            FROM med_adm_when_given t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS when_given,
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "whenGiven",
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM med_adm_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM med_adm_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM med_adm_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM med_adm_prs t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS prescription,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM med_adm_practitioner t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS practitioner,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM med_adm_patient t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS patient,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM med_adm_med t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS medication,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM med_adm_encounter t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS encounter,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM med_adm_device t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS device,
             t1.status,
-            t1.was_not_given
-           FROM med_adm t1) t_1(id, contained, contained_1, device, encounter, identifier, medication, patient, practitioner, prescription, reason_not_given, text, when_given, status, was_not_given);
+            t1.was_not_given AS "wasNotGiven"
+           FROM med_adm t1) t_1;
 
 
 --
@@ -13560,47 +13641,45 @@ CREATE VIEW view_medication_dispense AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM med_disp_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM med_disp_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM med_disp_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM med_disp_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
-                           FROM med_disp_authorizing_prescription t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS authorizing_prescription,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                           FROM med_disp_patient t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS patient,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM med_disp_dispenser t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS dispenser,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM med_disp_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM med_disp_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM med_disp_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
-                           FROM med_disp_patient t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS patient,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM med_disp_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+                           FROM med_disp_authorizing_prescription t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "authorizingPrescription",
             t1.status
-           FROM med_disp t1) t_1(id, authorizing_prescription, contained, contained_1, dispenser, identifier, patient, text, status);
+           FROM med_disp t1) t_1;
 
 
 --
@@ -13611,53 +13690,13 @@ CREATE VIEW view_medication_prescription AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            NULL::unknown AS date_written,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM med_prs_encounter t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS encounter,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM med_prs_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM med_prs_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM med_prs_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM med_prs_med t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS medication,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM med_prs_patient t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS patient,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM med_prs_prescriber t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS prescriber,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM med_prs_reason_codeable_concept_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -13667,20 +13706,57 @@ CREATE VIEW view_medication_prescription AS
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
                            FROM med_prs_reason_codeable_concept t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS reason_codeable_concept,
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "reasonCodeableConcept",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM med_prs_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM med_prs_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM med_prs_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM med_prs_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM med_prs_reason_resource_reference t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS reason_resource_reference,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM med_prs_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "reasonResourceReference",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM med_prs_prescriber t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS prescriber,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM med_prs_patient t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS patient,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM med_prs_med t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS medication,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM med_prs_encounter t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS encounter,
             t1.status,
-            t1.date_written
-           FROM med_prs t1) t_1(id, contained, contained_1, date_written, encounter, identifier, medication, patient, prescriber, reason_codeable_concept, reason_resource_reference, text, status, date_written_1);
+            t1.date_written AS "dateWritten"
+           FROM med_prs t1) t_1;
 
 
 --
@@ -13691,47 +13767,13 @@ CREATE VIEW view_medication_statement AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM med_st_device t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS device,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM med_st_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM med_st_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM med_st_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM med_st_med t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS medication,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM med_st_patient t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS patient,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM med_st_reason_not_given_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -13741,19 +13783,51 @@ CREATE VIEW view_medication_statement AS
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
                            FROM med_st_reason_not_given t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS reason_not_given,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "reasonNotGiven",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
                            FROM med_st_text t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.start,
                             t2."end"
                            FROM med_st_when_given t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS when_given,
-            t1.was_not_given
-           FROM med_st t1) t_1(id, contained, contained_1, device, identifier, medication, patient, reason_not_given, text, when_given, was_not_given);
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "whenGiven",
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM med_st_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM med_st_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM med_st_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM med_st_patient t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS patient,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM med_st_med t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS medication,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM med_st_device t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS device,
+            t1.was_not_given AS "wasNotGiven"
+           FROM med_st t1) t_1;
 
 
 --
@@ -13764,43 +13838,13 @@ CREATE VIEW view_message_header AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM message_header_author t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM message_header_data t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS data,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM message_header_enterer t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS enterer,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM message_header_event_vs t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS value_set,
-                            t2.version,
-                            t2.display,
-                            t2.code,
-                            t2.system,
-                            t2."primary"
-                           FROM message_header_event t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS event,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM message_header_reason_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -13811,24 +13855,52 @@ CREATE VIEW view_message_header AS
                             t2.text
                            FROM message_header_reason t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS reason,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM message_header_receiver t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS receiver,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM message_header_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM message_header_event_vs t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS "valueSet",
+                            t2.version,
+                            t2.display,
+                            t2.code,
+                            t2.system,
+                            t2."primary"
+                           FROM message_header_event t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS event,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM message_header_responsible t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS responsible,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM message_header_receiver t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS receiver,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM message_header_enterer t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS enterer,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM message_header_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM message_header_data t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS data,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM message_header_author t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
             t1.identifier,
             t1."timestamp"
-           FROM message_header t1) t_1(id, author, contained, contained_1, data, enterer, event, reason, receiver, responsible, text, identifier, "timestamp");
+           FROM message_header t1) t_1;
 
 
 --
@@ -13839,89 +13911,30 @@ CREATE VIEW view_observation AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS applies_date_time,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.start,
-                            t2."end"
-                           FROM observation_applies_period t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS applies_period,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
-                                                           FROM observation_body_site_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                           FROM observation_value_codeable_concept_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
                                             t3.system,
                                             t3."primary"
-                                           FROM observation_body_site_cd t3
+                                           FROM observation_value_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
-                           FROM observation_body_site t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS body_site,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM observation_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM observation_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM observation_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM observation_interpretation_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM observation_interpretation_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM observation_interpretation t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS interpretation,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM observation_method_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM observation_method_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM observation_method t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS method,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                           FROM observation_value_codeable_concept t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "valueCodeableConcept",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM observation_name_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -13932,12 +13945,139 @@ CREATE VIEW view_observation AS
                             t2.text
                            FROM observation_name t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS name,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM observation_method_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM observation_method_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM observation_method t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS method,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM observation_interpretation_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM observation_interpretation_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM observation_interpretation t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS interpretation,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM observation_body_site_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM observation_body_site_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM observation_body_site t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "bodySite",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.units,
+                                            t3.code,
+                                            t3.system,
+                                            t3.value,
+                                            t3.comparator
+                                           FROM observation_value_sampled_data_origin t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS origin,
+                            t2.data,
+                            t2.dimensions,
+                            t2.upper_limit AS "upperLimit",
+                            t2.period,
+                            t2.lower_limit AS "lowerLimit",
+                            t2.factor
+                           FROM observation_value_sampled_data t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "valueSampledData",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM observation_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.start,
+                            t2."end"
+                           FROM observation_value_period t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "valuePeriod",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.start,
+                            t2."end"
+                           FROM observation_applies_period t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "appliesPeriod",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.units,
+                                            t3.code,
+                                            t3.system,
+                                            t3.value,
+                                            t3.comparator
+                                           FROM observation_value_ratio_numerator t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS numerator,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.units,
+                                            t3.code,
+                                            t3.system,
+                                            t3.value,
+                                            t3.comparator
+                                           FROM observation_value_ratio_denominator t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS denominator
+                           FROM observation_value_ratio t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "valueRatio",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.units,
+                            t2.code,
+                            t2.system,
+                            t2.value,
+                            t2.comparator
+                           FROM observation_value_quantity t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "valueQuantity",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM observation_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM observation_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM observation_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
-                           FROM observation_performer t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS performer,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                           FROM observation_subject t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM observation_specimen t2
@@ -13945,96 +14085,25 @@ CREATE VIEW view_observation AS
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
-                           FROM observation_subject t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM observation_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                           FROM observation_performer t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS performer,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.hash,
                             t2.data,
                             t2.title,
                             t2.language,
-                            t2.content_type,
+                            t2.content_type AS "contentType",
                             t2.size,
                             t2.url
                            FROM observation_value_attachment t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS value_attachment,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM observation_value_codeable_concept_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM observation_value_codeable_concept_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM observation_value_codeable_concept t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS value_codeable_concept,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.start,
-                            t2."end"
-                           FROM observation_value_period t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS value_period,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS comparator,
-                            t2.units,
-                            t2.code,
-                            t2.system,
-                            t2.value
-                           FROM observation_value_quantity t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS value_quantity,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT NULL::unknown AS comparator,
-                                            t3.units,
-                                            t3.code,
-                                            t3.system,
-                                            t3.value
-                                           FROM observation_value_ratio_denominator t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS denominator,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT NULL::unknown AS comparator,
-                                            t3.units,
-                                            t3.code,
-                                            t3.system,
-                                            t3.value
-                                           FROM observation_value_ratio_numerator t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS numerator
-                           FROM observation_value_ratio t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS value_ratio,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT NULL::unknown AS comparator,
-                                            t3.units,
-                                            t3.code,
-                                            t3.system,
-                                            t3.value
-                                           FROM observation_value_sampled_data_origin t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS origin,
-                            t2.data,
-                            t2.dimensions,
-                            t2.upper_limit,
-                            t2.period,
-                            t2.lower_limit,
-                            t2.factor
-                           FROM observation_value_sampled_data t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS value_sampled_data,
-            t1.value_string,
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "valueAttachment",
+            t1.value_string AS "valueString",
             t1.comments,
             t1.status,
             t1.reliability,
             t1.issued,
-            t1.applies_date_time
-           FROM observation t1) t_1(id, applies_date_time, applies_period, body_site, contained, contained_1, identifier, interpretation, method, name, performer, specimen, subject, text, value_attachment, value_codeable_concept, value_period, value_quantity, value_ratio, value_sampled_data, value_string, comments, status, reliability, issued, applies_date_time_1);
+            t1.applies_date_time AS "appliesDateTime"
+           FROM observation t1) t_1;
 
 
 --
@@ -14045,14 +14114,12 @@ CREATE VIEW view_operation_outcome AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
                            FROM operation_outcome_text t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text
-           FROM operation_outcome t1) t_1(id, contained, contained_1, text);
+           FROM operation_outcome t1) t_1;
 
 
 --
@@ -14063,43 +14130,13 @@ CREATE VIEW view_order AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM order_authority t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS authority,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            NULL::unknown AS date,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM order_detail t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS detail,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM order_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM order_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM order_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM order_reason_codeable_concept_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -14109,34 +14146,61 @@ CREATE VIEW view_order AS
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
                            FROM order_reason_codeable_concept t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS reason_codeable_concept,
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "reasonCodeableConcept",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM order_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM order_reason_resource_reference t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS reason_resource_reference,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM order_source t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS source,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM order_subject t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM order_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM order_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM order_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM order_target t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS target,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM order_subject t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM order_source t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS source,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM order_reason_resource_reference t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "reasonResourceReference",
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM order_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM order_detail t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS detail,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM order_authority t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS authority,
             t1.date
-           FROM "order" t1) t_1(id, authority, contained, contained_1, date, detail, identifier, reason_codeable_concept, reason_resource_reference, source, subject, target, text, date_1);
+           FROM "order" t1) t_1;
 
 
 --
@@ -14147,13 +14211,13 @@ CREATE VIEW view_order_response AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM order_response_authority_codeable_concept_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -14163,56 +14227,53 @@ CREATE VIEW view_order_response AS
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
                            FROM order_response_authority_codeable_concept t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS authority_codeable_concept,
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "authorityCodeableConcept",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM order_response_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM order_response_authority_resource_reference t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS authority_resource_reference,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            NULL::unknown AS date,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM order_response_fulfillment t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS fulfillment,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM order_response_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM order_response_idn_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM order_response_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
                             t2.value,
                             t2.label,
+                            t2.use,
                             t2.system
                            FROM order_response_idn t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM order_response_who t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS who,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM order_response_request t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS request,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM order_response_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
-                           FROM order_response_who t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS who,
+                           FROM order_response_fulfillment t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS fulfillment,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM order_response_authority_resource_reference t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "authorityResourceReference",
             t1.description,
             t1.code,
             t1.date
-           FROM order_response t1) t_1(id, authority_codeable_concept, authority_resource_reference, contained, contained_1, date, fulfillment, identifier, request, text, who, description, code, date_1);
+           FROM order_response t1) t_1;
 
 
 --
@@ -14223,73 +14284,13 @@ CREATE VIEW view_organization AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM organization_address_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.zip,
-                            t2.text,
-                            t2.state,
-                            t2.line,
-                            t2.country,
-                            t2.city
-                           FROM organization_address t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM organization_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM organization_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM organization_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM organization_loc t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS location,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM organization_part_of t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS part_of,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM organization_telecom_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS system,
-                            NULL::unknown AS use,
-                            t2.value
-                           FROM organization_telecom t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS telecom,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM organization_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM organization_type_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -14300,9 +14301,67 @@ CREATE VIEW view_organization AS
                             t2.text
                            FROM organization_type t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS type,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM organization_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM organization_address_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.zip,
+                            t2.text,
+                            t2.state,
+                            t2.line,
+                            t2.country,
+                            t2.city,
+                            t2.use
+                           FROM organization_address t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM organization_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM organization_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM organization_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM organization_part_of t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "partOf",
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM organization_loc t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS location,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM organization_telecom_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.use,
+                            t2.value,
+                            t2.system
+                           FROM organization_telecom t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS telecom,
             t1.name,
             t1.active
-           FROM organization t1) t_1(id, address, contained, contained_1, identifier, location, part_of, telecom, text, type, name, active);
+           FROM organization t1) t_1;
 
 
 --
@@ -14313,18 +14372,13 @@ CREATE VIEW view_other AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM other_author t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM other_code_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -14335,37 +14389,40 @@ CREATE VIEW view_other AS
                             t2.text
                            FROM other_code t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS code,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM other_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM other_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM other_idn_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM other_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
                             t2.value,
                             t2.label,
+                            t2.use,
                             t2.system
                            FROM other_idn t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM other_subject t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM other_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM other_author t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
             t1.created
-           FROM other t1) t_1(id, author, code, contained, contained_1, identifier, subject, text, created);
+           FROM other t1) t_1;
 
 
 --
@@ -14376,54 +14433,30 @@ CREATE VIEW view_patient AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM patient_address_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.zip,
-                            t2.text,
-                            t2.state,
-                            t2.line,
-                            t2.country,
-                            t2.city
-                           FROM patient_address t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
-            NULL::unknown AS birth_date,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM patient_care_provider t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS care_provider,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
-                                                           FROM patient_communication_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                           FROM patient_marital_status_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
                                             t3.system,
                                             t3."primary"
-                                           FROM patient_communication_cd t3
+                                           FROM patient_marital_status_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
-                           FROM patient_communication t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS communication,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            NULL::unknown AS deceased_date_time,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                           FROM patient_marital_status t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "maritalStatus",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM patient_gender_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -14436,90 +14469,110 @@ CREATE VIEW view_patient AS
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS gender,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM patient_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM patient_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM patient_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM patient_managing_organization t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS managing_organization,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
-                                                           FROM patient_marital_status_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                           FROM patient_communication_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
                                             t3.system,
                                             t3."primary"
-                                           FROM patient_marital_status_cd t3
+                                           FROM patient_communication_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
-                           FROM patient_marital_status t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS marital_status,
+                           FROM patient_communication t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS communication,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM patient_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM patient_address_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.zip,
+                            t2.text,
+                            t2.state,
+                            t2.line,
+                            t2.country,
+                            t2.city,
+                            t2.use
+                           FROM patient_address t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM patient_name_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
                             t2.text,
                             t2.suffix,
                             t2.prefix,
                             t2.given,
-                            t2.family
+                            t2.family,
+                            t2.use
                            FROM patient_name t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS name,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM patient_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM patient_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM patient_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM patient_managing_organization t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "managingOrganization",
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM patient_care_provider t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "careProvider",
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT t2.hash,
                             t2.data,
                             t2.title,
                             t2.language,
-                            t2.content_type,
+                            t2.content_type AS "contentType",
                             t2.size,
                             t2.url
                            FROM patient_photo t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS photo,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM patient_telecom_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS system,
-                            NULL::unknown AS use,
-                            t2.value
+                            t2.use,
+                            t2.value,
+                            t2.system
                            FROM patient_telecom t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS telecom,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM patient_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            t1.multiple_birth_integer,
-            t1.deceased_date_time,
-            t1.birth_date,
-            t1.multiple_birth_boolean,
-            t1.deceased_boolean,
+            t1.multiple_birth_integer AS "multipleBirthInteger",
+            t1.deceased_date_time AS "deceasedDateTime",
+            t1.birth_date AS "birthDate",
+            t1.multiple_birth_boolean AS "multipleBirthBoolean",
+            t1.deceased_boolean AS "deceasedBoolean",
             t1.active
-           FROM patient t1) t_1(id, address, birth_date, care_provider, communication, contained, contained_1, deceased_date_time, gender, identifier, managing_organization, marital_status, name, photo, telecom, text, multiple_birth_integer, deceased_date_time_1, birth_date_1, multiple_birth_boolean, deceased_boolean, active);
+           FROM patient t1) t_1;
 
 
 --
@@ -14532,136 +14585,11 @@ CREATE VIEW view_practitioner AS
    FROM ( SELECT t1.id,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM practitioner_address_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.zip,
-                            t2.text,
-                            t2.state,
-                            t2.line,
-                            t2.country,
-                            t2.city
-                           FROM practitioner_address t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
-            NULL::unknown AS birth_date,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM practitioner_communication_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM practitioner_communication_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM practitioner_communication t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS communication,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM practitioner_gender_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM practitioner_gender_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM practitioner_gender t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS gender,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM practitioner_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM practitioner_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM practitioner_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM practitioner_loc t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS location,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM practitioner_name_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.text,
-                            t2.suffix,
-                            t2.prefix,
-                            t2.given,
-                            t2.family
-                           FROM practitioner_name t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS name,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM practitioner_organization t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS organization,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.start,
-                            t2."end"
-                           FROM practitioner_period t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS period,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.hash,
-                            t2.data,
-                            t2.title,
-                            t2.language,
-                            t2.content_type,
-                            t2.size,
-                            t2.url
-                           FROM practitioner_photo t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS photo,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM practitioner_role_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM practitioner_role_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM practitioner_role t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS role,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM practitioner_specialty_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -14674,22 +14602,144 @@ CREATE VIEW view_practitioner AS
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS specialty,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM practitioner_role_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM practitioner_role_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM practitioner_role t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS role,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM practitioner_gender_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM practitioner_gender_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM practitioner_gender t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS gender,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM practitioner_communication_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM practitioner_communication_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM practitioner_communication t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS communication,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM practitioner_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM practitioner_address_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.zip,
+                            t2.text,
+                            t2.state,
+                            t2.line,
+                            t2.country,
+                            t2.city,
+                            t2.use
+                           FROM practitioner_address t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.start,
+                            t2."end"
+                           FROM practitioner_period t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS period,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM practitioner_name_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.text,
+                            t2.suffix,
+                            t2.prefix,
+                            t2.given,
+                            t2.family,
+                            t2.use
+                           FROM practitioner_name t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS name,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM practitioner_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM practitioner_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM practitioner_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM practitioner_organization t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS organization,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM practitioner_loc t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS location,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.hash,
+                            t2.data,
+                            t2.title,
+                            t2.language,
+                            t2.content_type AS "contentType",
+                            t2.size,
+                            t2.url
+                           FROM practitioner_photo t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS photo,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM practitioner_telecom_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS system,
-                            NULL::unknown AS use,
-                            t2.value
+                            t2.use,
+                            t2.value,
+                            t2.system
                            FROM practitioner_telecom t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS telecom,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM practitioner_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            t1.birth_date
-           FROM practitioner t1) t_1(id, address, birth_date, communication, contained, contained_1, gender, identifier, location, name, organization, period, photo, role, specialty, telecom, text, birth_date_1);
+            t1.birth_date AS "birthDate"
+           FROM practitioner t1) t_1;
 
 
 --
@@ -14700,76 +14750,30 @@ CREATE VIEW view_procedure AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
-                                                           FROM procedure_body_site_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                           FROM procedure_type_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
                                             t3.system,
                                             t3."primary"
-                                           FROM procedure_body_site_cd t3
+                                           FROM procedure_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
-                           FROM procedure_body_site t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS body_site,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM procedure_complication_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM procedure_complication_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM procedure_complication t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS complication,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.start,
-                            t2."end"
-                           FROM procedure_date t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS date,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM procedure_encounter t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS encounter,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM procedure_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM procedure_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM procedure_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+                           FROM procedure_type t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS type,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM procedure_indication_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -14781,41 +14785,85 @@ CREATE VIEW view_procedure AS
                            FROM procedure_indication t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS indication,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM procedure_report t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS report,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM procedure_subject t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM procedure_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
-                                                           FROM procedure_type_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                           FROM procedure_complication_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
                                             t3.system,
                                             t3."primary"
-                                           FROM procedure_type_cd t3
+                                           FROM procedure_complication_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
-                           FROM procedure_type t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS type,
+                           FROM procedure_complication t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS complication,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM procedure_body_site_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM procedure_body_site_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM procedure_body_site t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "bodySite",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM procedure_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.start,
+                            t2."end"
+                           FROM procedure_date t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS date,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM procedure_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM procedure_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM procedure_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM procedure_subject t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM procedure_report t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS report,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM procedure_encounter t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS encounter,
             t1.outcome,
             t1.notes,
-            t1.follow_up
-           FROM procedure t1) t_1(id, body_site, complication, contained, contained_1, date, encounter, identifier, indication, report, subject, text, type, outcome, notes, follow_up);
+            t1.follow_up AS "followUp"
+           FROM procedure t1) t_1;
 
 
 --
@@ -14826,12 +14874,17 @@ CREATE VIEW view_profile AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM profile_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.reference,
                                             t3.display
                                            FROM profile_code_vs t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS value_set,
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS "valueSet",
                             t2.version,
                             t2.display,
                             t2.code,
@@ -14839,26 +14892,18 @@ CREATE VIEW view_profile AS
                             t2."primary"
                            FROM profile_code t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS code,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            NULL::unknown AS date,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM profile_telecom_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS system,
-                            NULL::unknown AS use,
-                            t2.value
+                            t2.use,
+                            t2.value,
+                            t2.system
                            FROM profile_telecom t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS telecom,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM profile_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            t1.fhir_version,
+            t1.fhir_version AS "fhirVersion",
             t1.version,
             t1.requirements,
             t1.publisher,
@@ -14868,7 +14913,7 @@ CREATE VIEW view_profile AS
             t1.status,
             t1.date,
             t1.experimental
-           FROM profile t1) t_1(id, code, contained, contained_1, date, telecom, text, fhir_version, version, requirements, publisher, name, identifier, description, status, date_1, experimental);
+           FROM profile t1) t_1;
 
 
 --
@@ -14879,25 +14924,13 @@ CREATE VIEW view_provenance AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM provenance_loc t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS location,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.start,
-                            t2."end"
-                           FROM provenance_period t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS period,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM provenance_reason_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -14908,20 +14941,30 @@ CREATE VIEW view_provenance AS
                             t2.text
                            FROM provenance_reason t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS reason,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM provenance_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.start,
+                            t2."end"
+                           FROM provenance_period t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS period,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM provenance_target t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS target,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM provenance_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            t1.integrity_signature,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM provenance_loc t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS location,
+            t1.integrity_signature AS "integritySignature",
             t1.policy,
             t1.recorded
-           FROM provenance t1) t_1(id, contained, contained_1, location, period, reason, target, text, integrity_signature, policy, recorded);
+           FROM provenance t1) t_1;
 
 
 --
@@ -14932,15 +14975,13 @@ CREATE VIEW view_query AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
                            FROM query_text t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             t1.identifier
-           FROM query t1) t_1(id, contained, contained_1, text, identifier);
+           FROM query t1) t_1;
 
 
 --
@@ -14951,43 +14992,13 @@ CREATE VIEW view_questionnaire AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM questionnaire_author t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
-            NULL::unknown AS authored,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM questionnaire_encounter t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS encounter,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM questionnaire_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM questionnaire_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM questionnaire_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM questionnaire_name_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -14998,24 +15009,51 @@ CREATE VIEW view_questionnaire AS
                             t2.text
                            FROM questionnaire_name t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS name,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM questionnaire_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM questionnaire_source t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS source,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM questionnaire_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM questionnaire_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM questionnaire_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM questionnaire_subject t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM questionnaire_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM questionnaire_source t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS source,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM questionnaire_encounter t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS encounter,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM questionnaire_author t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
             t1.status,
             t1.authored
-           FROM questionnaire t1) t_1(id, author, authored, contained, contained_1, encounter, identifier, name, source, subject, text, status, authored_1);
+           FROM questionnaire t1) t_1;
 
 
 --
@@ -15026,93 +15064,13 @@ CREATE VIEW view_related_person AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM related_person_address_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.zip,
-                            t2.text,
-                            t2.state,
-                            t2.line,
-                            t2.country,
-                            t2.city
-                           FROM related_person_address t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
-                                                   FROM ( SELECT t4.reference,
-                                                            t4.display
-                                                           FROM related_person_gender_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
-                                            t3.version,
-                                            t3.display,
-                                            t3.code,
-                                            t3.system,
-                                            t3."primary"
-                                           FROM related_person_gender_cd t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
-                            t2.text
-                           FROM related_person_gender t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS gender,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM related_person_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM related_person_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM related_person_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM related_person_name_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.text,
-                            t2.suffix,
-                            t2.prefix,
-                            t2.given,
-                            t2.family
-                           FROM related_person_name t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS name,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM related_person_patient t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS patient,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.hash,
-                            t2.data,
-                            t2.title,
-                            t2.language,
-                            t2.content_type,
-                            t2.size,
-                            t2.url
-                           FROM related_person_photo t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS photo,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM related_person_relationship_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -15123,23 +15081,101 @@ CREATE VIEW view_related_person AS
                             t2.text
                            FROM related_person_relationship t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS relationship,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
+                                                   FROM ( SELECT t4.reference,
+                                                            t4.display
+                                                           FROM related_person_gender_cd_vs t4
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
+                                            t3.version,
+                                            t3.display,
+                                            t3.code,
+                                            t3.system,
+                                            t3."primary"
+                                           FROM related_person_gender_cd t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
+                            t2.text
+                           FROM related_person_gender t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS gender,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM related_person_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM related_person_address_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.zip,
+                            t2.text,
+                            t2.state,
+                            t2.line,
+                            t2.country,
+                            t2.city,
+                            t2.use
+                           FROM related_person_address t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM related_person_name_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.text,
+                            t2.suffix,
+                            t2.prefix,
+                            t2.given,
+                            t2.family,
+                            t2.use
+                           FROM related_person_name t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS name,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM related_person_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM related_person_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM related_person_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM related_person_patient t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS patient,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT t2.hash,
+                            t2.data,
+                            t2.title,
+                            t2.language,
+                            t2.content_type AS "contentType",
+                            t2.size,
+                            t2.url
+                           FROM related_person_photo t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS photo,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM related_person_telecom_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS system,
-                            NULL::unknown AS use,
-                            t2.value
+                            t2.use,
+                            t2.value,
+                            t2.system
                            FROM related_person_telecom t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS telecom,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM related_person_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text
-           FROM related_person t1) t_1(id, address, contained, contained_1, gender, identifier, name, patient, photo, relationship, telecom, text);
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS telecom
+           FROM related_person t1) t_1;
 
 
 --
@@ -15150,14 +15186,12 @@ CREATE VIEW view_security_event AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
                            FROM security_event_text t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text
-           FROM security_event t1) t_1(id, contained, contained_1, text);
+           FROM security_event t1) t_1;
 
 
 --
@@ -15168,60 +15202,13 @@ CREATE VIEW view_specimen AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM specimen_accession_identifier_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM specimen_accession_identifier_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM specimen_accession_identifier t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS accession_identifier,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM specimen_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM specimen_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM specimen_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            NULL::unknown AS received_time,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM specimen_subject t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM specimen_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM specimen_type_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -15232,8 +15219,52 @@ CREATE VIEW view_specimen AS
                             t2.text
                            FROM specimen_type t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS type,
-            t1.received_time
-           FROM specimen t1) t_1(id, accession_identifier, contained, contained_1, identifier, received_time, subject, text, type, received_time_1);
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM specimen_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM specimen_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM specimen_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM specimen_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM specimen_accession_identifier_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM specimen_accession_identifier_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM specimen_accession_identifier t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "accessionIdentifier",
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM specimen_subject t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS subject,
+            t1.received_time AS "receivedTime"
+           FROM specimen t1) t_1;
 
 
 --
@@ -15244,20 +15275,13 @@ CREATE VIEW view_substance AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM substance_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM substance_type_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -15268,8 +15292,13 @@ CREATE VIEW view_substance AS
                             t2.text
                            FROM substance_type t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS type,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM substance_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             t1.description
-           FROM substance t1) t_1(id, contained, contained_1, text, type, description);
+           FROM substance t1) t_1;
 
 
 --
@@ -15280,32 +15309,13 @@ CREATE VIEW view_supply AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.reference,
-                                            t3.display
-                                           FROM supply_idn_assigner t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
-                            ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
-                                   FROM ( SELECT t3.start,
-                                            t3."end"
-                                           FROM supply_idn_period t3
-                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS use,
-                            t2.value,
-                            t2.label,
-                            t2.system
-                           FROM supply_idn t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
                                    FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
                                                    FROM ( SELECT t4.reference,
                                                             t4.display
                                                            FROM supply_kind_cd_vs t4
-                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS value_set,
+                                                          WHERE ((t4.resource_id = t1.id) AND (t4.parent_id = t3.id))) t_4) AS "valueSet",
                                             t3.version,
                                             t3.display,
                                             t3.code,
@@ -15316,23 +15326,40 @@ CREATE VIEW view_supply AS
                             t2.text
                            FROM supply_kind t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS kind,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT t2.reference,
-                            t2.display
-                           FROM supply_ordered_item t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS ordered_item,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM supply_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.start,
+                                            t3."end"
+                                           FROM supply_idn_period t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            ( SELECT row_to_json(t_3.*, true) AS row_to_json
+                                   FROM ( SELECT t3.reference,
+                                            t3.display
+                                           FROM supply_idn_assigner t3
+                                          WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS assigner,
+                            t2.value,
+                            t2.label,
+                            t2.use,
+                            t2.system
+                           FROM supply_idn t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS identifier,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.reference,
                             t2.display
                            FROM supply_patient t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS patient,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM supply_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.reference,
+                            t2.display
+                           FROM supply_ordered_item t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "orderedItem",
             t1.status
-           FROM supply t1) t_1(id, contained, contained_1, identifier, kind, ordered_item, patient, text, status);
+           FROM supply t1) t_1;
 
 
 --
@@ -15389,25 +15416,22 @@ CREATE VIEW view_value_set AS
  SELECT t_1.id,
     row_to_json(t_1.*, true) AS json
    FROM ( SELECT t1.id,
-            NULL::unknown AS contained,
-            NULL::unknown AS contained,
-            NULL::unknown AS date,
+            ( SELECT row_to_json(t_2.*, true) AS row_to_json
+                   FROM ( SELECT t2.div,
+                            t2.status
+                           FROM vs_text t2
+                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
+                   FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.start,
                                             t3."end"
                                            FROM vs_telecom_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            NULL::unknown AS system,
-                            NULL::unknown AS use,
-                            t2.value
+                            t2.use,
+                            t2.value,
+                            t2.system
                            FROM vs_telecom t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS telecom,
-            ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
-                   FROM ( SELECT NULL::unknown AS status,
-                            t2.div
-                           FROM vs_text t2
-                          WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS text,
             t1.version,
             t1.publisher,
             t1.name,
@@ -15418,7 +15442,7 @@ CREATE VIEW view_value_set AS
             t1.date,
             t1.extensible,
             t1.experimental
-           FROM vs t1) t_1(id, contained, contained_1, date, telecom, text, version, publisher, name, identifier, description, copyright, status, date_1, extensible, experimental);
+           FROM vs t1) t_1;
 
 
 --
