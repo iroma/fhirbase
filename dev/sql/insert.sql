@@ -36,7 +36,7 @@ create or replace function fhir.insert_resource(jdata json) returns uuid languag
       insert_record('fhir', table_name, attrs)
       return attrs['id']
     else:
-      log('Skip %' % table_name)
+      log('Skip %s with path %s' % (table_name, pth))
 
   def insert_record(schema, table_name, attrs):
     attrs['_type'] = table_name
