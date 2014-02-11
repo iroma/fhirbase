@@ -61,6 +61,8 @@ CREATE
 VIEW meta.resource_tables as (
   SELECT
     table_name(path) as table_name,
+    resource_table_name(path) as resource_table_name,
+    parent_table_name(path) as parent_table_name,
     case
       when array_length(path, 1) > 1 then 'resource_component'
       else 'resource'
@@ -74,6 +76,8 @@ VIEW meta.resource_tables as (
   UNION
   SELECT
     table_name(path) as table_name,
+    resource_table_name(path) as resource_table_name,
+    parent_table_name(path) as parent_table_name,
     base_table,
     array[]::varchar[] as columns
   FROM meta.expanded_with_dt_resource_elements

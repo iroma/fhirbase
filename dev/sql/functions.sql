@@ -39,38 +39,27 @@ FUNCTION array_last(ar varchar[])
 $$ IMMUTABLE;
 
 CREATE OR REPLACE
+FUNCTION parent_table_name(path varchar[])
+RETURNS varchar LANGUAGE plpythonu AS $$
+  plpy.execute('select py_init()')
+  acc = GD['prepare_path'](path)
+  return GD['underscore']('_'.join(acc[0:-1]))
+$$ IMMUTABLE;
+
+CREATE OR REPLACE
+FUNCTION resource_table_name(path varchar[])
+RETURNS varchar LANGUAGE plpythonu AS $$
+  plpy.execute('select py_init()')
+  acc = GD['prepare_path'](path)
+  return GD['underscore'](acc[0])
+$$ IMMUTABLE;
+
+CREATE OR REPLACE
 FUNCTION table_name(path varchar[])
 RETURNS varchar LANGUAGE plpythonu AS $$
-  word_aliases = {
-    'capabilities': 'cap',
-    'chanel': 'chnl',
-    'codeable_concept': 'cc',
-    'coding': 'cd',
-    'identifier': 'idn',
-    'immunization': 'imm',
-    'immunization_recommendation': 'imm_rec',
-    'location': 'loc',
-    'medication': 'med',
-    'medication_administration': 'med_adm',
-    'medication_dispense': 'med_disp',
-    'medication_prescription': 'med_prs',
-    'medication_statement': 'med_st',
-    'prescription': 'prs',
-    'recommentdaton': 'rcm',
-    'value': 'val',
-    'value_set': 'vs'}
-
-  def underscore(x):
-    return plpy.execute("select underscore('%s')" % x)[0]['underscore']
-
-  acc = []
-  for nm in path:
-    word = underscore(nm)
-    if word in word_aliases:
-      acc.append(word_aliases[word])
-    else:
-      acc.append(nm)
-  return underscore('_'.join(acc))
+  plpy.execute('select py_init()')
+  acc = GD['prepare_path'](path)
+  return GD['underscore']('_'.join(acc))
 $$ IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION indent(t text, l integer)

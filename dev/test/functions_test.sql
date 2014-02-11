@@ -2,6 +2,7 @@
 --{{{
 \ir 'spec_helper.sql'
 \ir ../sql/extensions.sql
+\ir ../sql/py_init.sql
 \ir ../sql/meta.sql
 \ir ../sql/load_meta.sql
 \ir ../sql/functions.sql

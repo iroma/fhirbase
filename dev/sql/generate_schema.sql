@@ -34,18 +34,37 @@ CREATE OR REPLACE FUNCTION generate_schema2(schema TEXT, version TEXT)
       "columns": make_columns(e) }
 
   def make_resources(e):
-    return """
+    create_table = """
       CREATE TABLE %(schema)s.%(table)s (
         %(columns)s
       ) INHERITS (%(schema)s.%(base_table)s);
 
       ALTER TABLE %(schema)s.%(table)s
         ALTER COLUMN _type SET DEFAULT '%(table)s';
+
+      ALTER TABLE %(schema)s.%(table)s
+        ADD PRIMARY KEY (id);
       """ % {
       "schema": schema,
       "table": e['table_name'],
       "base_table": e['base_table'],
       "columns": make_columns(e) }
+
+    if e['base_table'] == 'resource':
+      create_fk = ""
+      create_indexes = ""
+    else:
+      create_fk = """
+        ALTER TABLE fhir.%(table_name)s
+          ADD FOREIGN KEY (resource_id) REFERENCES fhir.%(resource_table_name)s (id);
+        ALTER TABLE fhir.%(table_name)s
+          ADD FOREIGN KEY (parent_id) REFERENCES fhir.%(parent_table_name)s (id);
+      """ % e
+      create_indexes = """
+        CREATE INDEX ON fhir.%(table_name)s (resource_id);
+        CREATE INDEX ON fhir.%(table_name)s (parent_id);
+      """ % e
+    return ";\n".join([create_table, create_fk, create_indexes])
 
   queries = [
     "DROP SCHEMA IF EXISTS %s CASCADE" % schema,
