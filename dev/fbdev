@@ -1,26 +1,21 @@
 #!/bin/bash
+
 CFG_FILE='fbdev_config.sh'
 while getopts ":c:" opt; do
-  case $opt in
-    c)
-      CFG_FILE=$OPTARG
-      ;;
-    *)
-      echo "* $OPTARG"
-      ;;
-  esac
+    case $opt in
+        c)
+            CFG_FILE=$OPTARG
+            ;;
+        *)
+            echo "* $OPTARG"
+            ;;
+    esac
 done
 
 shift $((OPTIND - 1))
 
 CMD=$1
 ARGV=$@
-
-echo "CMD - $CMD"
-echo "ARGV - $ARGV"
-
-
-echo "Loading $CFG_FILE"
 
 if [ -f ./$CFG_FILE ]; then
     . ./$CFG_FILE
@@ -51,7 +46,7 @@ function install_cmd {
         echo "install command requires dbname argument"
         exit 1
     else
-        echo "BEFORE INSTALL"
+        echo "Installing fhirbase into DB $1..."
         psql $PSQL_ARGS -d $1 < install.sql
     fi
 }
@@ -61,6 +56,8 @@ function recreate_db {
 }
 
 function test_cmd {
+    echo "Running fhirbase tests..."
+
     glob=''
 
     for word in $ARGV; do
@@ -87,15 +84,17 @@ case "$CMD" in
         install_cmd $2
         ;;
     "build" )
+        echo "Building fhirbase.sql"
+
         recreate_db $BUILD_DB_NAME
         install_cmd $BUILD_DB_NAME
 
         pg_dump $PSQL_ARGS \
-          --format=plain \
-          --schema=fhir \
-          --no-owner \
-          --file=$FHIRBASE_HOME/../fhirbase.sql \
-          $BUILD_DB_NAME && echo "FhirBase schema successfully dumped to $FHIRBASE_HOME/../fhirbase.sql"
+                --format=plain \
+                --schema=fhir \
+                --no-owner \
+                --file=$FHIRBASE_HOME/../fhirbase.sql \
+                $BUILD_DB_NAME && echo "FhirBase schema successfully dumped to $FHIRBASE_HOME/../fhirbase.sql"
 
         cd $FHIRBASE_HOME/.. && psql $PSQL_ARGS -d $BUILD_DB_NAME < fhirbase_test.sql
 
