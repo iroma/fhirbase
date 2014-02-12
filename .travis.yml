@@ -1,8 +1,10 @@
 # .travis.yml
 before_script:
+  - sudo pg_lsclusters
   - echo y | sudo perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP'
   - sudo ./dev/apt.postgresql.org.sh
   - sudo apt-get install tree curl build-essential git libpq-dev postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3 postgresql-plpython-9.3
+  - sudo pg_lsclusters
   - tree /home/travis
   - cat /home/travis/.bashrc
   - grep -v 'max_locks_per_transaction = 200' /etc/postgresql/9.3/main/postgresql.conf && (sudo bash -c "echo 'max_locks_per_transaction = 200' >> /etc/postgresql/9.3/main/postgresql.conf" && sudo service postgresql restart)
