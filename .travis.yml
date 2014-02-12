@@ -1,12 +1,8 @@
 # .travis.yml
 language: perl
 before_script:
-  - who && id && pwd && export && which perl && perl --version
-  - sudo su -l -c 'who && id && pwd && export && which perl && perl --version'
-  - echo y | sudo su -l -c 'perl -MCPAN -e ''install Test::Pod'''
-  - source /home/travis/.bashrc && echo y | sudo su -l -c 'perl -MCPAN -e ''install TAP::Parser::SourceHandler::pgTAP'''
-    #- sudo ./dev/apt.postgresql.org.sh
-  - sudo apt-get install -y curl build-essential git libpq-dev postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3 postgresql-plpython-9.3
+  - source /home/travis/.bashrc && echo y | perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP'
+  - sudo apt-get install curl build-essential git libpq-dev postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3 postgresql-plpython-9.3
   - grep -v 'max_locks_per_transaction = 200' /etc/postgresql/9.3/main/postgresql.conf && (sudo bash -c "echo 'max_locks_per_transaction = 200' >> /etc/postgresql/9.3/main/postgresql.conf" && sudo service postgresql restart)
   - sudo su postgres -c 'createuser -s root'
   - git clone https://github.com/theory/pgtap.git /tmp/pgtap
