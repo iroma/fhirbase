@@ -1,7 +1,7 @@
 # .travis.yml
 before_script:
   - echo y | sudo perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP'
-  - sudo apt-get install postgresql-server-dev-8.4
+  - sudo apt-get install postgresql-server-dev-9.3
   # - sudo apt-get install tree curl build-essential git libpq-dev postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3 postgresql-plpython-9.3
   - sudo pg_ctlcluster 9.1 main stop
   - sudo pg_ctlcluster 9.3 main start
