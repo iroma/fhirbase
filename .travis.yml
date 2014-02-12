@@ -1,6 +1,7 @@
 # .travis.yml
 before_script:
-  - export PERL5LIB=/home/travis/perl5 && echo y | sudo perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP'
+  - export PERL5LIB=/home/travis && echo y | sudo perl -MCPAN -e 'install ExtUtils::MakeMaker'
+  - export PERL5LIB=/home/travis && echo y | sudo perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP'
   - sudo apt-get install tree curl build-essential git libpq-dev postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3 postgresql-plpython-9.3
   - tree /home/travis
   - grep -v 'max_locks_per_transaction = 200' /etc/postgresql/9.3/main/postgresql.conf && (sudo bash -c "echo 'max_locks_per_transaction = 200' >> /etc/postgresql/9.3/main/postgresql.conf" && sudo service postgresql restart)
