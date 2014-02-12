@@ -1,4 +1,5 @@
 # .travis.yml
+language: perl
 before_script:
   - who && id && pwd && export && which perl && perl --version
   - sudo su -l -c 'who && id && pwd && export && which perl && perl --version'
