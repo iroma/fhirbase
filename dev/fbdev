@@ -1,14 +1,34 @@
 #!/bin/bash
+CFG_FILE='fbdev_config.sh'
+while getopts ":c:" opt; do
+  case $opt in
+    c)
+      CFG_FILE=$OPTARG
+      ;;
+    *)
+      echo "* $OPTARG"
+      ;;
+  esac
+done
 
-if [ -f ./fbdev_config.sh ]; then
-    . ./fbdev_config.sh
+shift $((OPTIND - 1))
+
+CMD=$1
+ARGV=$@
+
+echo "CMD - $CMD"
+echo "ARGV - $ARGV"
+
+
+echo "Loading $CFG_FILE"
+
+if [ -f ./$CFG_FILE ]; then
+    . ./$CFG_FILE
 else
     echo "ERROR: No fbdev_config.sh file found!"
     echo "Please create your own config from template file fbdev_config.sh.template"
     exit 1
 fi
-
-ARGV=$@
 
 cd $FHIRBASE_HOME;
 export FHIRBASE_HOME;
@@ -56,7 +76,7 @@ function test_cmd {
     cd $FHIRBASE_HOME/test && $FHIRBASE_HOME/pg_prove $PSQL_ARGS -d $TEST_DB_NAME $glob
 }
 
-case "$1" in
+case "$CMD" in
     "test" )
         test_cmd
         ;;

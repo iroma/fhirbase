@@ -28,4 +28,4 @@ if [ ! -d /tmp/pgtap ]; then
 fi
 
 
-sudo su -l vagrant -c 'cd /home/vagrant/fhirbase  && ./fbdev test'
+sudo su -l vagrant -c 'cd /home/vagrant/fhirbase  && ./fbdev -c fbdev_config.sh.vagrant test'
