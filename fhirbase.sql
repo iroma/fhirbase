@@ -393,6 +393,28 @@ CREATE FUNCTION insert_resource(jdata json) RETURNS uuid
 $$;
 
 
+--
+-- Name: update_resource(uuid, json); Type: FUNCTION; Schema: fhir; Owner: -
+--
+
+CREATE FUNCTION update_resource(id uuid, resource_data json) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+num_of_deleted_rows integer;
+BEGIN
+  SELECT fhir.delete_resource(id) INTO num_of_deleted_rows;
+
+  IF num_of_deleted_rows = 0 THEN
+    RAISE EXCEPTION 'Resource with id % not found', id;
+	END IF;
+
+	PERFORM fhir.insert_resource(merge_json(resource_data, ('{ "id": "' || id::varchar || '"}')::json));
+	RETURN 0::integer;
+END
+$$;
+
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -11491,8 +11513,8 @@ CREATE VIEW view_alert AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM alert_category_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11666,8 +11688,8 @@ CREATE VIEW view_composition AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM composition_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11683,8 +11705,8 @@ CREATE VIEW view_composition AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM composition_class_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11704,8 +11726,8 @@ CREATE VIEW view_composition AS
                             t2.version,
                             t2.display,
                             t2.code,
-                            t2.system,
-                            t2."primary"
+                            t2."primary",
+                            t2.system
                            FROM composition_confidentiality t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS confidentiality,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -11815,8 +11837,8 @@ CREATE VIEW view_condition AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM condition_severity_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11832,8 +11854,8 @@ CREATE VIEW view_condition AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM condition_code_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11849,8 +11871,8 @@ CREATE VIEW view_condition AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM condition_certainty_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11866,8 +11888,8 @@ CREATE VIEW view_condition AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM condition_category_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11982,8 +12004,8 @@ CREATE VIEW view_device AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM device_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12165,8 +12187,8 @@ CREATE VIEW view_diagnostic_report AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM diagnostic_report_service_category_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12182,8 +12204,8 @@ CREATE VIEW view_diagnostic_report AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM diagnostic_report_name_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12199,8 +12221,8 @@ CREATE VIEW view_diagnostic_report AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM diagnostic_report_coded_diagnosis_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12298,8 +12320,8 @@ CREATE VIEW view_document_manifest AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_manifest_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12315,8 +12337,8 @@ CREATE VIEW view_document_manifest AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_manifest_confidentiality_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12388,8 +12410,8 @@ CREATE VIEW view_document_manifest AS
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
             t1.description,
             t1.status,
-            t1.source,
-            t1.created
+            t1.created,
+            t1.source
            FROM document_manifest t1) t_1;
 
 
@@ -12411,8 +12433,8 @@ CREATE VIEW view_document_reference AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_reference_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12428,8 +12450,8 @@ CREATE VIEW view_document_reference AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_reference_doc_status_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12445,8 +12467,8 @@ CREATE VIEW view_document_reference AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_reference_confidentiality_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12462,8 +12484,8 @@ CREATE VIEW view_document_reference AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_reference_class_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12530,15 +12552,15 @@ CREATE VIEW view_document_reference AS
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS authenticator,
             t1.hash,
             t1.description,
+            t1.indexed,
             t1.status,
             t1.primary_language AS "primaryLanguage",
             t1.mime_type AS "mimeType",
+            t1.created,
             t1.size,
             t1.policy_manager AS "policyManager",
             t1.location,
-            t1.format,
-            t1.indexed,
-            t1.created
+            t1.format
            FROM document_reference t1) t_1;
 
 
@@ -12560,8 +12582,8 @@ CREATE VIEW view_encounter AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM encounter_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12577,8 +12599,8 @@ CREATE VIEW view_encounter AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM encounter_reason_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12594,8 +12616,8 @@ CREATE VIEW view_encounter AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM encounter_priority_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12711,8 +12733,8 @@ CREATE VIEW view_group AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM group_code_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12774,8 +12796,8 @@ CREATE VIEW view_imaging_study AS
                             t2.version,
                             t2.display,
                             t2.code,
-                            t2.system,
-                            t2."primary"
+                            t2."primary",
+                            t2.system
                            FROM imaging_study_procedure t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS procedure,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
@@ -12832,15 +12854,15 @@ CREATE VIEW view_imaging_study AS
                             t2.display
                            FROM imaging_study_interpreter t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS interpreter,
+            t1.uid,
             t1.description,
             t1.clinical_information AS "clinicalInformation",
             t1.modality,
             t1.availability,
+            t1.date_time AS "dateTime",
             t1.number_of_series AS "numberOfSeries",
             t1.number_of_instances AS "numberOfInstances",
-            t1.url,
-            t1.uid,
-            t1.date_time AS "dateTime"
+            t1.url
            FROM imaging_study t1) t_1;
 
 
@@ -12862,8 +12884,8 @@ CREATE VIEW view_immunization AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM imm_vaccine_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12879,8 +12901,8 @@ CREATE VIEW view_immunization AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM imm_site_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12896,8 +12918,8 @@ CREATE VIEW view_immunization AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM imm_route_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12911,9 +12933,9 @@ CREATE VIEW view_immunization AS
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.units,
                             t2.code,
+                            t2.comparator,
                             t2.system,
-                            t2.value,
-                            t2.comparator
+                            t2.value
                            FROM imm_dose_quantity t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "doseQuantity",
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
@@ -13022,8 +13044,8 @@ CREATE VIEW view_list AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM list_empty_reason_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13039,8 +13061,8 @@ CREATE VIEW view_list AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM list_code_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13102,8 +13124,8 @@ CREATE VIEW view_location AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM loc_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13119,8 +13141,8 @@ CREATE VIEW view_location AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM loc_physical_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13137,13 +13159,13 @@ CREATE VIEW view_location AS
                                             t3."end"
                                            FROM loc_address_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city,
-                            t2.use
+                            t2.city
                            FROM loc_address t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -13209,8 +13231,8 @@ CREATE VIEW view_media AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM media_view_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13226,8 +13248,8 @@ CREATE VIEW view_media AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM media_subtype_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13277,11 +13299,11 @@ CREATE VIEW view_media AS
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS content,
             t1.device_name AS "deviceName",
             t1.type,
+            t1.date_time AS "dateTime",
             t1.width,
             t1.length,
             t1.height,
-            t1.frames,
-            t1.date_time AS "dateTime"
+            t1.frames
            FROM media t1) t_1;
 
 
@@ -13303,8 +13325,8 @@ CREATE VIEW view_medication AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM med_code_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13344,8 +13366,8 @@ CREATE VIEW view_medication_administration AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM med_adm_reason_not_given_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13480,8 +13502,8 @@ CREATE VIEW view_medication_prescription AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM med_prs_reason_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13557,8 +13579,8 @@ CREATE VIEW view_medication_statement AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM med_st_reason_not_given_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13628,8 +13650,8 @@ CREATE VIEW view_message_header AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM message_header_reason_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13649,8 +13671,8 @@ CREATE VIEW view_message_header AS
                             t2.version,
                             t2.display,
                             t2.code,
-                            t2.system,
-                            t2."primary"
+                            t2."primary",
+                            t2.system
                            FROM message_header_event t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS event,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -13701,8 +13723,8 @@ CREATE VIEW view_observation AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM obs_value_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13718,8 +13740,8 @@ CREATE VIEW view_observation AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM obs_name_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13735,8 +13757,8 @@ CREATE VIEW view_observation AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM obs_method_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13752,8 +13774,8 @@ CREATE VIEW view_observation AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM obs_interpretation_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13769,8 +13791,8 @@ CREATE VIEW view_observation AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM obs_body_site_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13780,9 +13802,9 @@ CREATE VIEW view_observation AS
                    FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM obs_value_sampled_data_origin t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS origin,
                             t2.data,
@@ -13812,17 +13834,17 @@ CREATE VIEW view_observation AS
                    FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM obs_value_ratio_numerator t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS numerator,
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM obs_value_ratio_denominator t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS denominator
                            FROM obs_value_ratio t2
@@ -13830,9 +13852,9 @@ CREATE VIEW view_observation AS
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.units,
                             t2.code,
+                            t2.comparator,
                             t2.system,
-                            t2.value,
-                            t2.comparator
+                            t2.value
                            FROM obs_value_quantity t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "valueQuantity",
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -13879,9 +13901,9 @@ CREATE VIEW view_observation AS
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "valueAttachment",
             t1.value_string AS "valueString",
             t1.comments,
+            t1.issued,
             t1.status,
             t1.reliability,
-            t1.issued,
             t1.applies_date_time AS "appliesDateTime"
            FROM obs t1) t_1;
 
@@ -13920,8 +13942,8 @@ CREATE VIEW view_order AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM order_reason_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14001,8 +14023,8 @@ CREATE VIEW view_order_response AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM order_response_authority_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14074,8 +14096,8 @@ CREATE VIEW view_organization AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM organization_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14092,13 +14114,13 @@ CREATE VIEW view_organization AS
                                             t3."end"
                                            FROM organization_address_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city,
-                            t2.use
+                            t2.city
                            FROM organization_address t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
@@ -14162,8 +14184,8 @@ CREATE VIEW view_other AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM other_code_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14223,8 +14245,8 @@ CREATE VIEW view_patient AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM patient_marital_status_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14240,8 +14262,8 @@ CREATE VIEW view_patient AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM patient_gender_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14257,8 +14279,8 @@ CREATE VIEW view_patient AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM patient_communication_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14275,13 +14297,13 @@ CREATE VIEW view_patient AS
                                             t3."end"
                                            FROM patient_address_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city,
-                            t2.use
+                            t2.city
                            FROM patient_address t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
@@ -14346,9 +14368,9 @@ CREATE VIEW view_patient AS
                             t2.system
                            FROM patient_telecom t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS telecom,
-            t1.multiple_birth_integer AS "multipleBirthInteger",
             t1.deceased_date_time AS "deceasedDateTime",
             t1.birth_date AS "birthDate",
+            t1.multiple_birth_integer AS "multipleBirthInteger",
             t1.multiple_birth_boolean AS "multipleBirthBoolean",
             t1.deceased_boolean AS "deceasedBoolean",
             t1.active
@@ -14373,8 +14395,8 @@ CREATE VIEW view_practitioner AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM practitioner_specialty_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14390,8 +14412,8 @@ CREATE VIEW view_practitioner AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM practitioner_role_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14407,8 +14429,8 @@ CREATE VIEW view_practitioner AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM practitioner_gender_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14424,8 +14446,8 @@ CREATE VIEW view_practitioner AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM practitioner_communication_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14442,13 +14464,13 @@ CREATE VIEW view_practitioner AS
                                             t3."end"
                                            FROM practitioner_address_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city,
-                            t2.use
+                            t2.city
                            FROM practitioner_address t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -14540,8 +14562,8 @@ CREATE VIEW view_procedure AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM procedure_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14557,8 +14579,8 @@ CREATE VIEW view_procedure AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM procedure_indication_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14574,8 +14596,8 @@ CREATE VIEW view_procedure AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM procedure_complication_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14591,8 +14613,8 @@ CREATE VIEW view_procedure AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM procedure_body_site_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14664,8 +14686,8 @@ CREATE VIEW view_provenance AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM provenance_reason_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14692,8 +14714,8 @@ CREATE VIEW view_provenance AS
                            FROM provenance_loc t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS location,
             t1.integrity_signature AS "integritySignature",
-            t1.policy,
-            t1.recorded
+            t1.recorded,
+            t1.policy
            FROM provenance t1) t_1;
 
 
@@ -14732,8 +14754,8 @@ CREATE VIEW view_questionnaire AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM questionnaire_name_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14804,8 +14826,8 @@ CREATE VIEW view_related_person AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM related_person_relationship_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14821,8 +14843,8 @@ CREATE VIEW view_related_person AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM related_person_gender_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14839,13 +14861,13 @@ CREATE VIEW view_related_person AS
                                             t3."end"
                                            FROM related_person_address_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city,
-                            t2.use
+                            t2.city
                            FROM related_person_address t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -14942,8 +14964,8 @@ CREATE VIEW view_specimen AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM specimen_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15015,8 +15037,8 @@ CREATE VIEW view_substance AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM substance_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15049,8 +15071,8 @@ CREATE VIEW view_supply AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM supply_kind_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -57904,7 +57926,7 @@ CREATE INDEX vs_text_resource_id_idx ON vs_text USING btree (resource_id);
 --
 
 ALTER TABLE ONLY adverse_reaction_exposure
-    ADD CONSTRAINT adverse_reaction_exposure_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_exposure_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -57912,7 +57934,7 @@ ALTER TABLE ONLY adverse_reaction_exposure
 --
 
 ALTER TABLE ONLY adverse_reaction_exposure
-    ADD CONSTRAINT adverse_reaction_exposure_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_exposure_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -57920,7 +57942,7 @@ ALTER TABLE ONLY adverse_reaction_exposure
 --
 
 ALTER TABLE ONLY adverse_reaction_exposure_substance
-    ADD CONSTRAINT adverse_reaction_exposure_substance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_exposure(id);
+    ADD CONSTRAINT adverse_reaction_exposure_substance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_exposure(id) ON DELETE CASCADE;
 
 
 --
@@ -57928,7 +57950,7 @@ ALTER TABLE ONLY adverse_reaction_exposure_substance
 --
 
 ALTER TABLE ONLY adverse_reaction_exposure_substance
-    ADD CONSTRAINT adverse_reaction_exposure_substance_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_exposure_substance_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -57936,7 +57958,7 @@ ALTER TABLE ONLY adverse_reaction_exposure_substance
 --
 
 ALTER TABLE ONLY adverse_reaction_idn_assigner
-    ADD CONSTRAINT adverse_reaction_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_idn(id);
+    ADD CONSTRAINT adverse_reaction_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -57944,7 +57966,7 @@ ALTER TABLE ONLY adverse_reaction_idn_assigner
 --
 
 ALTER TABLE ONLY adverse_reaction_idn_assigner
-    ADD CONSTRAINT adverse_reaction_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -57952,7 +57974,7 @@ ALTER TABLE ONLY adverse_reaction_idn_assigner
 --
 
 ALTER TABLE ONLY adverse_reaction_idn
-    ADD CONSTRAINT adverse_reaction_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -57960,7 +57982,7 @@ ALTER TABLE ONLY adverse_reaction_idn
 --
 
 ALTER TABLE ONLY adverse_reaction_idn_period
-    ADD CONSTRAINT adverse_reaction_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_idn(id);
+    ADD CONSTRAINT adverse_reaction_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -57968,7 +57990,7 @@ ALTER TABLE ONLY adverse_reaction_idn_period
 --
 
 ALTER TABLE ONLY adverse_reaction_idn_period
-    ADD CONSTRAINT adverse_reaction_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -57976,7 +57998,7 @@ ALTER TABLE ONLY adverse_reaction_idn_period
 --
 
 ALTER TABLE ONLY adverse_reaction_idn
-    ADD CONSTRAINT adverse_reaction_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -57984,7 +58006,7 @@ ALTER TABLE ONLY adverse_reaction_idn
 --
 
 ALTER TABLE ONLY adverse_reaction_recorder
-    ADD CONSTRAINT adverse_reaction_recorder_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_recorder_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -57992,7 +58014,7 @@ ALTER TABLE ONLY adverse_reaction_recorder
 --
 
 ALTER TABLE ONLY adverse_reaction_recorder
-    ADD CONSTRAINT adverse_reaction_recorder_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_recorder_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -58000,7 +58022,7 @@ ALTER TABLE ONLY adverse_reaction_recorder
 --
 
 ALTER TABLE ONLY adverse_reaction_subject
-    ADD CONSTRAINT adverse_reaction_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -58008,7 +58030,7 @@ ALTER TABLE ONLY adverse_reaction_subject
 --
 
 ALTER TABLE ONLY adverse_reaction_subject
-    ADD CONSTRAINT adverse_reaction_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -58016,7 +58038,7 @@ ALTER TABLE ONLY adverse_reaction_subject
 --
 
 ALTER TABLE ONLY adverse_reaction_symptom_code_cd
-    ADD CONSTRAINT adverse_reaction_symptom_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_symptom_code(id);
+    ADD CONSTRAINT adverse_reaction_symptom_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_symptom_code(id) ON DELETE CASCADE;
 
 
 --
@@ -58024,7 +58046,7 @@ ALTER TABLE ONLY adverse_reaction_symptom_code_cd
 --
 
 ALTER TABLE ONLY adverse_reaction_symptom_code_cd
-    ADD CONSTRAINT adverse_reaction_symptom_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_symptom_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -58032,7 +58054,7 @@ ALTER TABLE ONLY adverse_reaction_symptom_code_cd
 --
 
 ALTER TABLE ONLY adverse_reaction_symptom_code_cd_vs
-    ADD CONSTRAINT adverse_reaction_symptom_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_symptom_code_cd(id);
+    ADD CONSTRAINT adverse_reaction_symptom_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_symptom_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -58040,7 +58062,7 @@ ALTER TABLE ONLY adverse_reaction_symptom_code_cd_vs
 --
 
 ALTER TABLE ONLY adverse_reaction_symptom_code_cd_vs
-    ADD CONSTRAINT adverse_reaction_symptom_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_symptom_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -58048,7 +58070,7 @@ ALTER TABLE ONLY adverse_reaction_symptom_code_cd_vs
 --
 
 ALTER TABLE ONLY adverse_reaction_symptom_code
-    ADD CONSTRAINT adverse_reaction_symptom_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_symptom(id);
+    ADD CONSTRAINT adverse_reaction_symptom_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_symptom(id) ON DELETE CASCADE;
 
 
 --
@@ -58056,7 +58078,7 @@ ALTER TABLE ONLY adverse_reaction_symptom_code
 --
 
 ALTER TABLE ONLY adverse_reaction_symptom_code
-    ADD CONSTRAINT adverse_reaction_symptom_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_symptom_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -58064,7 +58086,7 @@ ALTER TABLE ONLY adverse_reaction_symptom_code
 --
 
 ALTER TABLE ONLY adverse_reaction_symptom
-    ADD CONSTRAINT adverse_reaction_symptom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_symptom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -58072,7 +58094,7 @@ ALTER TABLE ONLY adverse_reaction_symptom
 --
 
 ALTER TABLE ONLY adverse_reaction_symptom
-    ADD CONSTRAINT adverse_reaction_symptom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_symptom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -58080,7 +58102,7 @@ ALTER TABLE ONLY adverse_reaction_symptom
 --
 
 ALTER TABLE ONLY adverse_reaction_text
-    ADD CONSTRAINT adverse_reaction_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -58088,7 +58110,7 @@ ALTER TABLE ONLY adverse_reaction_text
 --
 
 ALTER TABLE ONLY adverse_reaction_text
-    ADD CONSTRAINT adverse_reaction_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id);
+    ADD CONSTRAINT adverse_reaction_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -58096,7 +58118,7 @@ ALTER TABLE ONLY adverse_reaction_text
 --
 
 ALTER TABLE ONLY alert_author
-    ADD CONSTRAINT alert_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert(id);
+    ADD CONSTRAINT alert_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert(id) ON DELETE CASCADE;
 
 
 --
@@ -58104,7 +58126,7 @@ ALTER TABLE ONLY alert_author
 --
 
 ALTER TABLE ONLY alert_author
-    ADD CONSTRAINT alert_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id);
+    ADD CONSTRAINT alert_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id) ON DELETE CASCADE;
 
 
 --
@@ -58112,7 +58134,7 @@ ALTER TABLE ONLY alert_author
 --
 
 ALTER TABLE ONLY alert_category_cd
-    ADD CONSTRAINT alert_category_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert_category(id);
+    ADD CONSTRAINT alert_category_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert_category(id) ON DELETE CASCADE;
 
 
 --
@@ -58120,7 +58142,7 @@ ALTER TABLE ONLY alert_category_cd
 --
 
 ALTER TABLE ONLY alert_category_cd
-    ADD CONSTRAINT alert_category_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id);
+    ADD CONSTRAINT alert_category_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id) ON DELETE CASCADE;
 
 
 --
@@ -58128,7 +58150,7 @@ ALTER TABLE ONLY alert_category_cd
 --
 
 ALTER TABLE ONLY alert_category_cd_vs
-    ADD CONSTRAINT alert_category_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert_category_cd(id);
+    ADD CONSTRAINT alert_category_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert_category_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -58136,7 +58158,7 @@ ALTER TABLE ONLY alert_category_cd_vs
 --
 
 ALTER TABLE ONLY alert_category_cd_vs
-    ADD CONSTRAINT alert_category_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id);
+    ADD CONSTRAINT alert_category_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id) ON DELETE CASCADE;
 
 
 --
@@ -58144,7 +58166,7 @@ ALTER TABLE ONLY alert_category_cd_vs
 --
 
 ALTER TABLE ONLY alert_category
-    ADD CONSTRAINT alert_category_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert(id);
+    ADD CONSTRAINT alert_category_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert(id) ON DELETE CASCADE;
 
 
 --
@@ -58152,7 +58174,7 @@ ALTER TABLE ONLY alert_category
 --
 
 ALTER TABLE ONLY alert_category
-    ADD CONSTRAINT alert_category_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id);
+    ADD CONSTRAINT alert_category_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id) ON DELETE CASCADE;
 
 
 --
@@ -58160,7 +58182,7 @@ ALTER TABLE ONLY alert_category
 --
 
 ALTER TABLE ONLY alert_idn_assigner
-    ADD CONSTRAINT alert_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert_idn(id);
+    ADD CONSTRAINT alert_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -58168,7 +58190,7 @@ ALTER TABLE ONLY alert_idn_assigner
 --
 
 ALTER TABLE ONLY alert_idn_assigner
-    ADD CONSTRAINT alert_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id);
+    ADD CONSTRAINT alert_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id) ON DELETE CASCADE;
 
 
 --
@@ -58176,7 +58198,7 @@ ALTER TABLE ONLY alert_idn_assigner
 --
 
 ALTER TABLE ONLY alert_idn
-    ADD CONSTRAINT alert_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert(id);
+    ADD CONSTRAINT alert_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert(id) ON DELETE CASCADE;
 
 
 --
@@ -58184,7 +58206,7 @@ ALTER TABLE ONLY alert_idn
 --
 
 ALTER TABLE ONLY alert_idn_period
-    ADD CONSTRAINT alert_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert_idn(id);
+    ADD CONSTRAINT alert_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -58192,7 +58214,7 @@ ALTER TABLE ONLY alert_idn_period
 --
 
 ALTER TABLE ONLY alert_idn_period
-    ADD CONSTRAINT alert_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id);
+    ADD CONSTRAINT alert_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id) ON DELETE CASCADE;
 
 
 --
@@ -58200,7 +58222,7 @@ ALTER TABLE ONLY alert_idn_period
 --
 
 ALTER TABLE ONLY alert_idn
-    ADD CONSTRAINT alert_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id);
+    ADD CONSTRAINT alert_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id) ON DELETE CASCADE;
 
 
 --
@@ -58208,7 +58230,7 @@ ALTER TABLE ONLY alert_idn
 --
 
 ALTER TABLE ONLY alert_subject
-    ADD CONSTRAINT alert_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert(id);
+    ADD CONSTRAINT alert_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert(id) ON DELETE CASCADE;
 
 
 --
@@ -58216,7 +58238,7 @@ ALTER TABLE ONLY alert_subject
 --
 
 ALTER TABLE ONLY alert_subject
-    ADD CONSTRAINT alert_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id);
+    ADD CONSTRAINT alert_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id) ON DELETE CASCADE;
 
 
 --
@@ -58224,7 +58246,7 @@ ALTER TABLE ONLY alert_subject
 --
 
 ALTER TABLE ONLY alert_text
-    ADD CONSTRAINT alert_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert(id);
+    ADD CONSTRAINT alert_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert(id) ON DELETE CASCADE;
 
 
 --
@@ -58232,7 +58254,7 @@ ALTER TABLE ONLY alert_text
 --
 
 ALTER TABLE ONLY alert_text
-    ADD CONSTRAINT alert_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id);
+    ADD CONSTRAINT alert_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(id) ON DELETE CASCADE;
 
 
 --
@@ -58240,7 +58262,7 @@ ALTER TABLE ONLY alert_text
 --
 
 ALTER TABLE ONLY allergy_intolerance_idn_assigner
-    ADD CONSTRAINT allergy_intolerance_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance_idn(id);
+    ADD CONSTRAINT allergy_intolerance_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -58248,7 +58270,7 @@ ALTER TABLE ONLY allergy_intolerance_idn_assigner
 --
 
 ALTER TABLE ONLY allergy_intolerance_idn_assigner
-    ADD CONSTRAINT allergy_intolerance_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58256,7 +58278,7 @@ ALTER TABLE ONLY allergy_intolerance_idn_assigner
 --
 
 ALTER TABLE ONLY allergy_intolerance_idn
-    ADD CONSTRAINT allergy_intolerance_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58264,7 +58286,7 @@ ALTER TABLE ONLY allergy_intolerance_idn
 --
 
 ALTER TABLE ONLY allergy_intolerance_idn_period
-    ADD CONSTRAINT allergy_intolerance_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance_idn(id);
+    ADD CONSTRAINT allergy_intolerance_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -58272,7 +58294,7 @@ ALTER TABLE ONLY allergy_intolerance_idn_period
 --
 
 ALTER TABLE ONLY allergy_intolerance_idn_period
-    ADD CONSTRAINT allergy_intolerance_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58280,7 +58302,7 @@ ALTER TABLE ONLY allergy_intolerance_idn_period
 --
 
 ALTER TABLE ONLY allergy_intolerance_idn
-    ADD CONSTRAINT allergy_intolerance_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58288,7 +58310,7 @@ ALTER TABLE ONLY allergy_intolerance_idn
 --
 
 ALTER TABLE ONLY allergy_intolerance_reaction
-    ADD CONSTRAINT allergy_intolerance_reaction_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_reaction_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58296,7 +58318,7 @@ ALTER TABLE ONLY allergy_intolerance_reaction
 --
 
 ALTER TABLE ONLY allergy_intolerance_reaction
-    ADD CONSTRAINT allergy_intolerance_reaction_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_reaction_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58304,7 +58326,7 @@ ALTER TABLE ONLY allergy_intolerance_reaction
 --
 
 ALTER TABLE ONLY allergy_intolerance_recorder
-    ADD CONSTRAINT allergy_intolerance_recorder_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_recorder_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58312,7 +58334,7 @@ ALTER TABLE ONLY allergy_intolerance_recorder
 --
 
 ALTER TABLE ONLY allergy_intolerance_recorder
-    ADD CONSTRAINT allergy_intolerance_recorder_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_recorder_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58320,7 +58342,7 @@ ALTER TABLE ONLY allergy_intolerance_recorder
 --
 
 ALTER TABLE ONLY allergy_intolerance_sensitivity_test
-    ADD CONSTRAINT allergy_intolerance_sensitivity_test_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_sensitivity_test_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58328,7 +58350,7 @@ ALTER TABLE ONLY allergy_intolerance_sensitivity_test
 --
 
 ALTER TABLE ONLY allergy_intolerance_sensitivity_test
-    ADD CONSTRAINT allergy_intolerance_sensitivity_test_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_sensitivity_test_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58336,7 +58358,7 @@ ALTER TABLE ONLY allergy_intolerance_sensitivity_test
 --
 
 ALTER TABLE ONLY allergy_intolerance_subject
-    ADD CONSTRAINT allergy_intolerance_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58344,7 +58366,7 @@ ALTER TABLE ONLY allergy_intolerance_subject
 --
 
 ALTER TABLE ONLY allergy_intolerance_subject
-    ADD CONSTRAINT allergy_intolerance_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58352,7 +58374,7 @@ ALTER TABLE ONLY allergy_intolerance_subject
 --
 
 ALTER TABLE ONLY allergy_intolerance_substance
-    ADD CONSTRAINT allergy_intolerance_substance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_substance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58360,7 +58382,7 @@ ALTER TABLE ONLY allergy_intolerance_substance
 --
 
 ALTER TABLE ONLY allergy_intolerance_substance
-    ADD CONSTRAINT allergy_intolerance_substance_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_substance_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58368,7 +58390,7 @@ ALTER TABLE ONLY allergy_intolerance_substance
 --
 
 ALTER TABLE ONLY allergy_intolerance_text
-    ADD CONSTRAINT allergy_intolerance_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58376,7 +58398,7 @@ ALTER TABLE ONLY allergy_intolerance_text
 --
 
 ALTER TABLE ONLY allergy_intolerance_text
-    ADD CONSTRAINT allergy_intolerance_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id);
+    ADD CONSTRAINT allergy_intolerance_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(id) ON DELETE CASCADE;
 
 
 --
@@ -58384,7 +58406,7 @@ ALTER TABLE ONLY allergy_intolerance_text
 --
 
 ALTER TABLE ONLY care_plan_activity_action_resulting
-    ADD CONSTRAINT care_plan_activity_action_resulting_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity(id);
+    ADD CONSTRAINT care_plan_activity_action_resulting_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity(id) ON DELETE CASCADE;
 
 
 --
@@ -58392,7 +58414,7 @@ ALTER TABLE ONLY care_plan_activity_action_resulting
 --
 
 ALTER TABLE ONLY care_plan_activity_action_resulting
-    ADD CONSTRAINT care_plan_activity_action_resulting_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_action_resulting_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58400,7 +58422,7 @@ ALTER TABLE ONLY care_plan_activity_action_resulting
 --
 
 ALTER TABLE ONLY care_plan_activity_detail
-    ADD CONSTRAINT care_plan_activity_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity(id);
+    ADD CONSTRAINT care_plan_activity_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity(id) ON DELETE CASCADE;
 
 
 --
@@ -58408,7 +58430,7 @@ ALTER TABLE ONLY care_plan_activity_detail
 --
 
 ALTER TABLE ONLY care_plan_activity_detail
-    ADD CONSTRAINT care_plan_activity_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58416,7 +58438,7 @@ ALTER TABLE ONLY care_plan_activity_detail
 --
 
 ALTER TABLE ONLY care_plan_activity
-    ADD CONSTRAINT care_plan_activity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58424,7 +58446,7 @@ ALTER TABLE ONLY care_plan_activity
 --
 
 ALTER TABLE ONLY care_plan_activity
-    ADD CONSTRAINT care_plan_activity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58432,7 +58454,7 @@ ALTER TABLE ONLY care_plan_activity
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_code_cd
-    ADD CONSTRAINT care_plan_activity_simple_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple_code(id);
+    ADD CONSTRAINT care_plan_activity_simple_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple_code(id) ON DELETE CASCADE;
 
 
 --
@@ -58440,7 +58462,7 @@ ALTER TABLE ONLY care_plan_activity_simple_code_cd
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_code_cd
-    ADD CONSTRAINT care_plan_activity_simple_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_simple_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58448,7 +58470,7 @@ ALTER TABLE ONLY care_plan_activity_simple_code_cd
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_code_cd_vs
-    ADD CONSTRAINT care_plan_activity_simple_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple_code_cd(id);
+    ADD CONSTRAINT care_plan_activity_simple_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -58456,7 +58478,7 @@ ALTER TABLE ONLY care_plan_activity_simple_code_cd_vs
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_code_cd_vs
-    ADD CONSTRAINT care_plan_activity_simple_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_simple_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58464,7 +58486,7 @@ ALTER TABLE ONLY care_plan_activity_simple_code_cd_vs
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_code
-    ADD CONSTRAINT care_plan_activity_simple_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id);
+    ADD CONSTRAINT care_plan_activity_simple_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id) ON DELETE CASCADE;
 
 
 --
@@ -58472,7 +58494,7 @@ ALTER TABLE ONLY care_plan_activity_simple_code
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_code
-    ADD CONSTRAINT care_plan_activity_simple_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_simple_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58480,7 +58502,7 @@ ALTER TABLE ONLY care_plan_activity_simple_code
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_daily_amount
-    ADD CONSTRAINT care_plan_activity_simple_daily_amount_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id);
+    ADD CONSTRAINT care_plan_activity_simple_daily_amount_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id) ON DELETE CASCADE;
 
 
 --
@@ -58488,7 +58510,7 @@ ALTER TABLE ONLY care_plan_activity_simple_daily_amount
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_daily_amount
-    ADD CONSTRAINT care_plan_activity_simple_daily_amount_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_simple_daily_amount_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58496,7 +58518,7 @@ ALTER TABLE ONLY care_plan_activity_simple_daily_amount
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_loc
-    ADD CONSTRAINT care_plan_activity_simple_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id);
+    ADD CONSTRAINT care_plan_activity_simple_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id) ON DELETE CASCADE;
 
 
 --
@@ -58504,7 +58526,7 @@ ALTER TABLE ONLY care_plan_activity_simple_loc
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_loc
-    ADD CONSTRAINT care_plan_activity_simple_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_simple_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58512,7 +58534,7 @@ ALTER TABLE ONLY care_plan_activity_simple_loc
 --
 
 ALTER TABLE ONLY care_plan_activity_simple
-    ADD CONSTRAINT care_plan_activity_simple_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity(id);
+    ADD CONSTRAINT care_plan_activity_simple_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity(id) ON DELETE CASCADE;
 
 
 --
@@ -58520,7 +58542,7 @@ ALTER TABLE ONLY care_plan_activity_simple
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_performer
-    ADD CONSTRAINT care_plan_activity_simple_performer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id);
+    ADD CONSTRAINT care_plan_activity_simple_performer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id) ON DELETE CASCADE;
 
 
 --
@@ -58528,7 +58550,7 @@ ALTER TABLE ONLY care_plan_activity_simple_performer
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_performer
-    ADD CONSTRAINT care_plan_activity_simple_performer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_simple_performer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58536,7 +58558,7 @@ ALTER TABLE ONLY care_plan_activity_simple_performer
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_product
-    ADD CONSTRAINT care_plan_activity_simple_product_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id);
+    ADD CONSTRAINT care_plan_activity_simple_product_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id) ON DELETE CASCADE;
 
 
 --
@@ -58544,7 +58566,7 @@ ALTER TABLE ONLY care_plan_activity_simple_product
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_product
-    ADD CONSTRAINT care_plan_activity_simple_product_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_simple_product_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58552,7 +58574,7 @@ ALTER TABLE ONLY care_plan_activity_simple_product
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_quantity
-    ADD CONSTRAINT care_plan_activity_simple_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id);
+    ADD CONSTRAINT care_plan_activity_simple_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id) ON DELETE CASCADE;
 
 
 --
@@ -58560,7 +58582,7 @@ ALTER TABLE ONLY care_plan_activity_simple_quantity
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_quantity
-    ADD CONSTRAINT care_plan_activity_simple_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_simple_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58568,7 +58590,7 @@ ALTER TABLE ONLY care_plan_activity_simple_quantity
 --
 
 ALTER TABLE ONLY care_plan_activity_simple
-    ADD CONSTRAINT care_plan_activity_simple_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_simple_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58576,7 +58598,7 @@ ALTER TABLE ONLY care_plan_activity_simple
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_timing_period
-    ADD CONSTRAINT care_plan_activity_simple_timing_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id);
+    ADD CONSTRAINT care_plan_activity_simple_timing_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id) ON DELETE CASCADE;
 
 
 --
@@ -58584,7 +58606,7 @@ ALTER TABLE ONLY care_plan_activity_simple_timing_period
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_timing_period
-    ADD CONSTRAINT care_plan_activity_simple_timing_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_simple_timing_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58592,7 +58614,7 @@ ALTER TABLE ONLY care_plan_activity_simple_timing_period
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_event
-    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_even_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_even_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58600,7 +58622,7 @@ ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_event
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_event
-    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple_timing_schedule(id);
+    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple_timing_schedule(id) ON DELETE CASCADE;
 
 
 --
@@ -58608,7 +58630,7 @@ ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_event
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_timing_schedule
-    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id);
+    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(id) ON DELETE CASCADE;
 
 
 --
@@ -58616,7 +58638,7 @@ ALTER TABLE ONLY care_plan_activity_simple_timing_schedule
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_repeat
-    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_repe_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_repe_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58624,7 +58646,7 @@ ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_repeat
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_repeat
-    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_repeat_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple_timing_schedule(id);
+    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_repeat_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple_timing_schedule(id) ON DELETE CASCADE;
 
 
 --
@@ -58632,7 +58654,7 @@ ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_repeat
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_timing_schedule
-    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58640,7 +58662,7 @@ ALTER TABLE ONLY care_plan_activity_simple_timing_schedule
 --
 
 ALTER TABLE ONLY care_plan_concern
-    ADD CONSTRAINT care_plan_concern_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_concern_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58648,7 +58670,7 @@ ALTER TABLE ONLY care_plan_concern
 --
 
 ALTER TABLE ONLY care_plan_concern
-    ADD CONSTRAINT care_plan_concern_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_concern_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58656,7 +58678,7 @@ ALTER TABLE ONLY care_plan_concern
 --
 
 ALTER TABLE ONLY care_plan_goal_concern
-    ADD CONSTRAINT care_plan_goal_concern_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_goal(id);
+    ADD CONSTRAINT care_plan_goal_concern_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_goal(id) ON DELETE CASCADE;
 
 
 --
@@ -58664,7 +58686,7 @@ ALTER TABLE ONLY care_plan_goal_concern
 --
 
 ALTER TABLE ONLY care_plan_goal_concern
-    ADD CONSTRAINT care_plan_goal_concern_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_goal_concern_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58672,7 +58694,7 @@ ALTER TABLE ONLY care_plan_goal_concern
 --
 
 ALTER TABLE ONLY care_plan_goal
-    ADD CONSTRAINT care_plan_goal_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_goal_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58680,7 +58702,7 @@ ALTER TABLE ONLY care_plan_goal
 --
 
 ALTER TABLE ONLY care_plan_goal
-    ADD CONSTRAINT care_plan_goal_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_goal_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58688,7 +58710,7 @@ ALTER TABLE ONLY care_plan_goal
 --
 
 ALTER TABLE ONLY care_plan_idn_assigner
-    ADD CONSTRAINT care_plan_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_idn(id);
+    ADD CONSTRAINT care_plan_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -58696,7 +58718,7 @@ ALTER TABLE ONLY care_plan_idn_assigner
 --
 
 ALTER TABLE ONLY care_plan_idn_assigner
-    ADD CONSTRAINT care_plan_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58704,7 +58726,7 @@ ALTER TABLE ONLY care_plan_idn_assigner
 --
 
 ALTER TABLE ONLY care_plan_idn
-    ADD CONSTRAINT care_plan_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58712,7 +58734,7 @@ ALTER TABLE ONLY care_plan_idn
 --
 
 ALTER TABLE ONLY care_plan_idn_period
-    ADD CONSTRAINT care_plan_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_idn(id);
+    ADD CONSTRAINT care_plan_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -58720,7 +58742,7 @@ ALTER TABLE ONLY care_plan_idn_period
 --
 
 ALTER TABLE ONLY care_plan_idn_period
-    ADD CONSTRAINT care_plan_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58728,7 +58750,7 @@ ALTER TABLE ONLY care_plan_idn_period
 --
 
 ALTER TABLE ONLY care_plan_idn
-    ADD CONSTRAINT care_plan_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58736,7 +58758,7 @@ ALTER TABLE ONLY care_plan_idn
 --
 
 ALTER TABLE ONLY care_plan_participant_member
-    ADD CONSTRAINT care_plan_participant_member_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_participant(id);
+    ADD CONSTRAINT care_plan_participant_member_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_participant(id) ON DELETE CASCADE;
 
 
 --
@@ -58744,7 +58766,7 @@ ALTER TABLE ONLY care_plan_participant_member
 --
 
 ALTER TABLE ONLY care_plan_participant_member
-    ADD CONSTRAINT care_plan_participant_member_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_participant_member_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58752,7 +58774,7 @@ ALTER TABLE ONLY care_plan_participant_member
 --
 
 ALTER TABLE ONLY care_plan_participant
-    ADD CONSTRAINT care_plan_participant_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_participant_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58760,7 +58782,7 @@ ALTER TABLE ONLY care_plan_participant
 --
 
 ALTER TABLE ONLY care_plan_participant
-    ADD CONSTRAINT care_plan_participant_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_participant_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58768,7 +58790,7 @@ ALTER TABLE ONLY care_plan_participant
 --
 
 ALTER TABLE ONLY care_plan_participant_role_cd
-    ADD CONSTRAINT care_plan_participant_role_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_participant_role(id);
+    ADD CONSTRAINT care_plan_participant_role_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_participant_role(id) ON DELETE CASCADE;
 
 
 --
@@ -58776,7 +58798,7 @@ ALTER TABLE ONLY care_plan_participant_role_cd
 --
 
 ALTER TABLE ONLY care_plan_participant_role_cd
-    ADD CONSTRAINT care_plan_participant_role_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_participant_role_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58784,7 +58806,7 @@ ALTER TABLE ONLY care_plan_participant_role_cd
 --
 
 ALTER TABLE ONLY care_plan_participant_role_cd_vs
-    ADD CONSTRAINT care_plan_participant_role_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_participant_role_cd(id);
+    ADD CONSTRAINT care_plan_participant_role_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_participant_role_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -58792,7 +58814,7 @@ ALTER TABLE ONLY care_plan_participant_role_cd_vs
 --
 
 ALTER TABLE ONLY care_plan_participant_role_cd_vs
-    ADD CONSTRAINT care_plan_participant_role_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_participant_role_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58800,7 +58822,7 @@ ALTER TABLE ONLY care_plan_participant_role_cd_vs
 --
 
 ALTER TABLE ONLY care_plan_participant_role
-    ADD CONSTRAINT care_plan_participant_role_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_participant(id);
+    ADD CONSTRAINT care_plan_participant_role_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_participant(id) ON DELETE CASCADE;
 
 
 --
@@ -58808,7 +58830,7 @@ ALTER TABLE ONLY care_plan_participant_role
 --
 
 ALTER TABLE ONLY care_plan_participant_role
-    ADD CONSTRAINT care_plan_participant_role_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_participant_role_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58816,7 +58838,7 @@ ALTER TABLE ONLY care_plan_participant_role
 --
 
 ALTER TABLE ONLY care_plan_patient
-    ADD CONSTRAINT care_plan_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58824,7 +58846,7 @@ ALTER TABLE ONLY care_plan_patient
 --
 
 ALTER TABLE ONLY care_plan_patient
-    ADD CONSTRAINT care_plan_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58832,7 +58854,7 @@ ALTER TABLE ONLY care_plan_patient
 --
 
 ALTER TABLE ONLY care_plan_period
-    ADD CONSTRAINT care_plan_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58840,7 +58862,7 @@ ALTER TABLE ONLY care_plan_period
 --
 
 ALTER TABLE ONLY care_plan_period
-    ADD CONSTRAINT care_plan_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58848,7 +58870,7 @@ ALTER TABLE ONLY care_plan_period
 --
 
 ALTER TABLE ONLY care_plan_text
-    ADD CONSTRAINT care_plan_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58856,7 +58878,7 @@ ALTER TABLE ONLY care_plan_text
 --
 
 ALTER TABLE ONLY care_plan_text
-    ADD CONSTRAINT care_plan_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id);
+    ADD CONSTRAINT care_plan_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(id) ON DELETE CASCADE;
 
 
 --
@@ -58864,7 +58886,7 @@ ALTER TABLE ONLY care_plan_text
 --
 
 ALTER TABLE ONLY composition_attester
-    ADD CONSTRAINT composition_attester_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_attester_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -58872,7 +58894,7 @@ ALTER TABLE ONLY composition_attester
 --
 
 ALTER TABLE ONLY composition_attester_party
-    ADD CONSTRAINT composition_attester_party_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_attester(id);
+    ADD CONSTRAINT composition_attester_party_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_attester(id) ON DELETE CASCADE;
 
 
 --
@@ -58880,7 +58902,7 @@ ALTER TABLE ONLY composition_attester_party
 --
 
 ALTER TABLE ONLY composition_attester_party
-    ADD CONSTRAINT composition_attester_party_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_attester_party_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -58888,7 +58910,7 @@ ALTER TABLE ONLY composition_attester_party
 --
 
 ALTER TABLE ONLY composition_attester
-    ADD CONSTRAINT composition_attester_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_attester_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -58896,7 +58918,7 @@ ALTER TABLE ONLY composition_attester
 --
 
 ALTER TABLE ONLY composition_author
-    ADD CONSTRAINT composition_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -58904,7 +58926,7 @@ ALTER TABLE ONLY composition_author
 --
 
 ALTER TABLE ONLY composition_author
-    ADD CONSTRAINT composition_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -58912,7 +58934,7 @@ ALTER TABLE ONLY composition_author
 --
 
 ALTER TABLE ONLY composition_class_cd
-    ADD CONSTRAINT composition_class_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_class(id);
+    ADD CONSTRAINT composition_class_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_class(id) ON DELETE CASCADE;
 
 
 --
@@ -58920,7 +58942,7 @@ ALTER TABLE ONLY composition_class_cd
 --
 
 ALTER TABLE ONLY composition_class_cd
-    ADD CONSTRAINT composition_class_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_class_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -58928,7 +58950,7 @@ ALTER TABLE ONLY composition_class_cd
 --
 
 ALTER TABLE ONLY composition_class_cd_vs
-    ADD CONSTRAINT composition_class_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_class_cd(id);
+    ADD CONSTRAINT composition_class_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_class_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -58936,7 +58958,7 @@ ALTER TABLE ONLY composition_class_cd_vs
 --
 
 ALTER TABLE ONLY composition_class_cd_vs
-    ADD CONSTRAINT composition_class_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_class_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -58944,7 +58966,7 @@ ALTER TABLE ONLY composition_class_cd_vs
 --
 
 ALTER TABLE ONLY composition_class
-    ADD CONSTRAINT composition_class_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_class_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -58952,7 +58974,7 @@ ALTER TABLE ONLY composition_class
 --
 
 ALTER TABLE ONLY composition_class
-    ADD CONSTRAINT composition_class_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_class_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -58960,7 +58982,7 @@ ALTER TABLE ONLY composition_class
 --
 
 ALTER TABLE ONLY composition_confidentiality
-    ADD CONSTRAINT composition_confidentiality_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_confidentiality_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -58968,7 +58990,7 @@ ALTER TABLE ONLY composition_confidentiality
 --
 
 ALTER TABLE ONLY composition_confidentiality
-    ADD CONSTRAINT composition_confidentiality_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_confidentiality_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -58976,7 +58998,7 @@ ALTER TABLE ONLY composition_confidentiality
 --
 
 ALTER TABLE ONLY composition_confidentiality_vs
-    ADD CONSTRAINT composition_confidentiality_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_confidentiality(id);
+    ADD CONSTRAINT composition_confidentiality_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_confidentiality(id) ON DELETE CASCADE;
 
 
 --
@@ -58984,7 +59006,7 @@ ALTER TABLE ONLY composition_confidentiality_vs
 --
 
 ALTER TABLE ONLY composition_confidentiality_vs
-    ADD CONSTRAINT composition_confidentiality_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_confidentiality_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -58992,7 +59014,7 @@ ALTER TABLE ONLY composition_confidentiality_vs
 --
 
 ALTER TABLE ONLY composition_custodian
-    ADD CONSTRAINT composition_custodian_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_custodian_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59000,7 +59022,7 @@ ALTER TABLE ONLY composition_custodian
 --
 
 ALTER TABLE ONLY composition_custodian
-    ADD CONSTRAINT composition_custodian_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_custodian_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59008,7 +59030,7 @@ ALTER TABLE ONLY composition_custodian
 --
 
 ALTER TABLE ONLY composition_encounter
-    ADD CONSTRAINT composition_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59016,7 +59038,7 @@ ALTER TABLE ONLY composition_encounter
 --
 
 ALTER TABLE ONLY composition_encounter
-    ADD CONSTRAINT composition_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59024,7 +59046,7 @@ ALTER TABLE ONLY composition_encounter
 --
 
 ALTER TABLE ONLY composition_event_code_cd
-    ADD CONSTRAINT composition_event_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_event_code(id);
+    ADD CONSTRAINT composition_event_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_event_code(id) ON DELETE CASCADE;
 
 
 --
@@ -59032,7 +59054,7 @@ ALTER TABLE ONLY composition_event_code_cd
 --
 
 ALTER TABLE ONLY composition_event_code_cd
-    ADD CONSTRAINT composition_event_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_event_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59040,7 +59062,7 @@ ALTER TABLE ONLY composition_event_code_cd
 --
 
 ALTER TABLE ONLY composition_event_code_cd_vs
-    ADD CONSTRAINT composition_event_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_event_code_cd(id);
+    ADD CONSTRAINT composition_event_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_event_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -59048,7 +59070,7 @@ ALTER TABLE ONLY composition_event_code_cd_vs
 --
 
 ALTER TABLE ONLY composition_event_code_cd_vs
-    ADD CONSTRAINT composition_event_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_event_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59056,7 +59078,7 @@ ALTER TABLE ONLY composition_event_code_cd_vs
 --
 
 ALTER TABLE ONLY composition_event_code
-    ADD CONSTRAINT composition_event_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_event(id);
+    ADD CONSTRAINT composition_event_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_event(id) ON DELETE CASCADE;
 
 
 --
@@ -59064,7 +59086,7 @@ ALTER TABLE ONLY composition_event_code
 --
 
 ALTER TABLE ONLY composition_event_code
-    ADD CONSTRAINT composition_event_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_event_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59072,7 +59094,7 @@ ALTER TABLE ONLY composition_event_code
 --
 
 ALTER TABLE ONLY composition_event_detail
-    ADD CONSTRAINT composition_event_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_event(id);
+    ADD CONSTRAINT composition_event_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_event(id) ON DELETE CASCADE;
 
 
 --
@@ -59080,7 +59102,7 @@ ALTER TABLE ONLY composition_event_detail
 --
 
 ALTER TABLE ONLY composition_event_detail
-    ADD CONSTRAINT composition_event_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_event_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59088,7 +59110,7 @@ ALTER TABLE ONLY composition_event_detail
 --
 
 ALTER TABLE ONLY composition_event
-    ADD CONSTRAINT composition_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59096,7 +59118,7 @@ ALTER TABLE ONLY composition_event
 --
 
 ALTER TABLE ONLY composition_event_period
-    ADD CONSTRAINT composition_event_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_event(id);
+    ADD CONSTRAINT composition_event_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_event(id) ON DELETE CASCADE;
 
 
 --
@@ -59104,7 +59126,7 @@ ALTER TABLE ONLY composition_event_period
 --
 
 ALTER TABLE ONLY composition_event_period
-    ADD CONSTRAINT composition_event_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_event_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59112,7 +59134,7 @@ ALTER TABLE ONLY composition_event_period
 --
 
 ALTER TABLE ONLY composition_event
-    ADD CONSTRAINT composition_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59120,7 +59142,7 @@ ALTER TABLE ONLY composition_event
 --
 
 ALTER TABLE ONLY composition_idn_assigner
-    ADD CONSTRAINT composition_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_idn(id);
+    ADD CONSTRAINT composition_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -59128,7 +59150,7 @@ ALTER TABLE ONLY composition_idn_assigner
 --
 
 ALTER TABLE ONLY composition_idn_assigner
-    ADD CONSTRAINT composition_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59136,7 +59158,7 @@ ALTER TABLE ONLY composition_idn_assigner
 --
 
 ALTER TABLE ONLY composition_idn
-    ADD CONSTRAINT composition_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59144,7 +59166,7 @@ ALTER TABLE ONLY composition_idn
 --
 
 ALTER TABLE ONLY composition_idn_period
-    ADD CONSTRAINT composition_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_idn(id);
+    ADD CONSTRAINT composition_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -59152,7 +59174,7 @@ ALTER TABLE ONLY composition_idn_period
 --
 
 ALTER TABLE ONLY composition_idn_period
-    ADD CONSTRAINT composition_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59160,7 +59182,7 @@ ALTER TABLE ONLY composition_idn_period
 --
 
 ALTER TABLE ONLY composition_idn
-    ADD CONSTRAINT composition_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59168,7 +59190,7 @@ ALTER TABLE ONLY composition_idn
 --
 
 ALTER TABLE ONLY composition_section_code_cd
-    ADD CONSTRAINT composition_section_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_section_code(id);
+    ADD CONSTRAINT composition_section_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_section_code(id) ON DELETE CASCADE;
 
 
 --
@@ -59176,7 +59198,7 @@ ALTER TABLE ONLY composition_section_code_cd
 --
 
 ALTER TABLE ONLY composition_section_code_cd
-    ADD CONSTRAINT composition_section_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_section_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59184,7 +59206,7 @@ ALTER TABLE ONLY composition_section_code_cd
 --
 
 ALTER TABLE ONLY composition_section_code_cd_vs
-    ADD CONSTRAINT composition_section_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_section_code_cd(id);
+    ADD CONSTRAINT composition_section_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_section_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -59192,7 +59214,7 @@ ALTER TABLE ONLY composition_section_code_cd_vs
 --
 
 ALTER TABLE ONLY composition_section_code_cd_vs
-    ADD CONSTRAINT composition_section_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_section_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59200,7 +59222,7 @@ ALTER TABLE ONLY composition_section_code_cd_vs
 --
 
 ALTER TABLE ONLY composition_section_code
-    ADD CONSTRAINT composition_section_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_section(id);
+    ADD CONSTRAINT composition_section_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_section(id) ON DELETE CASCADE;
 
 
 --
@@ -59208,7 +59230,7 @@ ALTER TABLE ONLY composition_section_code
 --
 
 ALTER TABLE ONLY composition_section_code
-    ADD CONSTRAINT composition_section_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_section_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59216,7 +59238,7 @@ ALTER TABLE ONLY composition_section_code
 --
 
 ALTER TABLE ONLY composition_section_content
-    ADD CONSTRAINT composition_section_content_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_section(id);
+    ADD CONSTRAINT composition_section_content_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_section(id) ON DELETE CASCADE;
 
 
 --
@@ -59224,7 +59246,7 @@ ALTER TABLE ONLY composition_section_content
 --
 
 ALTER TABLE ONLY composition_section_content
-    ADD CONSTRAINT composition_section_content_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_section_content_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59232,7 +59254,7 @@ ALTER TABLE ONLY composition_section_content
 --
 
 ALTER TABLE ONLY composition_section
-    ADD CONSTRAINT composition_section_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_section_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59240,7 +59262,7 @@ ALTER TABLE ONLY composition_section
 --
 
 ALTER TABLE ONLY composition_section
-    ADD CONSTRAINT composition_section_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_section_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59248,7 +59270,7 @@ ALTER TABLE ONLY composition_section
 --
 
 ALTER TABLE ONLY composition_section_subject
-    ADD CONSTRAINT composition_section_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_section(id);
+    ADD CONSTRAINT composition_section_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_section(id) ON DELETE CASCADE;
 
 
 --
@@ -59256,7 +59278,7 @@ ALTER TABLE ONLY composition_section_subject
 --
 
 ALTER TABLE ONLY composition_section_subject
-    ADD CONSTRAINT composition_section_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_section_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59264,7 +59286,7 @@ ALTER TABLE ONLY composition_section_subject
 --
 
 ALTER TABLE ONLY composition_subject
-    ADD CONSTRAINT composition_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59272,7 +59294,7 @@ ALTER TABLE ONLY composition_subject
 --
 
 ALTER TABLE ONLY composition_subject
-    ADD CONSTRAINT composition_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59280,7 +59302,7 @@ ALTER TABLE ONLY composition_subject
 --
 
 ALTER TABLE ONLY composition_text
-    ADD CONSTRAINT composition_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59288,7 +59310,7 @@ ALTER TABLE ONLY composition_text
 --
 
 ALTER TABLE ONLY composition_text
-    ADD CONSTRAINT composition_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59296,7 +59318,7 @@ ALTER TABLE ONLY composition_text
 --
 
 ALTER TABLE ONLY composition_type_cd
-    ADD CONSTRAINT composition_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_type(id);
+    ADD CONSTRAINT composition_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_type(id) ON DELETE CASCADE;
 
 
 --
@@ -59304,7 +59326,7 @@ ALTER TABLE ONLY composition_type_cd
 --
 
 ALTER TABLE ONLY composition_type_cd
-    ADD CONSTRAINT composition_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59312,7 +59334,7 @@ ALTER TABLE ONLY composition_type_cd
 --
 
 ALTER TABLE ONLY composition_type_cd_vs
-    ADD CONSTRAINT composition_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_type_cd(id);
+    ADD CONSTRAINT composition_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -59320,7 +59342,7 @@ ALTER TABLE ONLY composition_type_cd_vs
 --
 
 ALTER TABLE ONLY composition_type_cd_vs
-    ADD CONSTRAINT composition_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59328,7 +59350,7 @@ ALTER TABLE ONLY composition_type_cd_vs
 --
 
 ALTER TABLE ONLY composition_type
-    ADD CONSTRAINT composition_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59336,7 +59358,7 @@ ALTER TABLE ONLY composition_type
 --
 
 ALTER TABLE ONLY composition_type
-    ADD CONSTRAINT composition_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id);
+    ADD CONSTRAINT composition_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(id) ON DELETE CASCADE;
 
 
 --
@@ -59344,7 +59366,7 @@ ALTER TABLE ONLY composition_type
 --
 
 ALTER TABLE ONLY concept_map_concept_depends_on
-    ADD CONSTRAINT concept_map_concept_depends_on_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map_concept(id);
+    ADD CONSTRAINT concept_map_concept_depends_on_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map_concept(id) ON DELETE CASCADE;
 
 
 --
@@ -59352,7 +59374,7 @@ ALTER TABLE ONLY concept_map_concept_depends_on
 --
 
 ALTER TABLE ONLY concept_map_concept_depends_on
-    ADD CONSTRAINT concept_map_concept_depends_on_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id);
+    ADD CONSTRAINT concept_map_concept_depends_on_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id) ON DELETE CASCADE;
 
 
 --
@@ -59360,7 +59382,7 @@ ALTER TABLE ONLY concept_map_concept_depends_on
 --
 
 ALTER TABLE ONLY concept_map_concept_map
-    ADD CONSTRAINT concept_map_concept_map_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map_concept(id);
+    ADD CONSTRAINT concept_map_concept_map_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map_concept(id) ON DELETE CASCADE;
 
 
 --
@@ -59368,7 +59390,7 @@ ALTER TABLE ONLY concept_map_concept_map
 --
 
 ALTER TABLE ONLY concept_map_concept_map
-    ADD CONSTRAINT concept_map_concept_map_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id);
+    ADD CONSTRAINT concept_map_concept_map_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id) ON DELETE CASCADE;
 
 
 --
@@ -59376,7 +59398,7 @@ ALTER TABLE ONLY concept_map_concept_map
 --
 
 ALTER TABLE ONLY concept_map_concept
-    ADD CONSTRAINT concept_map_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map(id);
+    ADD CONSTRAINT concept_map_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map(id) ON DELETE CASCADE;
 
 
 --
@@ -59384,7 +59406,7 @@ ALTER TABLE ONLY concept_map_concept
 --
 
 ALTER TABLE ONLY concept_map_concept
-    ADD CONSTRAINT concept_map_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id);
+    ADD CONSTRAINT concept_map_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id) ON DELETE CASCADE;
 
 
 --
@@ -59392,7 +59414,7 @@ ALTER TABLE ONLY concept_map_concept
 --
 
 ALTER TABLE ONLY concept_map_source
-    ADD CONSTRAINT concept_map_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map(id);
+    ADD CONSTRAINT concept_map_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map(id) ON DELETE CASCADE;
 
 
 --
@@ -59400,7 +59422,7 @@ ALTER TABLE ONLY concept_map_source
 --
 
 ALTER TABLE ONLY concept_map_source
-    ADD CONSTRAINT concept_map_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id);
+    ADD CONSTRAINT concept_map_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id) ON DELETE CASCADE;
 
 
 --
@@ -59408,7 +59430,7 @@ ALTER TABLE ONLY concept_map_source
 --
 
 ALTER TABLE ONLY concept_map_target
-    ADD CONSTRAINT concept_map_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map(id);
+    ADD CONSTRAINT concept_map_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map(id) ON DELETE CASCADE;
 
 
 --
@@ -59416,7 +59438,7 @@ ALTER TABLE ONLY concept_map_target
 --
 
 ALTER TABLE ONLY concept_map_target
-    ADD CONSTRAINT concept_map_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id);
+    ADD CONSTRAINT concept_map_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id) ON DELETE CASCADE;
 
 
 --
@@ -59424,7 +59446,7 @@ ALTER TABLE ONLY concept_map_target
 --
 
 ALTER TABLE ONLY concept_map_telecom
-    ADD CONSTRAINT concept_map_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map(id);
+    ADD CONSTRAINT concept_map_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map(id) ON DELETE CASCADE;
 
 
 --
@@ -59432,7 +59454,7 @@ ALTER TABLE ONLY concept_map_telecom
 --
 
 ALTER TABLE ONLY concept_map_telecom_period
-    ADD CONSTRAINT concept_map_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map_telecom(id);
+    ADD CONSTRAINT concept_map_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map_telecom(id) ON DELETE CASCADE;
 
 
 --
@@ -59440,7 +59462,7 @@ ALTER TABLE ONLY concept_map_telecom_period
 --
 
 ALTER TABLE ONLY concept_map_telecom_period
-    ADD CONSTRAINT concept_map_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id);
+    ADD CONSTRAINT concept_map_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id) ON DELETE CASCADE;
 
 
 --
@@ -59448,7 +59470,7 @@ ALTER TABLE ONLY concept_map_telecom_period
 --
 
 ALTER TABLE ONLY concept_map_telecom
-    ADD CONSTRAINT concept_map_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id);
+    ADD CONSTRAINT concept_map_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id) ON DELETE CASCADE;
 
 
 --
@@ -59456,7 +59478,7 @@ ALTER TABLE ONLY concept_map_telecom
 --
 
 ALTER TABLE ONLY concept_map_text
-    ADD CONSTRAINT concept_map_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map(id);
+    ADD CONSTRAINT concept_map_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map(id) ON DELETE CASCADE;
 
 
 --
@@ -59464,7 +59486,7 @@ ALTER TABLE ONLY concept_map_text
 --
 
 ALTER TABLE ONLY concept_map_text
-    ADD CONSTRAINT concept_map_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id);
+    ADD CONSTRAINT concept_map_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(id) ON DELETE CASCADE;
 
 
 --
@@ -59472,7 +59494,7 @@ ALTER TABLE ONLY concept_map_text
 --
 
 ALTER TABLE ONLY condition_asserter
-    ADD CONSTRAINT condition_asserter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_asserter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59480,7 +59502,7 @@ ALTER TABLE ONLY condition_asserter
 --
 
 ALTER TABLE ONLY condition_asserter
-    ADD CONSTRAINT condition_asserter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_asserter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59488,7 +59510,7 @@ ALTER TABLE ONLY condition_asserter
 --
 
 ALTER TABLE ONLY condition_category_cd
-    ADD CONSTRAINT condition_category_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_category(id);
+    ADD CONSTRAINT condition_category_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_category(id) ON DELETE CASCADE;
 
 
 --
@@ -59496,7 +59518,7 @@ ALTER TABLE ONLY condition_category_cd
 --
 
 ALTER TABLE ONLY condition_category_cd
-    ADD CONSTRAINT condition_category_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_category_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59504,7 +59526,7 @@ ALTER TABLE ONLY condition_category_cd
 --
 
 ALTER TABLE ONLY condition_category_cd_vs
-    ADD CONSTRAINT condition_category_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_category_cd(id);
+    ADD CONSTRAINT condition_category_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_category_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -59512,7 +59534,7 @@ ALTER TABLE ONLY condition_category_cd_vs
 --
 
 ALTER TABLE ONLY condition_category_cd_vs
-    ADD CONSTRAINT condition_category_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_category_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59520,7 +59542,7 @@ ALTER TABLE ONLY condition_category_cd_vs
 --
 
 ALTER TABLE ONLY condition_category
-    ADD CONSTRAINT condition_category_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_category_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59528,7 +59550,7 @@ ALTER TABLE ONLY condition_category
 --
 
 ALTER TABLE ONLY condition_category
-    ADD CONSTRAINT condition_category_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_category_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59536,7 +59558,7 @@ ALTER TABLE ONLY condition_category
 --
 
 ALTER TABLE ONLY condition_certainty_cd
-    ADD CONSTRAINT condition_certainty_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_certainty(id);
+    ADD CONSTRAINT condition_certainty_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_certainty(id) ON DELETE CASCADE;
 
 
 --
@@ -59544,7 +59566,7 @@ ALTER TABLE ONLY condition_certainty_cd
 --
 
 ALTER TABLE ONLY condition_certainty_cd
-    ADD CONSTRAINT condition_certainty_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_certainty_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59552,7 +59574,7 @@ ALTER TABLE ONLY condition_certainty_cd
 --
 
 ALTER TABLE ONLY condition_certainty_cd_vs
-    ADD CONSTRAINT condition_certainty_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_certainty_cd(id);
+    ADD CONSTRAINT condition_certainty_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_certainty_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -59560,7 +59582,7 @@ ALTER TABLE ONLY condition_certainty_cd_vs
 --
 
 ALTER TABLE ONLY condition_certainty_cd_vs
-    ADD CONSTRAINT condition_certainty_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_certainty_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59568,7 +59590,7 @@ ALTER TABLE ONLY condition_certainty_cd_vs
 --
 
 ALTER TABLE ONLY condition_certainty
-    ADD CONSTRAINT condition_certainty_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_certainty_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59576,7 +59598,7 @@ ALTER TABLE ONLY condition_certainty
 --
 
 ALTER TABLE ONLY condition_certainty
-    ADD CONSTRAINT condition_certainty_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_certainty_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59584,7 +59606,7 @@ ALTER TABLE ONLY condition_certainty
 --
 
 ALTER TABLE ONLY condition_code_cd
-    ADD CONSTRAINT condition_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_code(id);
+    ADD CONSTRAINT condition_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_code(id) ON DELETE CASCADE;
 
 
 --
@@ -59592,7 +59614,7 @@ ALTER TABLE ONLY condition_code_cd
 --
 
 ALTER TABLE ONLY condition_code_cd
-    ADD CONSTRAINT condition_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59600,7 +59622,7 @@ ALTER TABLE ONLY condition_code_cd
 --
 
 ALTER TABLE ONLY condition_code_cd_vs
-    ADD CONSTRAINT condition_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_code_cd(id);
+    ADD CONSTRAINT condition_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -59608,7 +59630,7 @@ ALTER TABLE ONLY condition_code_cd_vs
 --
 
 ALTER TABLE ONLY condition_code_cd_vs
-    ADD CONSTRAINT condition_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59616,7 +59638,7 @@ ALTER TABLE ONLY condition_code_cd_vs
 --
 
 ALTER TABLE ONLY condition_code
-    ADD CONSTRAINT condition_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59624,7 +59646,7 @@ ALTER TABLE ONLY condition_code
 --
 
 ALTER TABLE ONLY condition_code
-    ADD CONSTRAINT condition_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59632,7 +59654,7 @@ ALTER TABLE ONLY condition_code
 --
 
 ALTER TABLE ONLY condition_encounter
-    ADD CONSTRAINT condition_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59640,7 +59662,7 @@ ALTER TABLE ONLY condition_encounter
 --
 
 ALTER TABLE ONLY condition_encounter
-    ADD CONSTRAINT condition_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59648,7 +59670,7 @@ ALTER TABLE ONLY condition_encounter
 --
 
 ALTER TABLE ONLY condition_evidence_code_cd
-    ADD CONSTRAINT condition_evidence_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_evidence_code(id);
+    ADD CONSTRAINT condition_evidence_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_evidence_code(id) ON DELETE CASCADE;
 
 
 --
@@ -59656,7 +59678,7 @@ ALTER TABLE ONLY condition_evidence_code_cd
 --
 
 ALTER TABLE ONLY condition_evidence_code_cd
-    ADD CONSTRAINT condition_evidence_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_evidence_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59664,7 +59686,7 @@ ALTER TABLE ONLY condition_evidence_code_cd
 --
 
 ALTER TABLE ONLY condition_evidence_code_cd_vs
-    ADD CONSTRAINT condition_evidence_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_evidence_code_cd(id);
+    ADD CONSTRAINT condition_evidence_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_evidence_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -59672,7 +59694,7 @@ ALTER TABLE ONLY condition_evidence_code_cd_vs
 --
 
 ALTER TABLE ONLY condition_evidence_code_cd_vs
-    ADD CONSTRAINT condition_evidence_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_evidence_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59680,7 +59702,7 @@ ALTER TABLE ONLY condition_evidence_code_cd_vs
 --
 
 ALTER TABLE ONLY condition_evidence_code
-    ADD CONSTRAINT condition_evidence_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_evidence(id);
+    ADD CONSTRAINT condition_evidence_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_evidence(id) ON DELETE CASCADE;
 
 
 --
@@ -59688,7 +59710,7 @@ ALTER TABLE ONLY condition_evidence_code
 --
 
 ALTER TABLE ONLY condition_evidence_code
-    ADD CONSTRAINT condition_evidence_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_evidence_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59696,7 +59718,7 @@ ALTER TABLE ONLY condition_evidence_code
 --
 
 ALTER TABLE ONLY condition_evidence_detail
-    ADD CONSTRAINT condition_evidence_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_evidence(id);
+    ADD CONSTRAINT condition_evidence_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_evidence(id) ON DELETE CASCADE;
 
 
 --
@@ -59704,7 +59726,7 @@ ALTER TABLE ONLY condition_evidence_detail
 --
 
 ALTER TABLE ONLY condition_evidence_detail
-    ADD CONSTRAINT condition_evidence_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_evidence_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59712,7 +59734,7 @@ ALTER TABLE ONLY condition_evidence_detail
 --
 
 ALTER TABLE ONLY condition_evidence
-    ADD CONSTRAINT condition_evidence_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_evidence_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59720,7 +59742,7 @@ ALTER TABLE ONLY condition_evidence
 --
 
 ALTER TABLE ONLY condition_evidence
-    ADD CONSTRAINT condition_evidence_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_evidence_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59728,7 +59750,7 @@ ALTER TABLE ONLY condition_evidence
 --
 
 ALTER TABLE ONLY condition_idn_assigner
-    ADD CONSTRAINT condition_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_idn(id);
+    ADD CONSTRAINT condition_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -59736,7 +59758,7 @@ ALTER TABLE ONLY condition_idn_assigner
 --
 
 ALTER TABLE ONLY condition_idn_assigner
-    ADD CONSTRAINT condition_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59744,7 +59766,7 @@ ALTER TABLE ONLY condition_idn_assigner
 --
 
 ALTER TABLE ONLY condition_idn
-    ADD CONSTRAINT condition_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59752,7 +59774,7 @@ ALTER TABLE ONLY condition_idn
 --
 
 ALTER TABLE ONLY condition_idn_period
-    ADD CONSTRAINT condition_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_idn(id);
+    ADD CONSTRAINT condition_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -59760,7 +59782,7 @@ ALTER TABLE ONLY condition_idn_period
 --
 
 ALTER TABLE ONLY condition_idn_period
-    ADD CONSTRAINT condition_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59768,7 +59790,7 @@ ALTER TABLE ONLY condition_idn_period
 --
 
 ALTER TABLE ONLY condition_idn
-    ADD CONSTRAINT condition_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59776,7 +59798,7 @@ ALTER TABLE ONLY condition_idn
 --
 
 ALTER TABLE ONLY condition_loc_code_cd
-    ADD CONSTRAINT condition_loc_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_loc_code(id);
+    ADD CONSTRAINT condition_loc_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_loc_code(id) ON DELETE CASCADE;
 
 
 --
@@ -59784,7 +59806,7 @@ ALTER TABLE ONLY condition_loc_code_cd
 --
 
 ALTER TABLE ONLY condition_loc_code_cd
-    ADD CONSTRAINT condition_loc_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_loc_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59792,7 +59814,7 @@ ALTER TABLE ONLY condition_loc_code_cd
 --
 
 ALTER TABLE ONLY condition_loc_code_cd_vs
-    ADD CONSTRAINT condition_loc_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_loc_code_cd(id);
+    ADD CONSTRAINT condition_loc_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_loc_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -59800,7 +59822,7 @@ ALTER TABLE ONLY condition_loc_code_cd_vs
 --
 
 ALTER TABLE ONLY condition_loc_code_cd_vs
-    ADD CONSTRAINT condition_loc_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_loc_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59808,7 +59830,7 @@ ALTER TABLE ONLY condition_loc_code_cd_vs
 --
 
 ALTER TABLE ONLY condition_loc_code
-    ADD CONSTRAINT condition_loc_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_loc(id);
+    ADD CONSTRAINT condition_loc_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_loc(id) ON DELETE CASCADE;
 
 
 --
@@ -59816,7 +59838,7 @@ ALTER TABLE ONLY condition_loc_code
 --
 
 ALTER TABLE ONLY condition_loc_code
-    ADD CONSTRAINT condition_loc_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_loc_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59824,7 +59846,7 @@ ALTER TABLE ONLY condition_loc_code
 --
 
 ALTER TABLE ONLY condition_loc
-    ADD CONSTRAINT condition_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59832,7 +59854,7 @@ ALTER TABLE ONLY condition_loc
 --
 
 ALTER TABLE ONLY condition_loc
-    ADD CONSTRAINT condition_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59840,7 +59862,7 @@ ALTER TABLE ONLY condition_loc
 --
 
 ALTER TABLE ONLY condition_related_item_code_cd
-    ADD CONSTRAINT condition_related_item_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_related_item_code(id);
+    ADD CONSTRAINT condition_related_item_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_related_item_code(id) ON DELETE CASCADE;
 
 
 --
@@ -59848,7 +59870,7 @@ ALTER TABLE ONLY condition_related_item_code_cd
 --
 
 ALTER TABLE ONLY condition_related_item_code_cd
-    ADD CONSTRAINT condition_related_item_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_related_item_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59856,7 +59878,7 @@ ALTER TABLE ONLY condition_related_item_code_cd
 --
 
 ALTER TABLE ONLY condition_related_item_code_cd_vs
-    ADD CONSTRAINT condition_related_item_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_related_item_code_cd(id);
+    ADD CONSTRAINT condition_related_item_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_related_item_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -59864,7 +59886,7 @@ ALTER TABLE ONLY condition_related_item_code_cd_vs
 --
 
 ALTER TABLE ONLY condition_related_item_code_cd_vs
-    ADD CONSTRAINT condition_related_item_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_related_item_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59872,7 +59894,7 @@ ALTER TABLE ONLY condition_related_item_code_cd_vs
 --
 
 ALTER TABLE ONLY condition_related_item_code
-    ADD CONSTRAINT condition_related_item_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_related_item(id);
+    ADD CONSTRAINT condition_related_item_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_related_item(id) ON DELETE CASCADE;
 
 
 --
@@ -59880,7 +59902,7 @@ ALTER TABLE ONLY condition_related_item_code
 --
 
 ALTER TABLE ONLY condition_related_item_code
-    ADD CONSTRAINT condition_related_item_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_related_item_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59888,7 +59910,7 @@ ALTER TABLE ONLY condition_related_item_code
 --
 
 ALTER TABLE ONLY condition_related_item
-    ADD CONSTRAINT condition_related_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_related_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59896,7 +59918,7 @@ ALTER TABLE ONLY condition_related_item
 --
 
 ALTER TABLE ONLY condition_related_item
-    ADD CONSTRAINT condition_related_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_related_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59904,7 +59926,7 @@ ALTER TABLE ONLY condition_related_item
 --
 
 ALTER TABLE ONLY condition_related_item_target
-    ADD CONSTRAINT condition_related_item_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_related_item(id);
+    ADD CONSTRAINT condition_related_item_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_related_item(id) ON DELETE CASCADE;
 
 
 --
@@ -59912,7 +59934,7 @@ ALTER TABLE ONLY condition_related_item_target
 --
 
 ALTER TABLE ONLY condition_related_item_target
-    ADD CONSTRAINT condition_related_item_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_related_item_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59920,7 +59942,7 @@ ALTER TABLE ONLY condition_related_item_target
 --
 
 ALTER TABLE ONLY condition_severity_cd
-    ADD CONSTRAINT condition_severity_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_severity(id);
+    ADD CONSTRAINT condition_severity_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_severity(id) ON DELETE CASCADE;
 
 
 --
@@ -59928,7 +59950,7 @@ ALTER TABLE ONLY condition_severity_cd
 --
 
 ALTER TABLE ONLY condition_severity_cd
-    ADD CONSTRAINT condition_severity_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_severity_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59936,7 +59958,7 @@ ALTER TABLE ONLY condition_severity_cd
 --
 
 ALTER TABLE ONLY condition_severity_cd_vs
-    ADD CONSTRAINT condition_severity_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_severity_cd(id);
+    ADD CONSTRAINT condition_severity_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_severity_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -59944,7 +59966,7 @@ ALTER TABLE ONLY condition_severity_cd_vs
 --
 
 ALTER TABLE ONLY condition_severity_cd_vs
-    ADD CONSTRAINT condition_severity_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_severity_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59952,7 +59974,7 @@ ALTER TABLE ONLY condition_severity_cd_vs
 --
 
 ALTER TABLE ONLY condition_severity
-    ADD CONSTRAINT condition_severity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_severity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59960,7 +59982,7 @@ ALTER TABLE ONLY condition_severity
 --
 
 ALTER TABLE ONLY condition_severity
-    ADD CONSTRAINT condition_severity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_severity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59968,7 +59990,7 @@ ALTER TABLE ONLY condition_severity
 --
 
 ALTER TABLE ONLY condition_stage_assessment
-    ADD CONSTRAINT condition_stage_assessment_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_stage(id);
+    ADD CONSTRAINT condition_stage_assessment_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_stage(id) ON DELETE CASCADE;
 
 
 --
@@ -59976,7 +59998,7 @@ ALTER TABLE ONLY condition_stage_assessment
 --
 
 ALTER TABLE ONLY condition_stage_assessment
-    ADD CONSTRAINT condition_stage_assessment_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_stage_assessment_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59984,7 +60006,7 @@ ALTER TABLE ONLY condition_stage_assessment
 --
 
 ALTER TABLE ONLY condition_stage
-    ADD CONSTRAINT condition_stage_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_stage_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -59992,7 +60014,7 @@ ALTER TABLE ONLY condition_stage
 --
 
 ALTER TABLE ONLY condition_stage
-    ADD CONSTRAINT condition_stage_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_stage_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -60000,7 +60022,7 @@ ALTER TABLE ONLY condition_stage
 --
 
 ALTER TABLE ONLY condition_stage_summary_cd
-    ADD CONSTRAINT condition_stage_summary_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_stage_summary(id);
+    ADD CONSTRAINT condition_stage_summary_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_stage_summary(id) ON DELETE CASCADE;
 
 
 --
@@ -60008,7 +60030,7 @@ ALTER TABLE ONLY condition_stage_summary_cd
 --
 
 ALTER TABLE ONLY condition_stage_summary_cd
-    ADD CONSTRAINT condition_stage_summary_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_stage_summary_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -60016,7 +60038,7 @@ ALTER TABLE ONLY condition_stage_summary_cd
 --
 
 ALTER TABLE ONLY condition_stage_summary_cd_vs
-    ADD CONSTRAINT condition_stage_summary_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_stage_summary_cd(id);
+    ADD CONSTRAINT condition_stage_summary_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_stage_summary_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -60024,7 +60046,7 @@ ALTER TABLE ONLY condition_stage_summary_cd_vs
 --
 
 ALTER TABLE ONLY condition_stage_summary_cd_vs
-    ADD CONSTRAINT condition_stage_summary_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_stage_summary_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -60032,7 +60054,7 @@ ALTER TABLE ONLY condition_stage_summary_cd_vs
 --
 
 ALTER TABLE ONLY condition_stage_summary
-    ADD CONSTRAINT condition_stage_summary_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_stage(id);
+    ADD CONSTRAINT condition_stage_summary_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_stage(id) ON DELETE CASCADE;
 
 
 --
@@ -60040,7 +60062,7 @@ ALTER TABLE ONLY condition_stage_summary
 --
 
 ALTER TABLE ONLY condition_stage_summary
-    ADD CONSTRAINT condition_stage_summary_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_stage_summary_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -60048,7 +60070,7 @@ ALTER TABLE ONLY condition_stage_summary
 --
 
 ALTER TABLE ONLY condition_subject
-    ADD CONSTRAINT condition_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -60056,7 +60078,7 @@ ALTER TABLE ONLY condition_subject
 --
 
 ALTER TABLE ONLY condition_subject
-    ADD CONSTRAINT condition_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -60064,7 +60086,7 @@ ALTER TABLE ONLY condition_subject
 --
 
 ALTER TABLE ONLY condition_text
-    ADD CONSTRAINT condition_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -60072,7 +60094,7 @@ ALTER TABLE ONLY condition_text
 --
 
 ALTER TABLE ONLY condition_text
-    ADD CONSTRAINT condition_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id);
+    ADD CONSTRAINT condition_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(id) ON DELETE CASCADE;
 
 
 --
@@ -60080,7 +60102,7 @@ ALTER TABLE ONLY condition_text
 --
 
 ALTER TABLE ONLY conformance_document
-    ADD CONSTRAINT conformance_document_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_document_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60088,7 +60110,7 @@ ALTER TABLE ONLY conformance_document
 --
 
 ALTER TABLE ONLY conformance_document_profile
-    ADD CONSTRAINT conformance_document_profile_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_document(id);
+    ADD CONSTRAINT conformance_document_profile_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_document(id) ON DELETE CASCADE;
 
 
 --
@@ -60096,7 +60118,7 @@ ALTER TABLE ONLY conformance_document_profile
 --
 
 ALTER TABLE ONLY conformance_document_profile
-    ADD CONSTRAINT conformance_document_profile_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_document_profile_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60104,7 +60126,7 @@ ALTER TABLE ONLY conformance_document_profile
 --
 
 ALTER TABLE ONLY conformance_document
-    ADD CONSTRAINT conformance_document_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_document_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60112,7 +60134,7 @@ ALTER TABLE ONLY conformance_document
 --
 
 ALTER TABLE ONLY conformance_implementation
-    ADD CONSTRAINT conformance_implementation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_implementation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60120,7 +60142,7 @@ ALTER TABLE ONLY conformance_implementation
 --
 
 ALTER TABLE ONLY conformance_implementation
-    ADD CONSTRAINT conformance_implementation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_implementation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60128,7 +60150,7 @@ ALTER TABLE ONLY conformance_implementation
 --
 
 ALTER TABLE ONLY conformance_messaging_event_code
-    ADD CONSTRAINT conformance_messaging_event_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event(id);
+    ADD CONSTRAINT conformance_messaging_event_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event(id) ON DELETE CASCADE;
 
 
 --
@@ -60136,7 +60158,7 @@ ALTER TABLE ONLY conformance_messaging_event_code
 --
 
 ALTER TABLE ONLY conformance_messaging_event_code
-    ADD CONSTRAINT conformance_messaging_event_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_messaging_event_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60144,7 +60166,7 @@ ALTER TABLE ONLY conformance_messaging_event_code
 --
 
 ALTER TABLE ONLY conformance_messaging_event_code_vs
-    ADD CONSTRAINT conformance_messaging_event_code_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event_code(id);
+    ADD CONSTRAINT conformance_messaging_event_code_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event_code(id) ON DELETE CASCADE;
 
 
 --
@@ -60152,7 +60174,7 @@ ALTER TABLE ONLY conformance_messaging_event_code_vs
 --
 
 ALTER TABLE ONLY conformance_messaging_event_code_vs
-    ADD CONSTRAINT conformance_messaging_event_code_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_messaging_event_code_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60160,7 +60182,7 @@ ALTER TABLE ONLY conformance_messaging_event_code_vs
 --
 
 ALTER TABLE ONLY conformance_messaging_event
-    ADD CONSTRAINT conformance_messaging_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging(id);
+    ADD CONSTRAINT conformance_messaging_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging(id) ON DELETE CASCADE;
 
 
 --
@@ -60168,7 +60190,7 @@ ALTER TABLE ONLY conformance_messaging_event
 --
 
 ALTER TABLE ONLY conformance_messaging_event_protocol
-    ADD CONSTRAINT conformance_messaging_event_protocol_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event(id);
+    ADD CONSTRAINT conformance_messaging_event_protocol_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event(id) ON DELETE CASCADE;
 
 
 --
@@ -60176,7 +60198,7 @@ ALTER TABLE ONLY conformance_messaging_event_protocol
 --
 
 ALTER TABLE ONLY conformance_messaging_event_protocol
-    ADD CONSTRAINT conformance_messaging_event_protocol_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_messaging_event_protocol_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60184,7 +60206,7 @@ ALTER TABLE ONLY conformance_messaging_event_protocol
 --
 
 ALTER TABLE ONLY conformance_messaging_event_protocol_vs
-    ADD CONSTRAINT conformance_messaging_event_protocol_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event_protocol(id);
+    ADD CONSTRAINT conformance_messaging_event_protocol_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event_protocol(id) ON DELETE CASCADE;
 
 
 --
@@ -60192,7 +60214,7 @@ ALTER TABLE ONLY conformance_messaging_event_protocol_vs
 --
 
 ALTER TABLE ONLY conformance_messaging_event_protocol_vs
-    ADD CONSTRAINT conformance_messaging_event_protocol_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_messaging_event_protocol_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60200,7 +60222,7 @@ ALTER TABLE ONLY conformance_messaging_event_protocol_vs
 --
 
 ALTER TABLE ONLY conformance_messaging_event_request
-    ADD CONSTRAINT conformance_messaging_event_request_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event(id);
+    ADD CONSTRAINT conformance_messaging_event_request_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event(id) ON DELETE CASCADE;
 
 
 --
@@ -60208,7 +60230,7 @@ ALTER TABLE ONLY conformance_messaging_event_request
 --
 
 ALTER TABLE ONLY conformance_messaging_event_request
-    ADD CONSTRAINT conformance_messaging_event_request_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_messaging_event_request_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60216,7 +60238,7 @@ ALTER TABLE ONLY conformance_messaging_event_request
 --
 
 ALTER TABLE ONLY conformance_messaging_event
-    ADD CONSTRAINT conformance_messaging_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_messaging_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60224,7 +60246,7 @@ ALTER TABLE ONLY conformance_messaging_event
 --
 
 ALTER TABLE ONLY conformance_messaging_event_response
-    ADD CONSTRAINT conformance_messaging_event_response_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event(id);
+    ADD CONSTRAINT conformance_messaging_event_response_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event(id) ON DELETE CASCADE;
 
 
 --
@@ -60232,7 +60254,7 @@ ALTER TABLE ONLY conformance_messaging_event_response
 --
 
 ALTER TABLE ONLY conformance_messaging_event_response
-    ADD CONSTRAINT conformance_messaging_event_response_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_messaging_event_response_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60240,7 +60262,7 @@ ALTER TABLE ONLY conformance_messaging_event_response
 --
 
 ALTER TABLE ONLY conformance_messaging
-    ADD CONSTRAINT conformance_messaging_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_messaging_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60248,7 +60270,7 @@ ALTER TABLE ONLY conformance_messaging
 --
 
 ALTER TABLE ONLY conformance_messaging
-    ADD CONSTRAINT conformance_messaging_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_messaging_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60256,7 +60278,7 @@ ALTER TABLE ONLY conformance_messaging
 --
 
 ALTER TABLE ONLY conformance_profile
-    ADD CONSTRAINT conformance_profile_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_profile_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60264,7 +60286,7 @@ ALTER TABLE ONLY conformance_profile
 --
 
 ALTER TABLE ONLY conformance_profile
-    ADD CONSTRAINT conformance_profile_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_profile_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60272,7 +60294,7 @@ ALTER TABLE ONLY conformance_profile
 --
 
 ALTER TABLE ONLY conformance_rest_operation
-    ADD CONSTRAINT conformance_rest_operation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest(id);
+    ADD CONSTRAINT conformance_rest_operation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest(id) ON DELETE CASCADE;
 
 
 --
@@ -60280,7 +60302,7 @@ ALTER TABLE ONLY conformance_rest_operation
 --
 
 ALTER TABLE ONLY conformance_rest_operation
-    ADD CONSTRAINT conformance_rest_operation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_rest_operation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60288,7 +60310,7 @@ ALTER TABLE ONLY conformance_rest_operation
 --
 
 ALTER TABLE ONLY conformance_rest
-    ADD CONSTRAINT conformance_rest_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_rest_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60296,7 +60318,7 @@ ALTER TABLE ONLY conformance_rest
 --
 
 ALTER TABLE ONLY conformance_rest_query
-    ADD CONSTRAINT conformance_rest_query_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest(id);
+    ADD CONSTRAINT conformance_rest_query_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest(id) ON DELETE CASCADE;
 
 
 --
@@ -60304,7 +60326,7 @@ ALTER TABLE ONLY conformance_rest_query
 --
 
 ALTER TABLE ONLY conformance_rest_query
-    ADD CONSTRAINT conformance_rest_query_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_rest_query_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60312,7 +60334,7 @@ ALTER TABLE ONLY conformance_rest_query
 --
 
 ALTER TABLE ONLY conformance_rest
-    ADD CONSTRAINT conformance_rest_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_rest_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60320,7 +60342,7 @@ ALTER TABLE ONLY conformance_rest
 --
 
 ALTER TABLE ONLY conformance_rest_resource_operation
-    ADD CONSTRAINT conformance_rest_resource_operation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_resource(id);
+    ADD CONSTRAINT conformance_rest_resource_operation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_resource(id) ON DELETE CASCADE;
 
 
 --
@@ -60328,7 +60350,7 @@ ALTER TABLE ONLY conformance_rest_resource_operation
 --
 
 ALTER TABLE ONLY conformance_rest_resource_operation
-    ADD CONSTRAINT conformance_rest_resource_operation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_rest_resource_operation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60336,7 +60358,7 @@ ALTER TABLE ONLY conformance_rest_resource_operation
 --
 
 ALTER TABLE ONLY conformance_rest_resource
-    ADD CONSTRAINT conformance_rest_resource_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest(id);
+    ADD CONSTRAINT conformance_rest_resource_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest(id) ON DELETE CASCADE;
 
 
 --
@@ -60344,7 +60366,7 @@ ALTER TABLE ONLY conformance_rest_resource
 --
 
 ALTER TABLE ONLY conformance_rest_resource_profile
-    ADD CONSTRAINT conformance_rest_resource_profile_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_resource(id);
+    ADD CONSTRAINT conformance_rest_resource_profile_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_resource(id) ON DELETE CASCADE;
 
 
 --
@@ -60352,7 +60374,7 @@ ALTER TABLE ONLY conformance_rest_resource_profile
 --
 
 ALTER TABLE ONLY conformance_rest_resource_profile
-    ADD CONSTRAINT conformance_rest_resource_profile_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_rest_resource_profile_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60360,7 +60382,7 @@ ALTER TABLE ONLY conformance_rest_resource_profile
 --
 
 ALTER TABLE ONLY conformance_rest_resource
-    ADD CONSTRAINT conformance_rest_resource_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_rest_resource_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60368,7 +60390,7 @@ ALTER TABLE ONLY conformance_rest_resource
 --
 
 ALTER TABLE ONLY conformance_rest_resource_search_param
-    ADD CONSTRAINT conformance_rest_resource_search_param_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_resource(id);
+    ADD CONSTRAINT conformance_rest_resource_search_param_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_resource(id) ON DELETE CASCADE;
 
 
 --
@@ -60376,7 +60398,7 @@ ALTER TABLE ONLY conformance_rest_resource_search_param
 --
 
 ALTER TABLE ONLY conformance_rest_resource_search_param
-    ADD CONSTRAINT conformance_rest_resource_search_param_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_rest_resource_search_param_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60384,7 +60406,7 @@ ALTER TABLE ONLY conformance_rest_resource_search_param
 --
 
 ALTER TABLE ONLY conformance_rest_security_certificate
-    ADD CONSTRAINT conformance_rest_security_certificate_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_security(id);
+    ADD CONSTRAINT conformance_rest_security_certificate_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_security(id) ON DELETE CASCADE;
 
 
 --
@@ -60392,7 +60414,7 @@ ALTER TABLE ONLY conformance_rest_security_certificate
 --
 
 ALTER TABLE ONLY conformance_rest_security_certificate
-    ADD CONSTRAINT conformance_rest_security_certificate_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_rest_security_certificate_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60400,7 +60422,7 @@ ALTER TABLE ONLY conformance_rest_security_certificate
 --
 
 ALTER TABLE ONLY conformance_rest_security
-    ADD CONSTRAINT conformance_rest_security_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest(id);
+    ADD CONSTRAINT conformance_rest_security_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest(id) ON DELETE CASCADE;
 
 
 --
@@ -60408,7 +60430,7 @@ ALTER TABLE ONLY conformance_rest_security
 --
 
 ALTER TABLE ONLY conformance_rest_security
-    ADD CONSTRAINT conformance_rest_security_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_rest_security_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60416,7 +60438,7 @@ ALTER TABLE ONLY conformance_rest_security
 --
 
 ALTER TABLE ONLY conformance_rest_security_service_cd
-    ADD CONSTRAINT conformance_rest_security_service_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_security_service(id);
+    ADD CONSTRAINT conformance_rest_security_service_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_security_service(id) ON DELETE CASCADE;
 
 
 --
@@ -60424,7 +60446,7 @@ ALTER TABLE ONLY conformance_rest_security_service_cd
 --
 
 ALTER TABLE ONLY conformance_rest_security_service_cd
-    ADD CONSTRAINT conformance_rest_security_service_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_rest_security_service_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60432,7 +60454,7 @@ ALTER TABLE ONLY conformance_rest_security_service_cd
 --
 
 ALTER TABLE ONLY conformance_rest_security_service_cd_vs
-    ADD CONSTRAINT conformance_rest_security_service_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_security_service_cd(id);
+    ADD CONSTRAINT conformance_rest_security_service_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_security_service_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -60440,7 +60462,7 @@ ALTER TABLE ONLY conformance_rest_security_service_cd_vs
 --
 
 ALTER TABLE ONLY conformance_rest_security_service_cd_vs
-    ADD CONSTRAINT conformance_rest_security_service_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_rest_security_service_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60448,7 +60470,7 @@ ALTER TABLE ONLY conformance_rest_security_service_cd_vs
 --
 
 ALTER TABLE ONLY conformance_rest_security_service
-    ADD CONSTRAINT conformance_rest_security_service_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_security(id);
+    ADD CONSTRAINT conformance_rest_security_service_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_security(id) ON DELETE CASCADE;
 
 
 --
@@ -60456,7 +60478,7 @@ ALTER TABLE ONLY conformance_rest_security_service
 --
 
 ALTER TABLE ONLY conformance_rest_security_service
-    ADD CONSTRAINT conformance_rest_security_service_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_rest_security_service_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60464,7 +60486,7 @@ ALTER TABLE ONLY conformance_rest_security_service
 --
 
 ALTER TABLE ONLY conformance_software
-    ADD CONSTRAINT conformance_software_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_software_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60472,7 +60494,7 @@ ALTER TABLE ONLY conformance_software
 --
 
 ALTER TABLE ONLY conformance_software
-    ADD CONSTRAINT conformance_software_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_software_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60480,7 +60502,7 @@ ALTER TABLE ONLY conformance_software
 --
 
 ALTER TABLE ONLY conformance_telecom
-    ADD CONSTRAINT conformance_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60488,7 +60510,7 @@ ALTER TABLE ONLY conformance_telecom
 --
 
 ALTER TABLE ONLY conformance_telecom_period
-    ADD CONSTRAINT conformance_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_telecom(id);
+    ADD CONSTRAINT conformance_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_telecom(id) ON DELETE CASCADE;
 
 
 --
@@ -60496,7 +60518,7 @@ ALTER TABLE ONLY conformance_telecom_period
 --
 
 ALTER TABLE ONLY conformance_telecom_period
-    ADD CONSTRAINT conformance_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60504,7 +60526,7 @@ ALTER TABLE ONLY conformance_telecom_period
 --
 
 ALTER TABLE ONLY conformance_telecom
-    ADD CONSTRAINT conformance_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60512,7 +60534,7 @@ ALTER TABLE ONLY conformance_telecom
 --
 
 ALTER TABLE ONLY conformance_text
-    ADD CONSTRAINT conformance_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60520,7 +60542,7 @@ ALTER TABLE ONLY conformance_text
 --
 
 ALTER TABLE ONLY conformance_text
-    ADD CONSTRAINT conformance_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id);
+    ADD CONSTRAINT conformance_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(id) ON DELETE CASCADE;
 
 
 --
@@ -60528,7 +60550,7 @@ ALTER TABLE ONLY conformance_text
 --
 
 ALTER TABLE ONLY device_contact
-    ADD CONSTRAINT device_contact_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(id);
+    ADD CONSTRAINT device_contact_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60536,7 +60558,7 @@ ALTER TABLE ONLY device_contact
 --
 
 ALTER TABLE ONLY device_contact_period
-    ADD CONSTRAINT device_contact_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_contact(id);
+    ADD CONSTRAINT device_contact_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_contact(id) ON DELETE CASCADE;
 
 
 --
@@ -60544,7 +60566,7 @@ ALTER TABLE ONLY device_contact_period
 --
 
 ALTER TABLE ONLY device_contact_period
-    ADD CONSTRAINT device_contact_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id);
+    ADD CONSTRAINT device_contact_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60552,7 +60574,7 @@ ALTER TABLE ONLY device_contact_period
 --
 
 ALTER TABLE ONLY device_contact
-    ADD CONSTRAINT device_contact_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id);
+    ADD CONSTRAINT device_contact_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60560,7 +60582,7 @@ ALTER TABLE ONLY device_contact
 --
 
 ALTER TABLE ONLY device_idn_assigner
-    ADD CONSTRAINT device_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_idn(id);
+    ADD CONSTRAINT device_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -60568,7 +60590,7 @@ ALTER TABLE ONLY device_idn_assigner
 --
 
 ALTER TABLE ONLY device_idn_assigner
-    ADD CONSTRAINT device_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id);
+    ADD CONSTRAINT device_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60576,7 +60598,7 @@ ALTER TABLE ONLY device_idn_assigner
 --
 
 ALTER TABLE ONLY device_idn
-    ADD CONSTRAINT device_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(id);
+    ADD CONSTRAINT device_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60584,7 +60606,7 @@ ALTER TABLE ONLY device_idn
 --
 
 ALTER TABLE ONLY device_idn_period
-    ADD CONSTRAINT device_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_idn(id);
+    ADD CONSTRAINT device_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -60592,7 +60614,7 @@ ALTER TABLE ONLY device_idn_period
 --
 
 ALTER TABLE ONLY device_idn_period
-    ADD CONSTRAINT device_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id);
+    ADD CONSTRAINT device_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60600,7 +60622,7 @@ ALTER TABLE ONLY device_idn_period
 --
 
 ALTER TABLE ONLY device_idn
-    ADD CONSTRAINT device_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id);
+    ADD CONSTRAINT device_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60608,7 +60630,7 @@ ALTER TABLE ONLY device_idn
 --
 
 ALTER TABLE ONLY device_loc
-    ADD CONSTRAINT device_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(id);
+    ADD CONSTRAINT device_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60616,7 +60638,7 @@ ALTER TABLE ONLY device_loc
 --
 
 ALTER TABLE ONLY device_loc
-    ADD CONSTRAINT device_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id);
+    ADD CONSTRAINT device_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60624,7 +60646,7 @@ ALTER TABLE ONLY device_loc
 --
 
 ALTER TABLE ONLY device_observation_report_idn_assigner
-    ADD CONSTRAINT device_observation_report_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report_idn(id);
+    ADD CONSTRAINT device_observation_report_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -60632,7 +60654,7 @@ ALTER TABLE ONLY device_observation_report_idn_assigner
 --
 
 ALTER TABLE ONLY device_observation_report_idn_assigner
-    ADD CONSTRAINT device_observation_report_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60640,7 +60662,7 @@ ALTER TABLE ONLY device_observation_report_idn_assigner
 --
 
 ALTER TABLE ONLY device_observation_report_idn
-    ADD CONSTRAINT device_observation_report_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60648,7 +60670,7 @@ ALTER TABLE ONLY device_observation_report_idn
 --
 
 ALTER TABLE ONLY device_observation_report_idn_period
-    ADD CONSTRAINT device_observation_report_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report_idn(id);
+    ADD CONSTRAINT device_observation_report_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -60656,7 +60678,7 @@ ALTER TABLE ONLY device_observation_report_idn_period
 --
 
 ALTER TABLE ONLY device_observation_report_idn_period
-    ADD CONSTRAINT device_observation_report_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60664,7 +60686,7 @@ ALTER TABLE ONLY device_observation_report_idn_period
 --
 
 ALTER TABLE ONLY device_observation_report_idn
-    ADD CONSTRAINT device_observation_report_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60672,7 +60694,7 @@ ALTER TABLE ONLY device_observation_report_idn
 --
 
 ALTER TABLE ONLY device_observation_report_source
-    ADD CONSTRAINT device_observation_report_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60680,7 +60702,7 @@ ALTER TABLE ONLY device_observation_report_source
 --
 
 ALTER TABLE ONLY device_observation_report_source
-    ADD CONSTRAINT device_observation_report_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60688,7 +60710,7 @@ ALTER TABLE ONLY device_observation_report_source
 --
 
 ALTER TABLE ONLY device_observation_report_subject
-    ADD CONSTRAINT device_observation_report_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60696,7 +60718,7 @@ ALTER TABLE ONLY device_observation_report_subject
 --
 
 ALTER TABLE ONLY device_observation_report_subject
-    ADD CONSTRAINT device_observation_report_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60704,7 +60726,7 @@ ALTER TABLE ONLY device_observation_report_subject
 --
 
 ALTER TABLE ONLY device_observation_report_text
-    ADD CONSTRAINT device_observation_report_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60712,7 +60734,7 @@ ALTER TABLE ONLY device_observation_report_text
 --
 
 ALTER TABLE ONLY device_observation_report_text
-    ADD CONSTRAINT device_observation_report_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60720,7 +60742,7 @@ ALTER TABLE ONLY device_observation_report_text
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_channel_code
-    ADD CONSTRAINT device_observation_report_virtual_device_chan_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_chan_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60728,7 +60750,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_channel_code
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd
-    ADD CONSTRAINT device_observation_report_virtual_device_chan_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_chan_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60736,7 +60758,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd_vs
-    ADD CONSTRAINT device_observation_report_virtual_device_chan_resource_id_fkey3 FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_chan_resource_id_fkey3 FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60744,7 +60766,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd_vs
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric
-    ADD CONSTRAINT device_observation_report_virtual_device_chan_resource_id_fkey4 FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_chan_resource_id_fkey4 FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60752,7 +60774,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric_obs
-    ADD CONSTRAINT device_observation_report_virtual_device_chan_resource_id_fkey5 FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_chan_resource_id_fkey5 FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60760,7 +60782,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric_obs
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_channel
-    ADD CONSTRAINT device_observation_report_virtual_device_chann_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_chann_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60768,7 +60790,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_channel
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_channel_code
-    ADD CONSTRAINT device_observation_report_virtual_device_channe_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_channel(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_channe_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_channel(id) ON DELETE CASCADE;
 
 
 --
@@ -60776,7 +60798,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_channel_code
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd
-    ADD CONSTRAINT device_observation_report_virtual_device_channe_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_channel_code(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_channe_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_channel_code(id) ON DELETE CASCADE;
 
 
 --
@@ -60784,7 +60806,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd_vs
-    ADD CONSTRAINT device_observation_report_virtual_device_channe_parent_id_fkey3 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_channel_code_cd(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_channe_parent_id_fkey3 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_channel_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -60792,7 +60814,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd_vs
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric
-    ADD CONSTRAINT device_observation_report_virtual_device_channe_parent_id_fkey4 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_channel(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_channe_parent_id_fkey4 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_channel(id) ON DELETE CASCADE;
 
 
 --
@@ -60800,7 +60822,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric_obs
-    ADD CONSTRAINT device_observation_report_virtual_device_channe_parent_id_fkey5 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_channel_metric(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_channe_parent_id_fkey5 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_channel_metric(id) ON DELETE CASCADE;
 
 
 --
@@ -60808,7 +60830,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric_obs
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_channel
-    ADD CONSTRAINT device_observation_report_virtual_device_channel_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_channel_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device(id) ON DELETE CASCADE;
 
 
 --
@@ -60816,7 +60838,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_channel
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_code_cd
-    ADD CONSTRAINT device_observation_report_virtual_device_code__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_code__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60824,7 +60846,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_code_cd
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_code_cd_vs
-    ADD CONSTRAINT device_observation_report_virtual_device_code_c_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_code_cd(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_code_c_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -60832,7 +60854,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_code_cd_vs
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_code_cd
-    ADD CONSTRAINT device_observation_report_virtual_device_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_code(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_code(id) ON DELETE CASCADE;
 
 
 --
@@ -60840,7 +60862,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_code_cd
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_code
-    ADD CONSTRAINT device_observation_report_virtual_device_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device(id) ON DELETE CASCADE;
 
 
 --
@@ -60848,7 +60870,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_code
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_code
-    ADD CONSTRAINT device_observation_report_virtual_device_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60856,7 +60878,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_code
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_code_cd_vs
-    ADD CONSTRAINT device_observation_report_virtual_device_code_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_code_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60864,7 +60886,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device_code_cd_vs
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device
-    ADD CONSTRAINT device_observation_report_virtual_device_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60872,7 +60894,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device
-    ADD CONSTRAINT device_observation_report_virtual_device_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id);
+    ADD CONSTRAINT device_observation_report_virtual_device_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(id) ON DELETE CASCADE;
 
 
 --
@@ -60880,7 +60902,7 @@ ALTER TABLE ONLY device_observation_report_virtual_device
 --
 
 ALTER TABLE ONLY device_owner
-    ADD CONSTRAINT device_owner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(id);
+    ADD CONSTRAINT device_owner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60888,7 +60910,7 @@ ALTER TABLE ONLY device_owner
 --
 
 ALTER TABLE ONLY device_owner
-    ADD CONSTRAINT device_owner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id);
+    ADD CONSTRAINT device_owner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60896,7 +60918,7 @@ ALTER TABLE ONLY device_owner
 --
 
 ALTER TABLE ONLY device_patient
-    ADD CONSTRAINT device_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(id);
+    ADD CONSTRAINT device_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60904,7 +60926,7 @@ ALTER TABLE ONLY device_patient
 --
 
 ALTER TABLE ONLY device_patient
-    ADD CONSTRAINT device_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id);
+    ADD CONSTRAINT device_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60912,7 +60934,7 @@ ALTER TABLE ONLY device_patient
 --
 
 ALTER TABLE ONLY device_text
-    ADD CONSTRAINT device_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(id);
+    ADD CONSTRAINT device_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60920,7 +60942,7 @@ ALTER TABLE ONLY device_text
 --
 
 ALTER TABLE ONLY device_text
-    ADD CONSTRAINT device_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id);
+    ADD CONSTRAINT device_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60928,7 +60950,7 @@ ALTER TABLE ONLY device_text
 --
 
 ALTER TABLE ONLY device_type_cd
-    ADD CONSTRAINT device_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_type(id);
+    ADD CONSTRAINT device_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_type(id) ON DELETE CASCADE;
 
 
 --
@@ -60936,7 +60958,7 @@ ALTER TABLE ONLY device_type_cd
 --
 
 ALTER TABLE ONLY device_type_cd
-    ADD CONSTRAINT device_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id);
+    ADD CONSTRAINT device_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60944,7 +60966,7 @@ ALTER TABLE ONLY device_type_cd
 --
 
 ALTER TABLE ONLY device_type_cd_vs
-    ADD CONSTRAINT device_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_type_cd(id);
+    ADD CONSTRAINT device_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -60952,7 +60974,7 @@ ALTER TABLE ONLY device_type_cd_vs
 --
 
 ALTER TABLE ONLY device_type_cd_vs
-    ADD CONSTRAINT device_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id);
+    ADD CONSTRAINT device_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60960,7 +60982,7 @@ ALTER TABLE ONLY device_type_cd_vs
 --
 
 ALTER TABLE ONLY device_type
-    ADD CONSTRAINT device_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(id);
+    ADD CONSTRAINT device_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60968,7 +60990,7 @@ ALTER TABLE ONLY device_type
 --
 
 ALTER TABLE ONLY device_type
-    ADD CONSTRAINT device_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id);
+    ADD CONSTRAINT device_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(id) ON DELETE CASCADE;
 
 
 --
@@ -60976,7 +60998,7 @@ ALTER TABLE ONLY device_type
 --
 
 ALTER TABLE ONLY diagnostic_order_encounter
-    ADD CONSTRAINT diagnostic_order_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -60984,7 +61006,7 @@ ALTER TABLE ONLY diagnostic_order_encounter
 --
 
 ALTER TABLE ONLY diagnostic_order_encounter
-    ADD CONSTRAINT diagnostic_order_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -60992,7 +61014,7 @@ ALTER TABLE ONLY diagnostic_order_encounter
 --
 
 ALTER TABLE ONLY diagnostic_order_event_actor
-    ADD CONSTRAINT diagnostic_order_event_actor_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_event(id);
+    ADD CONSTRAINT diagnostic_order_event_actor_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_event(id) ON DELETE CASCADE;
 
 
 --
@@ -61000,7 +61022,7 @@ ALTER TABLE ONLY diagnostic_order_event_actor
 --
 
 ALTER TABLE ONLY diagnostic_order_event_actor
-    ADD CONSTRAINT diagnostic_order_event_actor_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_event_actor_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61008,7 +61030,7 @@ ALTER TABLE ONLY diagnostic_order_event_actor
 --
 
 ALTER TABLE ONLY diagnostic_order_event_description_cd
-    ADD CONSTRAINT diagnostic_order_event_description_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_event_description(id);
+    ADD CONSTRAINT diagnostic_order_event_description_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_event_description(id) ON DELETE CASCADE;
 
 
 --
@@ -61016,7 +61038,7 @@ ALTER TABLE ONLY diagnostic_order_event_description_cd
 --
 
 ALTER TABLE ONLY diagnostic_order_event_description_cd
-    ADD CONSTRAINT diagnostic_order_event_description_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_event_description_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61024,7 +61046,7 @@ ALTER TABLE ONLY diagnostic_order_event_description_cd
 --
 
 ALTER TABLE ONLY diagnostic_order_event_description_cd_vs
-    ADD CONSTRAINT diagnostic_order_event_description_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_event_description_cd(id);
+    ADD CONSTRAINT diagnostic_order_event_description_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_event_description_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -61032,7 +61054,7 @@ ALTER TABLE ONLY diagnostic_order_event_description_cd_vs
 --
 
 ALTER TABLE ONLY diagnostic_order_event_description_cd_vs
-    ADD CONSTRAINT diagnostic_order_event_description_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_event_description_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61040,7 +61062,7 @@ ALTER TABLE ONLY diagnostic_order_event_description_cd_vs
 --
 
 ALTER TABLE ONLY diagnostic_order_event_description
-    ADD CONSTRAINT diagnostic_order_event_description_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_event(id);
+    ADD CONSTRAINT diagnostic_order_event_description_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_event(id) ON DELETE CASCADE;
 
 
 --
@@ -61048,7 +61070,7 @@ ALTER TABLE ONLY diagnostic_order_event_description
 --
 
 ALTER TABLE ONLY diagnostic_order_event_description
-    ADD CONSTRAINT diagnostic_order_event_description_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_event_description_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61056,7 +61078,7 @@ ALTER TABLE ONLY diagnostic_order_event_description
 --
 
 ALTER TABLE ONLY diagnostic_order_event
-    ADD CONSTRAINT diagnostic_order_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61064,7 +61086,7 @@ ALTER TABLE ONLY diagnostic_order_event
 --
 
 ALTER TABLE ONLY diagnostic_order_event
-    ADD CONSTRAINT diagnostic_order_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61072,7 +61094,7 @@ ALTER TABLE ONLY diagnostic_order_event
 --
 
 ALTER TABLE ONLY diagnostic_order_idn_assigner
-    ADD CONSTRAINT diagnostic_order_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_idn(id);
+    ADD CONSTRAINT diagnostic_order_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -61080,7 +61102,7 @@ ALTER TABLE ONLY diagnostic_order_idn_assigner
 --
 
 ALTER TABLE ONLY diagnostic_order_idn_assigner
-    ADD CONSTRAINT diagnostic_order_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61088,7 +61110,7 @@ ALTER TABLE ONLY diagnostic_order_idn_assigner
 --
 
 ALTER TABLE ONLY diagnostic_order_idn
-    ADD CONSTRAINT diagnostic_order_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61096,7 +61118,7 @@ ALTER TABLE ONLY diagnostic_order_idn
 --
 
 ALTER TABLE ONLY diagnostic_order_idn_period
-    ADD CONSTRAINT diagnostic_order_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_idn(id);
+    ADD CONSTRAINT diagnostic_order_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -61104,7 +61126,7 @@ ALTER TABLE ONLY diagnostic_order_idn_period
 --
 
 ALTER TABLE ONLY diagnostic_order_idn_period
-    ADD CONSTRAINT diagnostic_order_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61112,7 +61134,7 @@ ALTER TABLE ONLY diagnostic_order_idn_period
 --
 
 ALTER TABLE ONLY diagnostic_order_idn
-    ADD CONSTRAINT diagnostic_order_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61120,7 +61142,7 @@ ALTER TABLE ONLY diagnostic_order_idn
 --
 
 ALTER TABLE ONLY diagnostic_order_item_body_site_cd
-    ADD CONSTRAINT diagnostic_order_item_body_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item_body_site(id);
+    ADD CONSTRAINT diagnostic_order_item_body_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item_body_site(id) ON DELETE CASCADE;
 
 
 --
@@ -61128,7 +61150,7 @@ ALTER TABLE ONLY diagnostic_order_item_body_site_cd
 --
 
 ALTER TABLE ONLY diagnostic_order_item_body_site_cd
-    ADD CONSTRAINT diagnostic_order_item_body_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_item_body_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61136,7 +61158,7 @@ ALTER TABLE ONLY diagnostic_order_item_body_site_cd
 --
 
 ALTER TABLE ONLY diagnostic_order_item_body_site_cd_vs
-    ADD CONSTRAINT diagnostic_order_item_body_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item_body_site_cd(id);
+    ADD CONSTRAINT diagnostic_order_item_body_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item_body_site_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -61144,7 +61166,7 @@ ALTER TABLE ONLY diagnostic_order_item_body_site_cd_vs
 --
 
 ALTER TABLE ONLY diagnostic_order_item_body_site_cd_vs
-    ADD CONSTRAINT diagnostic_order_item_body_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_item_body_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61152,7 +61174,7 @@ ALTER TABLE ONLY diagnostic_order_item_body_site_cd_vs
 --
 
 ALTER TABLE ONLY diagnostic_order_item_body_site
-    ADD CONSTRAINT diagnostic_order_item_body_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item(id);
+    ADD CONSTRAINT diagnostic_order_item_body_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item(id) ON DELETE CASCADE;
 
 
 --
@@ -61160,7 +61182,7 @@ ALTER TABLE ONLY diagnostic_order_item_body_site
 --
 
 ALTER TABLE ONLY diagnostic_order_item_body_site
-    ADD CONSTRAINT diagnostic_order_item_body_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_item_body_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61168,7 +61190,7 @@ ALTER TABLE ONLY diagnostic_order_item_body_site
 --
 
 ALTER TABLE ONLY diagnostic_order_item_code_cd
-    ADD CONSTRAINT diagnostic_order_item_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item_code(id);
+    ADD CONSTRAINT diagnostic_order_item_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item_code(id) ON DELETE CASCADE;
 
 
 --
@@ -61176,7 +61198,7 @@ ALTER TABLE ONLY diagnostic_order_item_code_cd
 --
 
 ALTER TABLE ONLY diagnostic_order_item_code_cd
-    ADD CONSTRAINT diagnostic_order_item_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_item_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61184,7 +61206,7 @@ ALTER TABLE ONLY diagnostic_order_item_code_cd
 --
 
 ALTER TABLE ONLY diagnostic_order_item_code_cd_vs
-    ADD CONSTRAINT diagnostic_order_item_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item_code_cd(id);
+    ADD CONSTRAINT diagnostic_order_item_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -61192,7 +61214,7 @@ ALTER TABLE ONLY diagnostic_order_item_code_cd_vs
 --
 
 ALTER TABLE ONLY diagnostic_order_item_code_cd_vs
-    ADD CONSTRAINT diagnostic_order_item_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_item_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61200,7 +61222,7 @@ ALTER TABLE ONLY diagnostic_order_item_code_cd_vs
 --
 
 ALTER TABLE ONLY diagnostic_order_item_code
-    ADD CONSTRAINT diagnostic_order_item_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item(id);
+    ADD CONSTRAINT diagnostic_order_item_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item(id) ON DELETE CASCADE;
 
 
 --
@@ -61208,7 +61230,7 @@ ALTER TABLE ONLY diagnostic_order_item_code
 --
 
 ALTER TABLE ONLY diagnostic_order_item_code
-    ADD CONSTRAINT diagnostic_order_item_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_item_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61216,7 +61238,7 @@ ALTER TABLE ONLY diagnostic_order_item_code
 --
 
 ALTER TABLE ONLY diagnostic_order_item
-    ADD CONSTRAINT diagnostic_order_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61224,7 +61246,7 @@ ALTER TABLE ONLY diagnostic_order_item
 --
 
 ALTER TABLE ONLY diagnostic_order_item
-    ADD CONSTRAINT diagnostic_order_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61232,7 +61254,7 @@ ALTER TABLE ONLY diagnostic_order_item
 --
 
 ALTER TABLE ONLY diagnostic_order_item_specimen
-    ADD CONSTRAINT diagnostic_order_item_specimen_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item(id);
+    ADD CONSTRAINT diagnostic_order_item_specimen_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item(id) ON DELETE CASCADE;
 
 
 --
@@ -61240,7 +61262,7 @@ ALTER TABLE ONLY diagnostic_order_item_specimen
 --
 
 ALTER TABLE ONLY diagnostic_order_item_specimen
-    ADD CONSTRAINT diagnostic_order_item_specimen_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_item_specimen_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61248,7 +61270,7 @@ ALTER TABLE ONLY diagnostic_order_item_specimen
 --
 
 ALTER TABLE ONLY diagnostic_order_orderer
-    ADD CONSTRAINT diagnostic_order_orderer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_orderer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61256,7 +61278,7 @@ ALTER TABLE ONLY diagnostic_order_orderer
 --
 
 ALTER TABLE ONLY diagnostic_order_orderer
-    ADD CONSTRAINT diagnostic_order_orderer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_orderer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61264,7 +61286,7 @@ ALTER TABLE ONLY diagnostic_order_orderer
 --
 
 ALTER TABLE ONLY diagnostic_order_specimen
-    ADD CONSTRAINT diagnostic_order_specimen_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_specimen_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61272,7 +61294,7 @@ ALTER TABLE ONLY diagnostic_order_specimen
 --
 
 ALTER TABLE ONLY diagnostic_order_specimen
-    ADD CONSTRAINT diagnostic_order_specimen_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_specimen_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61280,7 +61302,7 @@ ALTER TABLE ONLY diagnostic_order_specimen
 --
 
 ALTER TABLE ONLY diagnostic_order_subject
-    ADD CONSTRAINT diagnostic_order_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61288,7 +61310,7 @@ ALTER TABLE ONLY diagnostic_order_subject
 --
 
 ALTER TABLE ONLY diagnostic_order_subject
-    ADD CONSTRAINT diagnostic_order_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61296,7 +61318,7 @@ ALTER TABLE ONLY diagnostic_order_subject
 --
 
 ALTER TABLE ONLY diagnostic_order_text
-    ADD CONSTRAINT diagnostic_order_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61304,7 +61326,7 @@ ALTER TABLE ONLY diagnostic_order_text
 --
 
 ALTER TABLE ONLY diagnostic_order_text
-    ADD CONSTRAINT diagnostic_order_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id);
+    ADD CONSTRAINT diagnostic_order_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(id) ON DELETE CASCADE;
 
 
 --
@@ -61312,7 +61334,7 @@ ALTER TABLE ONLY diagnostic_order_text
 --
 
 ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd
-    ADD CONSTRAINT diagnostic_report_coded_diagnosis_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_coded_diagnosis(id);
+    ADD CONSTRAINT diagnostic_report_coded_diagnosis_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_coded_diagnosis(id) ON DELETE CASCADE;
 
 
 --
@@ -61320,7 +61342,7 @@ ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd
 --
 
 ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd
-    ADD CONSTRAINT diagnostic_report_coded_diagnosis_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_coded_diagnosis_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61328,7 +61350,7 @@ ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd
 --
 
 ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd_vs
-    ADD CONSTRAINT diagnostic_report_coded_diagnosis_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_coded_diagnosis_cd(id);
+    ADD CONSTRAINT diagnostic_report_coded_diagnosis_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_coded_diagnosis_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -61336,7 +61358,7 @@ ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd_vs
 --
 
 ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd_vs
-    ADD CONSTRAINT diagnostic_report_coded_diagnosis_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_coded_diagnosis_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61344,7 +61366,7 @@ ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd_vs
 --
 
 ALTER TABLE ONLY diagnostic_report_coded_diagnosis
-    ADD CONSTRAINT diagnostic_report_coded_diagnosis_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_coded_diagnosis_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61352,7 +61374,7 @@ ALTER TABLE ONLY diagnostic_report_coded_diagnosis
 --
 
 ALTER TABLE ONLY diagnostic_report_coded_diagnosis
-    ADD CONSTRAINT diagnostic_report_coded_diagnosis_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_coded_diagnosis_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61360,7 +61382,7 @@ ALTER TABLE ONLY diagnostic_report_coded_diagnosis
 --
 
 ALTER TABLE ONLY diagnostic_report_diagnostic_period
-    ADD CONSTRAINT diagnostic_report_diagnostic_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_diagnostic_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61368,7 +61390,7 @@ ALTER TABLE ONLY diagnostic_report_diagnostic_period
 --
 
 ALTER TABLE ONLY diagnostic_report_diagnostic_period
-    ADD CONSTRAINT diagnostic_report_diagnostic_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_diagnostic_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61376,7 +61398,7 @@ ALTER TABLE ONLY diagnostic_report_diagnostic_period
 --
 
 ALTER TABLE ONLY diagnostic_report_idn_assigner
-    ADD CONSTRAINT diagnostic_report_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_idn(id);
+    ADD CONSTRAINT diagnostic_report_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -61384,7 +61406,7 @@ ALTER TABLE ONLY diagnostic_report_idn_assigner
 --
 
 ALTER TABLE ONLY diagnostic_report_idn_assigner
-    ADD CONSTRAINT diagnostic_report_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61392,7 +61414,7 @@ ALTER TABLE ONLY diagnostic_report_idn_assigner
 --
 
 ALTER TABLE ONLY diagnostic_report_idn
-    ADD CONSTRAINT diagnostic_report_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61400,7 +61422,7 @@ ALTER TABLE ONLY diagnostic_report_idn
 --
 
 ALTER TABLE ONLY diagnostic_report_idn_period
-    ADD CONSTRAINT diagnostic_report_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_idn(id);
+    ADD CONSTRAINT diagnostic_report_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -61408,7 +61430,7 @@ ALTER TABLE ONLY diagnostic_report_idn_period
 --
 
 ALTER TABLE ONLY diagnostic_report_idn_period
-    ADD CONSTRAINT diagnostic_report_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61416,7 +61438,7 @@ ALTER TABLE ONLY diagnostic_report_idn_period
 --
 
 ALTER TABLE ONLY diagnostic_report_idn
-    ADD CONSTRAINT diagnostic_report_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61424,7 +61446,7 @@ ALTER TABLE ONLY diagnostic_report_idn
 --
 
 ALTER TABLE ONLY diagnostic_report_image_link
-    ADD CONSTRAINT diagnostic_report_image_link_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_image(id);
+    ADD CONSTRAINT diagnostic_report_image_link_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_image(id) ON DELETE CASCADE;
 
 
 --
@@ -61432,7 +61454,7 @@ ALTER TABLE ONLY diagnostic_report_image_link
 --
 
 ALTER TABLE ONLY diagnostic_report_image_link
-    ADD CONSTRAINT diagnostic_report_image_link_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_image_link_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61440,7 +61462,7 @@ ALTER TABLE ONLY diagnostic_report_image_link
 --
 
 ALTER TABLE ONLY diagnostic_report_image
-    ADD CONSTRAINT diagnostic_report_image_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_image_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61448,7 +61470,7 @@ ALTER TABLE ONLY diagnostic_report_image
 --
 
 ALTER TABLE ONLY diagnostic_report_image
-    ADD CONSTRAINT diagnostic_report_image_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_image_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61456,7 +61478,7 @@ ALTER TABLE ONLY diagnostic_report_image
 --
 
 ALTER TABLE ONLY diagnostic_report_imaging_study
-    ADD CONSTRAINT diagnostic_report_imaging_study_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_imaging_study_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61464,7 +61486,7 @@ ALTER TABLE ONLY diagnostic_report_imaging_study
 --
 
 ALTER TABLE ONLY diagnostic_report_imaging_study
-    ADD CONSTRAINT diagnostic_report_imaging_study_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_imaging_study_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61472,7 +61494,7 @@ ALTER TABLE ONLY diagnostic_report_imaging_study
 --
 
 ALTER TABLE ONLY diagnostic_report_name_cd
-    ADD CONSTRAINT diagnostic_report_name_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_name(id);
+    ADD CONSTRAINT diagnostic_report_name_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_name(id) ON DELETE CASCADE;
 
 
 --
@@ -61480,7 +61502,7 @@ ALTER TABLE ONLY diagnostic_report_name_cd
 --
 
 ALTER TABLE ONLY diagnostic_report_name_cd
-    ADD CONSTRAINT diagnostic_report_name_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_name_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61488,7 +61510,7 @@ ALTER TABLE ONLY diagnostic_report_name_cd
 --
 
 ALTER TABLE ONLY diagnostic_report_name_cd_vs
-    ADD CONSTRAINT diagnostic_report_name_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_name_cd(id);
+    ADD CONSTRAINT diagnostic_report_name_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_name_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -61496,7 +61518,7 @@ ALTER TABLE ONLY diagnostic_report_name_cd_vs
 --
 
 ALTER TABLE ONLY diagnostic_report_name_cd_vs
-    ADD CONSTRAINT diagnostic_report_name_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_name_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61504,7 +61526,7 @@ ALTER TABLE ONLY diagnostic_report_name_cd_vs
 --
 
 ALTER TABLE ONLY diagnostic_report_name
-    ADD CONSTRAINT diagnostic_report_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61512,7 +61534,7 @@ ALTER TABLE ONLY diagnostic_report_name
 --
 
 ALTER TABLE ONLY diagnostic_report_name
-    ADD CONSTRAINT diagnostic_report_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61520,7 +61542,7 @@ ALTER TABLE ONLY diagnostic_report_name
 --
 
 ALTER TABLE ONLY diagnostic_report_performer
-    ADD CONSTRAINT diagnostic_report_performer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_performer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61528,7 +61550,7 @@ ALTER TABLE ONLY diagnostic_report_performer
 --
 
 ALTER TABLE ONLY diagnostic_report_performer
-    ADD CONSTRAINT diagnostic_report_performer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_performer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61536,7 +61558,7 @@ ALTER TABLE ONLY diagnostic_report_performer
 --
 
 ALTER TABLE ONLY diagnostic_report_presented_form
-    ADD CONSTRAINT diagnostic_report_presented_form_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_presented_form_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61544,7 +61566,7 @@ ALTER TABLE ONLY diagnostic_report_presented_form
 --
 
 ALTER TABLE ONLY diagnostic_report_presented_form
-    ADD CONSTRAINT diagnostic_report_presented_form_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_presented_form_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61552,7 +61574,7 @@ ALTER TABLE ONLY diagnostic_report_presented_form
 --
 
 ALTER TABLE ONLY diagnostic_report_request_detail
-    ADD CONSTRAINT diagnostic_report_request_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_request_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61560,7 +61582,7 @@ ALTER TABLE ONLY diagnostic_report_request_detail
 --
 
 ALTER TABLE ONLY diagnostic_report_request_detail
-    ADD CONSTRAINT diagnostic_report_request_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_request_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61568,7 +61590,7 @@ ALTER TABLE ONLY diagnostic_report_request_detail
 --
 
 ALTER TABLE ONLY diagnostic_report_result
-    ADD CONSTRAINT diagnostic_report_result_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_result_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61576,7 +61598,7 @@ ALTER TABLE ONLY diagnostic_report_result
 --
 
 ALTER TABLE ONLY diagnostic_report_result
-    ADD CONSTRAINT diagnostic_report_result_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_result_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61584,7 +61606,7 @@ ALTER TABLE ONLY diagnostic_report_result
 --
 
 ALTER TABLE ONLY diagnostic_report_service_category_cd
-    ADD CONSTRAINT diagnostic_report_service_category_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_service_category(id);
+    ADD CONSTRAINT diagnostic_report_service_category_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_service_category(id) ON DELETE CASCADE;
 
 
 --
@@ -61592,7 +61614,7 @@ ALTER TABLE ONLY diagnostic_report_service_category_cd
 --
 
 ALTER TABLE ONLY diagnostic_report_service_category_cd
-    ADD CONSTRAINT diagnostic_report_service_category_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_service_category_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61600,7 +61622,7 @@ ALTER TABLE ONLY diagnostic_report_service_category_cd
 --
 
 ALTER TABLE ONLY diagnostic_report_service_category_cd_vs
-    ADD CONSTRAINT diagnostic_report_service_category_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_service_category_cd(id);
+    ADD CONSTRAINT diagnostic_report_service_category_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_service_category_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -61608,7 +61630,7 @@ ALTER TABLE ONLY diagnostic_report_service_category_cd_vs
 --
 
 ALTER TABLE ONLY diagnostic_report_service_category_cd_vs
-    ADD CONSTRAINT diagnostic_report_service_category_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_service_category_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61616,7 +61638,7 @@ ALTER TABLE ONLY diagnostic_report_service_category_cd_vs
 --
 
 ALTER TABLE ONLY diagnostic_report_service_category
-    ADD CONSTRAINT diagnostic_report_service_category_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_service_category_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61624,7 +61646,7 @@ ALTER TABLE ONLY diagnostic_report_service_category
 --
 
 ALTER TABLE ONLY diagnostic_report_service_category
-    ADD CONSTRAINT diagnostic_report_service_category_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_service_category_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61632,7 +61654,7 @@ ALTER TABLE ONLY diagnostic_report_service_category
 --
 
 ALTER TABLE ONLY diagnostic_report_specimen
-    ADD CONSTRAINT diagnostic_report_specimen_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_specimen_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61640,7 +61662,7 @@ ALTER TABLE ONLY diagnostic_report_specimen
 --
 
 ALTER TABLE ONLY diagnostic_report_specimen
-    ADD CONSTRAINT diagnostic_report_specimen_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_specimen_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61648,7 +61670,7 @@ ALTER TABLE ONLY diagnostic_report_specimen
 --
 
 ALTER TABLE ONLY diagnostic_report_subject
-    ADD CONSTRAINT diagnostic_report_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61656,7 +61678,7 @@ ALTER TABLE ONLY diagnostic_report_subject
 --
 
 ALTER TABLE ONLY diagnostic_report_subject
-    ADD CONSTRAINT diagnostic_report_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61664,7 +61686,7 @@ ALTER TABLE ONLY diagnostic_report_subject
 --
 
 ALTER TABLE ONLY diagnostic_report_text
-    ADD CONSTRAINT diagnostic_report_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61672,7 +61694,7 @@ ALTER TABLE ONLY diagnostic_report_text
 --
 
 ALTER TABLE ONLY diagnostic_report_text
-    ADD CONSTRAINT diagnostic_report_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id);
+    ADD CONSTRAINT diagnostic_report_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(id) ON DELETE CASCADE;
 
 
 --
@@ -61680,7 +61702,7 @@ ALTER TABLE ONLY diagnostic_report_text
 --
 
 ALTER TABLE ONLY document_manifest_author
-    ADD CONSTRAINT document_manifest_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61688,7 +61710,7 @@ ALTER TABLE ONLY document_manifest_author
 --
 
 ALTER TABLE ONLY document_manifest_author
-    ADD CONSTRAINT document_manifest_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61696,7 +61718,7 @@ ALTER TABLE ONLY document_manifest_author
 --
 
 ALTER TABLE ONLY document_manifest_confidentiality_cd
-    ADD CONSTRAINT document_manifest_confidentiality_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_confidentiality(id);
+    ADD CONSTRAINT document_manifest_confidentiality_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_confidentiality(id) ON DELETE CASCADE;
 
 
 --
@@ -61704,7 +61726,7 @@ ALTER TABLE ONLY document_manifest_confidentiality_cd
 --
 
 ALTER TABLE ONLY document_manifest_confidentiality_cd
-    ADD CONSTRAINT document_manifest_confidentiality_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_confidentiality_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61712,7 +61734,7 @@ ALTER TABLE ONLY document_manifest_confidentiality_cd
 --
 
 ALTER TABLE ONLY document_manifest_confidentiality_cd_vs
-    ADD CONSTRAINT document_manifest_confidentiality_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_confidentiality_cd(id);
+    ADD CONSTRAINT document_manifest_confidentiality_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_confidentiality_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -61720,7 +61742,7 @@ ALTER TABLE ONLY document_manifest_confidentiality_cd_vs
 --
 
 ALTER TABLE ONLY document_manifest_confidentiality_cd_vs
-    ADD CONSTRAINT document_manifest_confidentiality_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_confidentiality_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61728,7 +61750,7 @@ ALTER TABLE ONLY document_manifest_confidentiality_cd_vs
 --
 
 ALTER TABLE ONLY document_manifest_confidentiality
-    ADD CONSTRAINT document_manifest_confidentiality_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_confidentiality_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61736,7 +61758,7 @@ ALTER TABLE ONLY document_manifest_confidentiality
 --
 
 ALTER TABLE ONLY document_manifest_confidentiality
-    ADD CONSTRAINT document_manifest_confidentiality_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_confidentiality_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61744,7 +61766,7 @@ ALTER TABLE ONLY document_manifest_confidentiality
 --
 
 ALTER TABLE ONLY document_manifest_content
-    ADD CONSTRAINT document_manifest_content_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_content_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61752,7 +61774,7 @@ ALTER TABLE ONLY document_manifest_content
 --
 
 ALTER TABLE ONLY document_manifest_content
-    ADD CONSTRAINT document_manifest_content_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_content_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61760,7 +61782,7 @@ ALTER TABLE ONLY document_manifest_content
 --
 
 ALTER TABLE ONLY document_manifest_idn_assigner
-    ADD CONSTRAINT document_manifest_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_idn(id);
+    ADD CONSTRAINT document_manifest_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -61768,7 +61790,7 @@ ALTER TABLE ONLY document_manifest_idn_assigner
 --
 
 ALTER TABLE ONLY document_manifest_idn_assigner
-    ADD CONSTRAINT document_manifest_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61776,7 +61798,7 @@ ALTER TABLE ONLY document_manifest_idn_assigner
 --
 
 ALTER TABLE ONLY document_manifest_idn
-    ADD CONSTRAINT document_manifest_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61784,7 +61806,7 @@ ALTER TABLE ONLY document_manifest_idn
 --
 
 ALTER TABLE ONLY document_manifest_idn_period
-    ADD CONSTRAINT document_manifest_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_idn(id);
+    ADD CONSTRAINT document_manifest_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -61792,7 +61814,7 @@ ALTER TABLE ONLY document_manifest_idn_period
 --
 
 ALTER TABLE ONLY document_manifest_idn_period
-    ADD CONSTRAINT document_manifest_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61800,7 +61822,7 @@ ALTER TABLE ONLY document_manifest_idn_period
 --
 
 ALTER TABLE ONLY document_manifest_idn
-    ADD CONSTRAINT document_manifest_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61808,7 +61830,7 @@ ALTER TABLE ONLY document_manifest_idn
 --
 
 ALTER TABLE ONLY document_manifest_master_identifier_assigner
-    ADD CONSTRAINT document_manifest_master_identifier_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_master_identifier(id);
+    ADD CONSTRAINT document_manifest_master_identifier_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_master_identifier(id) ON DELETE CASCADE;
 
 
 --
@@ -61816,7 +61838,7 @@ ALTER TABLE ONLY document_manifest_master_identifier_assigner
 --
 
 ALTER TABLE ONLY document_manifest_master_identifier_assigner
-    ADD CONSTRAINT document_manifest_master_identifier_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_master_identifier_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61824,7 +61846,7 @@ ALTER TABLE ONLY document_manifest_master_identifier_assigner
 --
 
 ALTER TABLE ONLY document_manifest_master_identifier
-    ADD CONSTRAINT document_manifest_master_identifier_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_master_identifier_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61832,7 +61854,7 @@ ALTER TABLE ONLY document_manifest_master_identifier
 --
 
 ALTER TABLE ONLY document_manifest_master_identifier_period
-    ADD CONSTRAINT document_manifest_master_identifier_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_master_identifier(id);
+    ADD CONSTRAINT document_manifest_master_identifier_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_master_identifier(id) ON DELETE CASCADE;
 
 
 --
@@ -61840,7 +61862,7 @@ ALTER TABLE ONLY document_manifest_master_identifier_period
 --
 
 ALTER TABLE ONLY document_manifest_master_identifier_period
-    ADD CONSTRAINT document_manifest_master_identifier_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_master_identifier_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61848,7 +61870,7 @@ ALTER TABLE ONLY document_manifest_master_identifier_period
 --
 
 ALTER TABLE ONLY document_manifest_master_identifier
-    ADD CONSTRAINT document_manifest_master_identifier_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_master_identifier_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61856,7 +61878,7 @@ ALTER TABLE ONLY document_manifest_master_identifier
 --
 
 ALTER TABLE ONLY document_manifest_recipient
-    ADD CONSTRAINT document_manifest_recipient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_recipient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61864,7 +61886,7 @@ ALTER TABLE ONLY document_manifest_recipient
 --
 
 ALTER TABLE ONLY document_manifest_recipient
-    ADD CONSTRAINT document_manifest_recipient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_recipient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61872,7 +61894,7 @@ ALTER TABLE ONLY document_manifest_recipient
 --
 
 ALTER TABLE ONLY document_manifest_subject
-    ADD CONSTRAINT document_manifest_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61880,7 +61902,7 @@ ALTER TABLE ONLY document_manifest_subject
 --
 
 ALTER TABLE ONLY document_manifest_subject
-    ADD CONSTRAINT document_manifest_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61888,7 +61910,7 @@ ALTER TABLE ONLY document_manifest_subject
 --
 
 ALTER TABLE ONLY document_manifest_supercedes
-    ADD CONSTRAINT document_manifest_supercedes_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_supercedes_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61896,7 +61918,7 @@ ALTER TABLE ONLY document_manifest_supercedes
 --
 
 ALTER TABLE ONLY document_manifest_supercedes
-    ADD CONSTRAINT document_manifest_supercedes_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_supercedes_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61904,7 +61926,7 @@ ALTER TABLE ONLY document_manifest_supercedes
 --
 
 ALTER TABLE ONLY document_manifest_text
-    ADD CONSTRAINT document_manifest_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61912,7 +61934,7 @@ ALTER TABLE ONLY document_manifest_text
 --
 
 ALTER TABLE ONLY document_manifest_text
-    ADD CONSTRAINT document_manifest_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61920,7 +61942,7 @@ ALTER TABLE ONLY document_manifest_text
 --
 
 ALTER TABLE ONLY document_manifest_type_cd
-    ADD CONSTRAINT document_manifest_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_type(id);
+    ADD CONSTRAINT document_manifest_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_type(id) ON DELETE CASCADE;
 
 
 --
@@ -61928,7 +61950,7 @@ ALTER TABLE ONLY document_manifest_type_cd
 --
 
 ALTER TABLE ONLY document_manifest_type_cd
-    ADD CONSTRAINT document_manifest_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61936,7 +61958,7 @@ ALTER TABLE ONLY document_manifest_type_cd
 --
 
 ALTER TABLE ONLY document_manifest_type_cd_vs
-    ADD CONSTRAINT document_manifest_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_type_cd(id);
+    ADD CONSTRAINT document_manifest_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -61944,7 +61966,7 @@ ALTER TABLE ONLY document_manifest_type_cd_vs
 --
 
 ALTER TABLE ONLY document_manifest_type_cd_vs
-    ADD CONSTRAINT document_manifest_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61952,7 +61974,7 @@ ALTER TABLE ONLY document_manifest_type_cd_vs
 --
 
 ALTER TABLE ONLY document_manifest_type
-    ADD CONSTRAINT document_manifest_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61960,7 +61982,7 @@ ALTER TABLE ONLY document_manifest_type
 --
 
 ALTER TABLE ONLY document_manifest_type
-    ADD CONSTRAINT document_manifest_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id);
+    ADD CONSTRAINT document_manifest_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(id) ON DELETE CASCADE;
 
 
 --
@@ -61968,7 +61990,7 @@ ALTER TABLE ONLY document_manifest_type
 --
 
 ALTER TABLE ONLY document_reference_authenticator
-    ADD CONSTRAINT document_reference_authenticator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_authenticator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -61976,7 +61998,7 @@ ALTER TABLE ONLY document_reference_authenticator
 --
 
 ALTER TABLE ONLY document_reference_authenticator
-    ADD CONSTRAINT document_reference_authenticator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_authenticator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -61984,7 +62006,7 @@ ALTER TABLE ONLY document_reference_authenticator
 --
 
 ALTER TABLE ONLY document_reference_author
-    ADD CONSTRAINT document_reference_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -61992,7 +62014,7 @@ ALTER TABLE ONLY document_reference_author
 --
 
 ALTER TABLE ONLY document_reference_author
-    ADD CONSTRAINT document_reference_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62000,7 +62022,7 @@ ALTER TABLE ONLY document_reference_author
 --
 
 ALTER TABLE ONLY document_reference_class_cd
-    ADD CONSTRAINT document_reference_class_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_class(id);
+    ADD CONSTRAINT document_reference_class_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_class(id) ON DELETE CASCADE;
 
 
 --
@@ -62008,7 +62030,7 @@ ALTER TABLE ONLY document_reference_class_cd
 --
 
 ALTER TABLE ONLY document_reference_class_cd
-    ADD CONSTRAINT document_reference_class_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_class_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62016,7 +62038,7 @@ ALTER TABLE ONLY document_reference_class_cd
 --
 
 ALTER TABLE ONLY document_reference_class_cd_vs
-    ADD CONSTRAINT document_reference_class_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_class_cd(id);
+    ADD CONSTRAINT document_reference_class_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_class_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -62024,7 +62046,7 @@ ALTER TABLE ONLY document_reference_class_cd_vs
 --
 
 ALTER TABLE ONLY document_reference_class_cd_vs
-    ADD CONSTRAINT document_reference_class_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_class_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62032,7 +62054,7 @@ ALTER TABLE ONLY document_reference_class_cd_vs
 --
 
 ALTER TABLE ONLY document_reference_class
-    ADD CONSTRAINT document_reference_class_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_class_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62040,7 +62062,7 @@ ALTER TABLE ONLY document_reference_class
 --
 
 ALTER TABLE ONLY document_reference_class
-    ADD CONSTRAINT document_reference_class_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_class_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62048,7 +62070,7 @@ ALTER TABLE ONLY document_reference_class
 --
 
 ALTER TABLE ONLY document_reference_confidentiality_cd
-    ADD CONSTRAINT document_reference_confidentiality_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_confidentiality(id);
+    ADD CONSTRAINT document_reference_confidentiality_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_confidentiality(id) ON DELETE CASCADE;
 
 
 --
@@ -62056,7 +62078,7 @@ ALTER TABLE ONLY document_reference_confidentiality_cd
 --
 
 ALTER TABLE ONLY document_reference_confidentiality_cd
-    ADD CONSTRAINT document_reference_confidentiality_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_confidentiality_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62064,7 +62086,7 @@ ALTER TABLE ONLY document_reference_confidentiality_cd
 --
 
 ALTER TABLE ONLY document_reference_confidentiality_cd_vs
-    ADD CONSTRAINT document_reference_confidentiality_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_confidentiality_cd(id);
+    ADD CONSTRAINT document_reference_confidentiality_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_confidentiality_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -62072,7 +62094,7 @@ ALTER TABLE ONLY document_reference_confidentiality_cd_vs
 --
 
 ALTER TABLE ONLY document_reference_confidentiality_cd_vs
-    ADD CONSTRAINT document_reference_confidentiality_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_confidentiality_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62080,7 +62102,7 @@ ALTER TABLE ONLY document_reference_confidentiality_cd_vs
 --
 
 ALTER TABLE ONLY document_reference_confidentiality
-    ADD CONSTRAINT document_reference_confidentiality_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_confidentiality_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62088,7 +62110,7 @@ ALTER TABLE ONLY document_reference_confidentiality
 --
 
 ALTER TABLE ONLY document_reference_confidentiality
-    ADD CONSTRAINT document_reference_confidentiality_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_confidentiality_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62096,7 +62118,7 @@ ALTER TABLE ONLY document_reference_confidentiality
 --
 
 ALTER TABLE ONLY document_reference_context_event_cd
-    ADD CONSTRAINT document_reference_context_event_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context_event(id);
+    ADD CONSTRAINT document_reference_context_event_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context_event(id) ON DELETE CASCADE;
 
 
 --
@@ -62104,7 +62126,7 @@ ALTER TABLE ONLY document_reference_context_event_cd
 --
 
 ALTER TABLE ONLY document_reference_context_event_cd
-    ADD CONSTRAINT document_reference_context_event_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_context_event_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62112,7 +62134,7 @@ ALTER TABLE ONLY document_reference_context_event_cd
 --
 
 ALTER TABLE ONLY document_reference_context_event_cd_vs
-    ADD CONSTRAINT document_reference_context_event_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context_event_cd(id);
+    ADD CONSTRAINT document_reference_context_event_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context_event_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -62120,7 +62142,7 @@ ALTER TABLE ONLY document_reference_context_event_cd_vs
 --
 
 ALTER TABLE ONLY document_reference_context_event_cd_vs
-    ADD CONSTRAINT document_reference_context_event_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_context_event_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62128,7 +62150,7 @@ ALTER TABLE ONLY document_reference_context_event_cd_vs
 --
 
 ALTER TABLE ONLY document_reference_context_event
-    ADD CONSTRAINT document_reference_context_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context(id);
+    ADD CONSTRAINT document_reference_context_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context(id) ON DELETE CASCADE;
 
 
 --
@@ -62136,7 +62158,7 @@ ALTER TABLE ONLY document_reference_context_event
 --
 
 ALTER TABLE ONLY document_reference_context_event
-    ADD CONSTRAINT document_reference_context_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_context_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62144,7 +62166,7 @@ ALTER TABLE ONLY document_reference_context_event
 --
 
 ALTER TABLE ONLY document_reference_context_facility_type_cd
-    ADD CONSTRAINT document_reference_context_facility_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context_facility_type(id);
+    ADD CONSTRAINT document_reference_context_facility_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context_facility_type(id) ON DELETE CASCADE;
 
 
 --
@@ -62152,7 +62174,7 @@ ALTER TABLE ONLY document_reference_context_facility_type_cd
 --
 
 ALTER TABLE ONLY document_reference_context_facility_type_cd
-    ADD CONSTRAINT document_reference_context_facility_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_context_facility_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62160,7 +62182,7 @@ ALTER TABLE ONLY document_reference_context_facility_type_cd
 --
 
 ALTER TABLE ONLY document_reference_context_facility_type_cd_vs
-    ADD CONSTRAINT document_reference_context_facility_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context_facility_type_cd(id);
+    ADD CONSTRAINT document_reference_context_facility_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context_facility_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -62168,7 +62190,7 @@ ALTER TABLE ONLY document_reference_context_facility_type_cd_vs
 --
 
 ALTER TABLE ONLY document_reference_context_facility_type_cd_vs
-    ADD CONSTRAINT document_reference_context_facility_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_context_facility_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62176,7 +62198,7 @@ ALTER TABLE ONLY document_reference_context_facility_type_cd_vs
 --
 
 ALTER TABLE ONLY document_reference_context_facility_type
-    ADD CONSTRAINT document_reference_context_facility_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context(id);
+    ADD CONSTRAINT document_reference_context_facility_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context(id) ON DELETE CASCADE;
 
 
 --
@@ -62184,7 +62206,7 @@ ALTER TABLE ONLY document_reference_context_facility_type
 --
 
 ALTER TABLE ONLY document_reference_context_facility_type
-    ADD CONSTRAINT document_reference_context_facility_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_context_facility_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62192,7 +62214,7 @@ ALTER TABLE ONLY document_reference_context_facility_type
 --
 
 ALTER TABLE ONLY document_reference_context
-    ADD CONSTRAINT document_reference_context_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_context_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62200,7 +62222,7 @@ ALTER TABLE ONLY document_reference_context
 --
 
 ALTER TABLE ONLY document_reference_context_period
-    ADD CONSTRAINT document_reference_context_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context(id);
+    ADD CONSTRAINT document_reference_context_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context(id) ON DELETE CASCADE;
 
 
 --
@@ -62208,7 +62230,7 @@ ALTER TABLE ONLY document_reference_context_period
 --
 
 ALTER TABLE ONLY document_reference_context_period
-    ADD CONSTRAINT document_reference_context_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_context_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62216,7 +62238,7 @@ ALTER TABLE ONLY document_reference_context_period
 --
 
 ALTER TABLE ONLY document_reference_context
-    ADD CONSTRAINT document_reference_context_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_context_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62224,7 +62246,7 @@ ALTER TABLE ONLY document_reference_context
 --
 
 ALTER TABLE ONLY document_reference_custodian
-    ADD CONSTRAINT document_reference_custodian_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_custodian_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62232,7 +62254,7 @@ ALTER TABLE ONLY document_reference_custodian
 --
 
 ALTER TABLE ONLY document_reference_custodian
-    ADD CONSTRAINT document_reference_custodian_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_custodian_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62240,7 +62262,7 @@ ALTER TABLE ONLY document_reference_custodian
 --
 
 ALTER TABLE ONLY document_reference_doc_status_cd
-    ADD CONSTRAINT document_reference_doc_status_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_doc_status(id);
+    ADD CONSTRAINT document_reference_doc_status_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_doc_status(id) ON DELETE CASCADE;
 
 
 --
@@ -62248,7 +62270,7 @@ ALTER TABLE ONLY document_reference_doc_status_cd
 --
 
 ALTER TABLE ONLY document_reference_doc_status_cd
-    ADD CONSTRAINT document_reference_doc_status_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_doc_status_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62256,7 +62278,7 @@ ALTER TABLE ONLY document_reference_doc_status_cd
 --
 
 ALTER TABLE ONLY document_reference_doc_status_cd_vs
-    ADD CONSTRAINT document_reference_doc_status_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_doc_status_cd(id);
+    ADD CONSTRAINT document_reference_doc_status_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_doc_status_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -62264,7 +62286,7 @@ ALTER TABLE ONLY document_reference_doc_status_cd_vs
 --
 
 ALTER TABLE ONLY document_reference_doc_status_cd_vs
-    ADD CONSTRAINT document_reference_doc_status_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_doc_status_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62272,7 +62294,7 @@ ALTER TABLE ONLY document_reference_doc_status_cd_vs
 --
 
 ALTER TABLE ONLY document_reference_doc_status
-    ADD CONSTRAINT document_reference_doc_status_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_doc_status_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62280,7 +62302,7 @@ ALTER TABLE ONLY document_reference_doc_status
 --
 
 ALTER TABLE ONLY document_reference_doc_status
-    ADD CONSTRAINT document_reference_doc_status_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_doc_status_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62288,7 +62310,7 @@ ALTER TABLE ONLY document_reference_doc_status
 --
 
 ALTER TABLE ONLY document_reference_idn_assigner
-    ADD CONSTRAINT document_reference_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_idn(id);
+    ADD CONSTRAINT document_reference_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -62296,7 +62318,7 @@ ALTER TABLE ONLY document_reference_idn_assigner
 --
 
 ALTER TABLE ONLY document_reference_idn_assigner
-    ADD CONSTRAINT document_reference_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62304,7 +62326,7 @@ ALTER TABLE ONLY document_reference_idn_assigner
 --
 
 ALTER TABLE ONLY document_reference_idn
-    ADD CONSTRAINT document_reference_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62312,7 +62334,7 @@ ALTER TABLE ONLY document_reference_idn
 --
 
 ALTER TABLE ONLY document_reference_idn_period
-    ADD CONSTRAINT document_reference_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_idn(id);
+    ADD CONSTRAINT document_reference_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -62320,7 +62342,7 @@ ALTER TABLE ONLY document_reference_idn_period
 --
 
 ALTER TABLE ONLY document_reference_idn_period
-    ADD CONSTRAINT document_reference_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62328,7 +62350,7 @@ ALTER TABLE ONLY document_reference_idn_period
 --
 
 ALTER TABLE ONLY document_reference_idn
-    ADD CONSTRAINT document_reference_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62336,7 +62358,7 @@ ALTER TABLE ONLY document_reference_idn
 --
 
 ALTER TABLE ONLY document_reference_master_identifier_assigner
-    ADD CONSTRAINT document_reference_master_identifier_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_master_identifier(id);
+    ADD CONSTRAINT document_reference_master_identifier_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_master_identifier(id) ON DELETE CASCADE;
 
 
 --
@@ -62344,7 +62366,7 @@ ALTER TABLE ONLY document_reference_master_identifier_assigner
 --
 
 ALTER TABLE ONLY document_reference_master_identifier_assigner
-    ADD CONSTRAINT document_reference_master_identifier_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_master_identifier_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62352,7 +62374,7 @@ ALTER TABLE ONLY document_reference_master_identifier_assigner
 --
 
 ALTER TABLE ONLY document_reference_master_identifier
-    ADD CONSTRAINT document_reference_master_identifier_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_master_identifier_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62360,7 +62382,7 @@ ALTER TABLE ONLY document_reference_master_identifier
 --
 
 ALTER TABLE ONLY document_reference_master_identifier_period
-    ADD CONSTRAINT document_reference_master_identifier_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_master_identifier(id);
+    ADD CONSTRAINT document_reference_master_identifier_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_master_identifier(id) ON DELETE CASCADE;
 
 
 --
@@ -62368,7 +62390,7 @@ ALTER TABLE ONLY document_reference_master_identifier_period
 --
 
 ALTER TABLE ONLY document_reference_master_identifier_period
-    ADD CONSTRAINT document_reference_master_identifier_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_master_identifier_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62376,7 +62398,7 @@ ALTER TABLE ONLY document_reference_master_identifier_period
 --
 
 ALTER TABLE ONLY document_reference_master_identifier
-    ADD CONSTRAINT document_reference_master_identifier_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_master_identifier_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62384,7 +62406,7 @@ ALTER TABLE ONLY document_reference_master_identifier
 --
 
 ALTER TABLE ONLY document_reference_relates_to
-    ADD CONSTRAINT document_reference_relates_to_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_relates_to_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62392,7 +62414,7 @@ ALTER TABLE ONLY document_reference_relates_to
 --
 
 ALTER TABLE ONLY document_reference_relates_to
-    ADD CONSTRAINT document_reference_relates_to_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_relates_to_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62400,7 +62422,7 @@ ALTER TABLE ONLY document_reference_relates_to
 --
 
 ALTER TABLE ONLY document_reference_relates_to_target
-    ADD CONSTRAINT document_reference_relates_to_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_relates_to(id);
+    ADD CONSTRAINT document_reference_relates_to_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_relates_to(id) ON DELETE CASCADE;
 
 
 --
@@ -62408,7 +62430,7 @@ ALTER TABLE ONLY document_reference_relates_to_target
 --
 
 ALTER TABLE ONLY document_reference_relates_to_target
-    ADD CONSTRAINT document_reference_relates_to_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_relates_to_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62416,7 +62438,7 @@ ALTER TABLE ONLY document_reference_relates_to_target
 --
 
 ALTER TABLE ONLY document_reference_service_parameter
-    ADD CONSTRAINT document_reference_service_parameter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_service(id);
+    ADD CONSTRAINT document_reference_service_parameter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_service(id) ON DELETE CASCADE;
 
 
 --
@@ -62424,7 +62446,7 @@ ALTER TABLE ONLY document_reference_service_parameter
 --
 
 ALTER TABLE ONLY document_reference_service_parameter
-    ADD CONSTRAINT document_reference_service_parameter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_service_parameter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62432,7 +62454,7 @@ ALTER TABLE ONLY document_reference_service_parameter
 --
 
 ALTER TABLE ONLY document_reference_service
-    ADD CONSTRAINT document_reference_service_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_service_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62440,7 +62462,7 @@ ALTER TABLE ONLY document_reference_service
 --
 
 ALTER TABLE ONLY document_reference_service
-    ADD CONSTRAINT document_reference_service_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_service_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62448,7 +62470,7 @@ ALTER TABLE ONLY document_reference_service
 --
 
 ALTER TABLE ONLY document_reference_service_type_cd
-    ADD CONSTRAINT document_reference_service_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_service_type(id);
+    ADD CONSTRAINT document_reference_service_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_service_type(id) ON DELETE CASCADE;
 
 
 --
@@ -62456,7 +62478,7 @@ ALTER TABLE ONLY document_reference_service_type_cd
 --
 
 ALTER TABLE ONLY document_reference_service_type_cd
-    ADD CONSTRAINT document_reference_service_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_service_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62464,7 +62486,7 @@ ALTER TABLE ONLY document_reference_service_type_cd
 --
 
 ALTER TABLE ONLY document_reference_service_type_cd_vs
-    ADD CONSTRAINT document_reference_service_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_service_type_cd(id);
+    ADD CONSTRAINT document_reference_service_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_service_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -62472,7 +62494,7 @@ ALTER TABLE ONLY document_reference_service_type_cd_vs
 --
 
 ALTER TABLE ONLY document_reference_service_type_cd_vs
-    ADD CONSTRAINT document_reference_service_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_service_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62480,7 +62502,7 @@ ALTER TABLE ONLY document_reference_service_type_cd_vs
 --
 
 ALTER TABLE ONLY document_reference_service_type
-    ADD CONSTRAINT document_reference_service_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_service(id);
+    ADD CONSTRAINT document_reference_service_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_service(id) ON DELETE CASCADE;
 
 
 --
@@ -62488,7 +62510,7 @@ ALTER TABLE ONLY document_reference_service_type
 --
 
 ALTER TABLE ONLY document_reference_service_type
-    ADD CONSTRAINT document_reference_service_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_service_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62496,7 +62518,7 @@ ALTER TABLE ONLY document_reference_service_type
 --
 
 ALTER TABLE ONLY document_reference_subject
-    ADD CONSTRAINT document_reference_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62504,7 +62526,7 @@ ALTER TABLE ONLY document_reference_subject
 --
 
 ALTER TABLE ONLY document_reference_subject
-    ADD CONSTRAINT document_reference_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62512,7 +62534,7 @@ ALTER TABLE ONLY document_reference_subject
 --
 
 ALTER TABLE ONLY document_reference_text
-    ADD CONSTRAINT document_reference_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62520,7 +62542,7 @@ ALTER TABLE ONLY document_reference_text
 --
 
 ALTER TABLE ONLY document_reference_text
-    ADD CONSTRAINT document_reference_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62528,7 +62550,7 @@ ALTER TABLE ONLY document_reference_text
 --
 
 ALTER TABLE ONLY document_reference_type_cd
-    ADD CONSTRAINT document_reference_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_type(id);
+    ADD CONSTRAINT document_reference_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_type(id) ON DELETE CASCADE;
 
 
 --
@@ -62536,7 +62558,7 @@ ALTER TABLE ONLY document_reference_type_cd
 --
 
 ALTER TABLE ONLY document_reference_type_cd
-    ADD CONSTRAINT document_reference_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62544,7 +62566,7 @@ ALTER TABLE ONLY document_reference_type_cd
 --
 
 ALTER TABLE ONLY document_reference_type_cd_vs
-    ADD CONSTRAINT document_reference_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_type_cd(id);
+    ADD CONSTRAINT document_reference_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -62552,7 +62574,7 @@ ALTER TABLE ONLY document_reference_type_cd_vs
 --
 
 ALTER TABLE ONLY document_reference_type_cd_vs
-    ADD CONSTRAINT document_reference_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62560,7 +62582,7 @@ ALTER TABLE ONLY document_reference_type_cd_vs
 --
 
 ALTER TABLE ONLY document_reference_type
-    ADD CONSTRAINT document_reference_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62568,7 +62590,7 @@ ALTER TABLE ONLY document_reference_type
 --
 
 ALTER TABLE ONLY document_reference_type
-    ADD CONSTRAINT document_reference_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id);
+    ADD CONSTRAINT document_reference_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(id) ON DELETE CASCADE;
 
 
 --
@@ -62576,7 +62598,7 @@ ALTER TABLE ONLY document_reference_type
 --
 
 ALTER TABLE ONLY encounter_hospitalization_accomodation_bed
-    ADD CONSTRAINT encounter_hospitalization_accomodation_bed_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_accomodation(id);
+    ADD CONSTRAINT encounter_hospitalization_accomodation_bed_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_accomodation(id) ON DELETE CASCADE;
 
 
 --
@@ -62584,7 +62606,7 @@ ALTER TABLE ONLY encounter_hospitalization_accomodation_bed
 --
 
 ALTER TABLE ONLY encounter_hospitalization_accomodation_bed
-    ADD CONSTRAINT encounter_hospitalization_accomodation_bed_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_accomodation_bed_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62592,7 +62614,7 @@ ALTER TABLE ONLY encounter_hospitalization_accomodation_bed
 --
 
 ALTER TABLE ONLY encounter_hospitalization_accomodation
-    ADD CONSTRAINT encounter_hospitalization_accomodation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id);
+    ADD CONSTRAINT encounter_hospitalization_accomodation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id) ON DELETE CASCADE;
 
 
 --
@@ -62600,7 +62622,7 @@ ALTER TABLE ONLY encounter_hospitalization_accomodation
 --
 
 ALTER TABLE ONLY encounter_hospitalization_accomodation_period
-    ADD CONSTRAINT encounter_hospitalization_accomodation_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_accomodation(id);
+    ADD CONSTRAINT encounter_hospitalization_accomodation_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_accomodation(id) ON DELETE CASCADE;
 
 
 --
@@ -62608,7 +62630,7 @@ ALTER TABLE ONLY encounter_hospitalization_accomodation_period
 --
 
 ALTER TABLE ONLY encounter_hospitalization_accomodation_period
-    ADD CONSTRAINT encounter_hospitalization_accomodation_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_accomodation_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62616,7 +62638,7 @@ ALTER TABLE ONLY encounter_hospitalization_accomodation_period
 --
 
 ALTER TABLE ONLY encounter_hospitalization_accomodation
-    ADD CONSTRAINT encounter_hospitalization_accomodation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_accomodation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62624,7 +62646,7 @@ ALTER TABLE ONLY encounter_hospitalization_accomodation
 --
 
 ALTER TABLE ONLY encounter_hospitalization_admit_source_cd
-    ADD CONSTRAINT encounter_hospitalization_admit_source_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_admit_source(id);
+    ADD CONSTRAINT encounter_hospitalization_admit_source_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_admit_source(id) ON DELETE CASCADE;
 
 
 --
@@ -62632,7 +62654,7 @@ ALTER TABLE ONLY encounter_hospitalization_admit_source_cd
 --
 
 ALTER TABLE ONLY encounter_hospitalization_admit_source_cd
-    ADD CONSTRAINT encounter_hospitalization_admit_source_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_admit_source_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62640,7 +62662,7 @@ ALTER TABLE ONLY encounter_hospitalization_admit_source_cd
 --
 
 ALTER TABLE ONLY encounter_hospitalization_admit_source_cd_vs
-    ADD CONSTRAINT encounter_hospitalization_admit_source_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_admit_source_cd(id);
+    ADD CONSTRAINT encounter_hospitalization_admit_source_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_admit_source_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -62648,7 +62670,7 @@ ALTER TABLE ONLY encounter_hospitalization_admit_source_cd_vs
 --
 
 ALTER TABLE ONLY encounter_hospitalization_admit_source_cd_vs
-    ADD CONSTRAINT encounter_hospitalization_admit_source_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_admit_source_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62656,7 +62678,7 @@ ALTER TABLE ONLY encounter_hospitalization_admit_source_cd_vs
 --
 
 ALTER TABLE ONLY encounter_hospitalization_admit_source
-    ADD CONSTRAINT encounter_hospitalization_admit_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id);
+    ADD CONSTRAINT encounter_hospitalization_admit_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id) ON DELETE CASCADE;
 
 
 --
@@ -62664,7 +62686,7 @@ ALTER TABLE ONLY encounter_hospitalization_admit_source
 --
 
 ALTER TABLE ONLY encounter_hospitalization_admit_source
-    ADD CONSTRAINT encounter_hospitalization_admit_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_admit_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62672,7 +62694,7 @@ ALTER TABLE ONLY encounter_hospitalization_admit_source
 --
 
 ALTER TABLE ONLY encounter_hospitalization_destination
-    ADD CONSTRAINT encounter_hospitalization_destination_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id);
+    ADD CONSTRAINT encounter_hospitalization_destination_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id) ON DELETE CASCADE;
 
 
 --
@@ -62680,7 +62702,7 @@ ALTER TABLE ONLY encounter_hospitalization_destination
 --
 
 ALTER TABLE ONLY encounter_hospitalization_destination
-    ADD CONSTRAINT encounter_hospitalization_destination_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_destination_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62688,7 +62710,7 @@ ALTER TABLE ONLY encounter_hospitalization_destination
 --
 
 ALTER TABLE ONLY encounter_hospitalization_diet_cd
-    ADD CONSTRAINT encounter_hospitalization_diet_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_diet(id);
+    ADD CONSTRAINT encounter_hospitalization_diet_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_diet(id) ON DELETE CASCADE;
 
 
 --
@@ -62696,7 +62718,7 @@ ALTER TABLE ONLY encounter_hospitalization_diet_cd
 --
 
 ALTER TABLE ONLY encounter_hospitalization_diet_cd
-    ADD CONSTRAINT encounter_hospitalization_diet_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_diet_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62704,7 +62726,7 @@ ALTER TABLE ONLY encounter_hospitalization_diet_cd
 --
 
 ALTER TABLE ONLY encounter_hospitalization_diet_cd_vs
-    ADD CONSTRAINT encounter_hospitalization_diet_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_diet_cd(id);
+    ADD CONSTRAINT encounter_hospitalization_diet_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_diet_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -62712,7 +62734,7 @@ ALTER TABLE ONLY encounter_hospitalization_diet_cd_vs
 --
 
 ALTER TABLE ONLY encounter_hospitalization_diet_cd_vs
-    ADD CONSTRAINT encounter_hospitalization_diet_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_diet_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62720,7 +62742,7 @@ ALTER TABLE ONLY encounter_hospitalization_diet_cd_vs
 --
 
 ALTER TABLE ONLY encounter_hospitalization_diet
-    ADD CONSTRAINT encounter_hospitalization_diet_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id);
+    ADD CONSTRAINT encounter_hospitalization_diet_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id) ON DELETE CASCADE;
 
 
 --
@@ -62728,7 +62750,7 @@ ALTER TABLE ONLY encounter_hospitalization_diet
 --
 
 ALTER TABLE ONLY encounter_hospitalization_diet
-    ADD CONSTRAINT encounter_hospitalization_diet_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_diet_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62736,7 +62758,7 @@ ALTER TABLE ONLY encounter_hospitalization_diet
 --
 
 ALTER TABLE ONLY encounter_hospitalization_discharge_diagnosis
-    ADD CONSTRAINT encounter_hospitalization_discharge_diagnosis_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id);
+    ADD CONSTRAINT encounter_hospitalization_discharge_diagnosis_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id) ON DELETE CASCADE;
 
 
 --
@@ -62744,7 +62766,7 @@ ALTER TABLE ONLY encounter_hospitalization_discharge_diagnosis
 --
 
 ALTER TABLE ONLY encounter_hospitalization_discharge_diagnosis
-    ADD CONSTRAINT encounter_hospitalization_discharge_diagnosis_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_discharge_diagnosis_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62752,7 +62774,7 @@ ALTER TABLE ONLY encounter_hospitalization_discharge_diagnosis
 --
 
 ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd
-    ADD CONSTRAINT encounter_hospitalization_discharge_dispositi_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_discharge_dispositi_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62760,7 +62782,7 @@ ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd
 --
 
 ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd_vs
-    ADD CONSTRAINT encounter_hospitalization_discharge_dispositi_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_discharge_dispositi_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62768,7 +62790,7 @@ ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd_vs
 --
 
 ALTER TABLE ONLY encounter_hospitalization_discharge_disposition
-    ADD CONSTRAINT encounter_hospitalization_discharge_dispositio_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_discharge_dispositio_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62776,7 +62798,7 @@ ALTER TABLE ONLY encounter_hospitalization_discharge_disposition
 --
 
 ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd
-    ADD CONSTRAINT encounter_hospitalization_discharge_disposition__parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_discharge_disposition(id);
+    ADD CONSTRAINT encounter_hospitalization_discharge_disposition__parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_discharge_disposition(id) ON DELETE CASCADE;
 
 
 --
@@ -62784,7 +62806,7 @@ ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd
 --
 
 ALTER TABLE ONLY encounter_hospitalization_discharge_disposition
-    ADD CONSTRAINT encounter_hospitalization_discharge_disposition_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id);
+    ADD CONSTRAINT encounter_hospitalization_discharge_disposition_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id) ON DELETE CASCADE;
 
 
 --
@@ -62792,7 +62814,7 @@ ALTER TABLE ONLY encounter_hospitalization_discharge_disposition
 --
 
 ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd_vs
-    ADD CONSTRAINT encounter_hospitalization_discharge_disposition_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_discharge_disposition_cd(id);
+    ADD CONSTRAINT encounter_hospitalization_discharge_disposition_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_discharge_disposition_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -62800,7 +62822,7 @@ ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd_vs
 --
 
 ALTER TABLE ONLY encounter_hospitalization_origin
-    ADD CONSTRAINT encounter_hospitalization_origin_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id);
+    ADD CONSTRAINT encounter_hospitalization_origin_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id) ON DELETE CASCADE;
 
 
 --
@@ -62808,7 +62830,7 @@ ALTER TABLE ONLY encounter_hospitalization_origin
 --
 
 ALTER TABLE ONLY encounter_hospitalization_origin
-    ADD CONSTRAINT encounter_hospitalization_origin_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_origin_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62816,7 +62838,7 @@ ALTER TABLE ONLY encounter_hospitalization_origin
 --
 
 ALTER TABLE ONLY encounter_hospitalization
-    ADD CONSTRAINT encounter_hospitalization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62824,7 +62846,7 @@ ALTER TABLE ONLY encounter_hospitalization
 --
 
 ALTER TABLE ONLY encounter_hospitalization_period
-    ADD CONSTRAINT encounter_hospitalization_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id);
+    ADD CONSTRAINT encounter_hospitalization_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id) ON DELETE CASCADE;
 
 
 --
@@ -62832,7 +62854,7 @@ ALTER TABLE ONLY encounter_hospitalization_period
 --
 
 ALTER TABLE ONLY encounter_hospitalization_period
-    ADD CONSTRAINT encounter_hospitalization_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62840,7 +62862,7 @@ ALTER TABLE ONLY encounter_hospitalization_period
 --
 
 ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_assigner
-    ADD CONSTRAINT encounter_hospitalization_pre_admission_ident_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_pre_admission_ident_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62848,7 +62870,7 @@ ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_assigner
 --
 
 ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_period
-    ADD CONSTRAINT encounter_hospitalization_pre_admission_ident_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_pre_admission_ident_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62856,7 +62878,7 @@ ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_period
 --
 
 ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier
-    ADD CONSTRAINT encounter_hospitalization_pre_admission_identi_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_pre_admission_identi_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62864,7 +62886,7 @@ ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier
 --
 
 ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_assigner
-    ADD CONSTRAINT encounter_hospitalization_pre_admission_identif_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_pre_admission_identifier(id);
+    ADD CONSTRAINT encounter_hospitalization_pre_admission_identif_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_pre_admission_identifier(id) ON DELETE CASCADE;
 
 
 --
@@ -62872,7 +62894,7 @@ ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_assigner
 --
 
 ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_period
-    ADD CONSTRAINT encounter_hospitalization_pre_admission_identif_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_pre_admission_identifier(id);
+    ADD CONSTRAINT encounter_hospitalization_pre_admission_identif_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_pre_admission_identifier(id) ON DELETE CASCADE;
 
 
 --
@@ -62880,7 +62902,7 @@ ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_period
 --
 
 ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier
-    ADD CONSTRAINT encounter_hospitalization_pre_admission_identifi_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id);
+    ADD CONSTRAINT encounter_hospitalization_pre_admission_identifi_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id) ON DELETE CASCADE;
 
 
 --
@@ -62888,7 +62910,7 @@ ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier
 --
 
 ALTER TABLE ONLY encounter_hospitalization
-    ADD CONSTRAINT encounter_hospitalization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62896,7 +62918,7 @@ ALTER TABLE ONLY encounter_hospitalization
 --
 
 ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd
-    ADD CONSTRAINT encounter_hospitalization_special_arrangement__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_special_arrangement__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62904,7 +62926,7 @@ ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd
 --
 
 ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd_vs
-    ADD CONSTRAINT encounter_hospitalization_special_arrangement_c_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_special_arrangement_cd(id);
+    ADD CONSTRAINT encounter_hospitalization_special_arrangement_c_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_special_arrangement_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -62912,7 +62934,7 @@ ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd_vs
 --
 
 ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd
-    ADD CONSTRAINT encounter_hospitalization_special_arrangement_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_special_arrangement(id);
+    ADD CONSTRAINT encounter_hospitalization_special_arrangement_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_special_arrangement(id) ON DELETE CASCADE;
 
 
 --
@@ -62920,7 +62942,7 @@ ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd
 --
 
 ALTER TABLE ONLY encounter_hospitalization_special_arrangement
-    ADD CONSTRAINT encounter_hospitalization_special_arrangement_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id);
+    ADD CONSTRAINT encounter_hospitalization_special_arrangement_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id) ON DELETE CASCADE;
 
 
 --
@@ -62928,7 +62950,7 @@ ALTER TABLE ONLY encounter_hospitalization_special_arrangement
 --
 
 ALTER TABLE ONLY encounter_hospitalization_special_arrangement
-    ADD CONSTRAINT encounter_hospitalization_special_arrangement_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_special_arrangement_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62936,7 +62958,7 @@ ALTER TABLE ONLY encounter_hospitalization_special_arrangement
 --
 
 ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd_vs
-    ADD CONSTRAINT encounter_hospitalization_special_arrangement_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_special_arrangement_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62944,7 +62966,7 @@ ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd_vs
 --
 
 ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd_vs
-    ADD CONSTRAINT encounter_hospitalization_special_courtesy_cd__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_special_courtesy_cd__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62952,7 +62974,7 @@ ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd_vs
 --
 
 ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd
-    ADD CONSTRAINT encounter_hospitalization_special_courtesy_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_special_courtesy(id);
+    ADD CONSTRAINT encounter_hospitalization_special_courtesy_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_special_courtesy(id) ON DELETE CASCADE;
 
 
 --
@@ -62960,7 +62982,7 @@ ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd
 --
 
 ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd
-    ADD CONSTRAINT encounter_hospitalization_special_courtesy_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_special_courtesy_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62968,7 +62990,7 @@ ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd
 --
 
 ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd_vs
-    ADD CONSTRAINT encounter_hospitalization_special_courtesy_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_special_courtesy_cd(id);
+    ADD CONSTRAINT encounter_hospitalization_special_courtesy_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_special_courtesy_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -62976,7 +62998,7 @@ ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd_vs
 --
 
 ALTER TABLE ONLY encounter_hospitalization_special_courtesy
-    ADD CONSTRAINT encounter_hospitalization_special_courtesy_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id);
+    ADD CONSTRAINT encounter_hospitalization_special_courtesy_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(id) ON DELETE CASCADE;
 
 
 --
@@ -62984,7 +63006,7 @@ ALTER TABLE ONLY encounter_hospitalization_special_courtesy
 --
 
 ALTER TABLE ONLY encounter_hospitalization_special_courtesy
-    ADD CONSTRAINT encounter_hospitalization_special_courtesy_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_hospitalization_special_courtesy_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -62992,7 +63014,7 @@ ALTER TABLE ONLY encounter_hospitalization_special_courtesy
 --
 
 ALTER TABLE ONLY encounter_idn_assigner
-    ADD CONSTRAINT encounter_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_idn(id);
+    ADD CONSTRAINT encounter_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -63000,7 +63022,7 @@ ALTER TABLE ONLY encounter_idn_assigner
 --
 
 ALTER TABLE ONLY encounter_idn_assigner
-    ADD CONSTRAINT encounter_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63008,7 +63030,7 @@ ALTER TABLE ONLY encounter_idn_assigner
 --
 
 ALTER TABLE ONLY encounter_idn
-    ADD CONSTRAINT encounter_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63016,7 +63038,7 @@ ALTER TABLE ONLY encounter_idn
 --
 
 ALTER TABLE ONLY encounter_idn_period
-    ADD CONSTRAINT encounter_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_idn(id);
+    ADD CONSTRAINT encounter_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -63024,7 +63046,7 @@ ALTER TABLE ONLY encounter_idn_period
 --
 
 ALTER TABLE ONLY encounter_idn_period
-    ADD CONSTRAINT encounter_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63032,7 +63054,7 @@ ALTER TABLE ONLY encounter_idn_period
 --
 
 ALTER TABLE ONLY encounter_idn
-    ADD CONSTRAINT encounter_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63040,7 +63062,7 @@ ALTER TABLE ONLY encounter_idn
 --
 
 ALTER TABLE ONLY encounter_indication
-    ADD CONSTRAINT encounter_indication_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_indication_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63048,7 +63070,7 @@ ALTER TABLE ONLY encounter_indication
 --
 
 ALTER TABLE ONLY encounter_indication
-    ADD CONSTRAINT encounter_indication_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_indication_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63056,7 +63078,7 @@ ALTER TABLE ONLY encounter_indication
 --
 
 ALTER TABLE ONLY encounter_loc_loc
-    ADD CONSTRAINT encounter_loc_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_loc(id);
+    ADD CONSTRAINT encounter_loc_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_loc(id) ON DELETE CASCADE;
 
 
 --
@@ -63064,7 +63086,7 @@ ALTER TABLE ONLY encounter_loc_loc
 --
 
 ALTER TABLE ONLY encounter_loc_loc
-    ADD CONSTRAINT encounter_loc_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_loc_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63072,7 +63094,7 @@ ALTER TABLE ONLY encounter_loc_loc
 --
 
 ALTER TABLE ONLY encounter_loc
-    ADD CONSTRAINT encounter_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63080,7 +63102,7 @@ ALTER TABLE ONLY encounter_loc
 --
 
 ALTER TABLE ONLY encounter_loc_period
-    ADD CONSTRAINT encounter_loc_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_loc(id);
+    ADD CONSTRAINT encounter_loc_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_loc(id) ON DELETE CASCADE;
 
 
 --
@@ -63088,7 +63110,7 @@ ALTER TABLE ONLY encounter_loc_period
 --
 
 ALTER TABLE ONLY encounter_loc_period
-    ADD CONSTRAINT encounter_loc_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_loc_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63096,7 +63118,7 @@ ALTER TABLE ONLY encounter_loc_period
 --
 
 ALTER TABLE ONLY encounter_loc
-    ADD CONSTRAINT encounter_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63104,7 +63126,7 @@ ALTER TABLE ONLY encounter_loc
 --
 
 ALTER TABLE ONLY encounter_part_of
-    ADD CONSTRAINT encounter_part_of_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_part_of_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63112,7 +63134,7 @@ ALTER TABLE ONLY encounter_part_of
 --
 
 ALTER TABLE ONLY encounter_part_of
-    ADD CONSTRAINT encounter_part_of_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_part_of_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63120,7 +63142,7 @@ ALTER TABLE ONLY encounter_part_of
 --
 
 ALTER TABLE ONLY encounter_participant_individual
-    ADD CONSTRAINT encounter_participant_individual_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_participant(id);
+    ADD CONSTRAINT encounter_participant_individual_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_participant(id) ON DELETE CASCADE;
 
 
 --
@@ -63128,7 +63150,7 @@ ALTER TABLE ONLY encounter_participant_individual
 --
 
 ALTER TABLE ONLY encounter_participant_individual
-    ADD CONSTRAINT encounter_participant_individual_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_participant_individual_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63136,7 +63158,7 @@ ALTER TABLE ONLY encounter_participant_individual
 --
 
 ALTER TABLE ONLY encounter_participant
-    ADD CONSTRAINT encounter_participant_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_participant_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63144,7 +63166,7 @@ ALTER TABLE ONLY encounter_participant
 --
 
 ALTER TABLE ONLY encounter_participant
-    ADD CONSTRAINT encounter_participant_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_participant_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63152,7 +63174,7 @@ ALTER TABLE ONLY encounter_participant
 --
 
 ALTER TABLE ONLY encounter_participant_type_cd
-    ADD CONSTRAINT encounter_participant_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_participant_type(id);
+    ADD CONSTRAINT encounter_participant_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_participant_type(id) ON DELETE CASCADE;
 
 
 --
@@ -63160,7 +63182,7 @@ ALTER TABLE ONLY encounter_participant_type_cd
 --
 
 ALTER TABLE ONLY encounter_participant_type_cd
-    ADD CONSTRAINT encounter_participant_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_participant_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63168,7 +63190,7 @@ ALTER TABLE ONLY encounter_participant_type_cd
 --
 
 ALTER TABLE ONLY encounter_participant_type_cd_vs
-    ADD CONSTRAINT encounter_participant_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_participant_type_cd(id);
+    ADD CONSTRAINT encounter_participant_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_participant_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -63176,7 +63198,7 @@ ALTER TABLE ONLY encounter_participant_type_cd_vs
 --
 
 ALTER TABLE ONLY encounter_participant_type_cd_vs
-    ADD CONSTRAINT encounter_participant_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_participant_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63184,7 +63206,7 @@ ALTER TABLE ONLY encounter_participant_type_cd_vs
 --
 
 ALTER TABLE ONLY encounter_participant_type
-    ADD CONSTRAINT encounter_participant_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_participant(id);
+    ADD CONSTRAINT encounter_participant_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_participant(id) ON DELETE CASCADE;
 
 
 --
@@ -63192,7 +63214,7 @@ ALTER TABLE ONLY encounter_participant_type
 --
 
 ALTER TABLE ONLY encounter_participant_type
-    ADD CONSTRAINT encounter_participant_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_participant_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63200,7 +63222,7 @@ ALTER TABLE ONLY encounter_participant_type
 --
 
 ALTER TABLE ONLY encounter_period
-    ADD CONSTRAINT encounter_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63208,7 +63230,7 @@ ALTER TABLE ONLY encounter_period
 --
 
 ALTER TABLE ONLY encounter_period
-    ADD CONSTRAINT encounter_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63216,7 +63238,7 @@ ALTER TABLE ONLY encounter_period
 --
 
 ALTER TABLE ONLY encounter_priority_cd
-    ADD CONSTRAINT encounter_priority_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_priority(id);
+    ADD CONSTRAINT encounter_priority_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_priority(id) ON DELETE CASCADE;
 
 
 --
@@ -63224,7 +63246,7 @@ ALTER TABLE ONLY encounter_priority_cd
 --
 
 ALTER TABLE ONLY encounter_priority_cd
-    ADD CONSTRAINT encounter_priority_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_priority_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63232,7 +63254,7 @@ ALTER TABLE ONLY encounter_priority_cd
 --
 
 ALTER TABLE ONLY encounter_priority_cd_vs
-    ADD CONSTRAINT encounter_priority_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_priority_cd(id);
+    ADD CONSTRAINT encounter_priority_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_priority_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -63240,7 +63262,7 @@ ALTER TABLE ONLY encounter_priority_cd_vs
 --
 
 ALTER TABLE ONLY encounter_priority_cd_vs
-    ADD CONSTRAINT encounter_priority_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_priority_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63248,7 +63270,7 @@ ALTER TABLE ONLY encounter_priority_cd_vs
 --
 
 ALTER TABLE ONLY encounter_priority
-    ADD CONSTRAINT encounter_priority_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_priority_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63256,7 +63278,7 @@ ALTER TABLE ONLY encounter_priority
 --
 
 ALTER TABLE ONLY encounter_priority
-    ADD CONSTRAINT encounter_priority_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_priority_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63264,7 +63286,7 @@ ALTER TABLE ONLY encounter_priority
 --
 
 ALTER TABLE ONLY encounter_reason_cd
-    ADD CONSTRAINT encounter_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_reason(id);
+    ADD CONSTRAINT encounter_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_reason(id) ON DELETE CASCADE;
 
 
 --
@@ -63272,7 +63294,7 @@ ALTER TABLE ONLY encounter_reason_cd
 --
 
 ALTER TABLE ONLY encounter_reason_cd
-    ADD CONSTRAINT encounter_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63280,7 +63302,7 @@ ALTER TABLE ONLY encounter_reason_cd
 --
 
 ALTER TABLE ONLY encounter_reason_cd_vs
-    ADD CONSTRAINT encounter_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_reason_cd(id);
+    ADD CONSTRAINT encounter_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_reason_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -63288,7 +63310,7 @@ ALTER TABLE ONLY encounter_reason_cd_vs
 --
 
 ALTER TABLE ONLY encounter_reason_cd_vs
-    ADD CONSTRAINT encounter_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63296,7 +63318,7 @@ ALTER TABLE ONLY encounter_reason_cd_vs
 --
 
 ALTER TABLE ONLY encounter_reason
-    ADD CONSTRAINT encounter_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63304,7 +63326,7 @@ ALTER TABLE ONLY encounter_reason
 --
 
 ALTER TABLE ONLY encounter_reason
-    ADD CONSTRAINT encounter_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63312,7 +63334,7 @@ ALTER TABLE ONLY encounter_reason
 --
 
 ALTER TABLE ONLY encounter_service_provider
-    ADD CONSTRAINT encounter_service_provider_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_service_provider_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63320,7 +63342,7 @@ ALTER TABLE ONLY encounter_service_provider
 --
 
 ALTER TABLE ONLY encounter_service_provider
-    ADD CONSTRAINT encounter_service_provider_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_service_provider_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63328,7 +63350,7 @@ ALTER TABLE ONLY encounter_service_provider
 --
 
 ALTER TABLE ONLY encounter_subject
-    ADD CONSTRAINT encounter_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63336,7 +63358,7 @@ ALTER TABLE ONLY encounter_subject
 --
 
 ALTER TABLE ONLY encounter_subject
-    ADD CONSTRAINT encounter_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63344,7 +63366,7 @@ ALTER TABLE ONLY encounter_subject
 --
 
 ALTER TABLE ONLY encounter_text
-    ADD CONSTRAINT encounter_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63352,7 +63374,7 @@ ALTER TABLE ONLY encounter_text
 --
 
 ALTER TABLE ONLY encounter_text
-    ADD CONSTRAINT encounter_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63360,7 +63382,7 @@ ALTER TABLE ONLY encounter_text
 --
 
 ALTER TABLE ONLY encounter_type_cd
-    ADD CONSTRAINT encounter_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_type(id);
+    ADD CONSTRAINT encounter_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_type(id) ON DELETE CASCADE;
 
 
 --
@@ -63368,7 +63390,7 @@ ALTER TABLE ONLY encounter_type_cd
 --
 
 ALTER TABLE ONLY encounter_type_cd
-    ADD CONSTRAINT encounter_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63376,7 +63398,7 @@ ALTER TABLE ONLY encounter_type_cd
 --
 
 ALTER TABLE ONLY encounter_type_cd_vs
-    ADD CONSTRAINT encounter_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_type_cd(id);
+    ADD CONSTRAINT encounter_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -63384,7 +63406,7 @@ ALTER TABLE ONLY encounter_type_cd_vs
 --
 
 ALTER TABLE ONLY encounter_type_cd_vs
-    ADD CONSTRAINT encounter_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63392,7 +63414,7 @@ ALTER TABLE ONLY encounter_type_cd_vs
 --
 
 ALTER TABLE ONLY encounter_type
-    ADD CONSTRAINT encounter_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63400,7 +63422,7 @@ ALTER TABLE ONLY encounter_type
 --
 
 ALTER TABLE ONLY encounter_type
-    ADD CONSTRAINT encounter_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id);
+    ADD CONSTRAINT encounter_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(id) ON DELETE CASCADE;
 
 
 --
@@ -63408,7 +63430,7 @@ ALTER TABLE ONLY encounter_type
 --
 
 ALTER TABLE ONLY family_history_idn_assigner
-    ADD CONSTRAINT family_history_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_idn(id);
+    ADD CONSTRAINT family_history_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -63416,7 +63438,7 @@ ALTER TABLE ONLY family_history_idn_assigner
 --
 
 ALTER TABLE ONLY family_history_idn_assigner
-    ADD CONSTRAINT family_history_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63424,7 +63446,7 @@ ALTER TABLE ONLY family_history_idn_assigner
 --
 
 ALTER TABLE ONLY family_history_idn
-    ADD CONSTRAINT family_history_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63432,7 +63454,7 @@ ALTER TABLE ONLY family_history_idn
 --
 
 ALTER TABLE ONLY family_history_idn_period
-    ADD CONSTRAINT family_history_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_idn(id);
+    ADD CONSTRAINT family_history_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -63440,7 +63462,7 @@ ALTER TABLE ONLY family_history_idn_period
 --
 
 ALTER TABLE ONLY family_history_idn_period
-    ADD CONSTRAINT family_history_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63448,7 +63470,7 @@ ALTER TABLE ONLY family_history_idn_period
 --
 
 ALTER TABLE ONLY family_history_idn
-    ADD CONSTRAINT family_history_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63456,7 +63478,7 @@ ALTER TABLE ONLY family_history_idn
 --
 
 ALTER TABLE ONLY family_history_relation_born_period
-    ADD CONSTRAINT family_history_relation_born_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation(id);
+    ADD CONSTRAINT family_history_relation_born_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation(id) ON DELETE CASCADE;
 
 
 --
@@ -63464,7 +63486,7 @@ ALTER TABLE ONLY family_history_relation_born_period
 --
 
 ALTER TABLE ONLY family_history_relation_born_period
-    ADD CONSTRAINT family_history_relation_born_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_born_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63472,7 +63494,7 @@ ALTER TABLE ONLY family_history_relation_born_period
 --
 
 ALTER TABLE ONLY family_history_relation_condition_onset_range_high
-    ADD CONSTRAINT family_history_relation_condition_onset_range__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_condition_onset_range__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63480,7 +63502,7 @@ ALTER TABLE ONLY family_history_relation_condition_onset_range_high
 --
 
 ALTER TABLE ONLY family_history_relation_condition_onset_range_high
-    ADD CONSTRAINT family_history_relation_condition_onset_range_hi_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_onset_range(id);
+    ADD CONSTRAINT family_history_relation_condition_onset_range_hi_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_onset_range(id) ON DELETE CASCADE;
 
 
 --
@@ -63488,7 +63510,7 @@ ALTER TABLE ONLY family_history_relation_condition_onset_range_high
 --
 
 ALTER TABLE ONLY family_history_relation_condition_onset_range_low
-    ADD CONSTRAINT family_history_relation_condition_onset_range_lo_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_onset_range(id);
+    ADD CONSTRAINT family_history_relation_condition_onset_range_lo_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_onset_range(id) ON DELETE CASCADE;
 
 
 --
@@ -63496,7 +63518,7 @@ ALTER TABLE ONLY family_history_relation_condition_onset_range_low
 --
 
 ALTER TABLE ONLY family_history_relation_condition_onset_range
-    ADD CONSTRAINT family_history_relation_condition_onset_range_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition(id);
+    ADD CONSTRAINT family_history_relation_condition_onset_range_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition(id) ON DELETE CASCADE;
 
 
 --
@@ -63504,7 +63526,7 @@ ALTER TABLE ONLY family_history_relation_condition_onset_range
 --
 
 ALTER TABLE ONLY family_history_relation_condition_onset_range
-    ADD CONSTRAINT family_history_relation_condition_onset_range_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_condition_onset_range_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63512,7 +63534,7 @@ ALTER TABLE ONLY family_history_relation_condition_onset_range
 --
 
 ALTER TABLE ONLY family_history_relation_condition_onset_range_low
-    ADD CONSTRAINT family_history_relation_condition_onset_range_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_condition_onset_range_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63520,7 +63542,7 @@ ALTER TABLE ONLY family_history_relation_condition_onset_range_low
 --
 
 ALTER TABLE ONLY family_history_relation_condition_outcome_cd
-    ADD CONSTRAINT family_history_relation_condition_outcome_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_outcome(id);
+    ADD CONSTRAINT family_history_relation_condition_outcome_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_outcome(id) ON DELETE CASCADE;
 
 
 --
@@ -63528,7 +63550,7 @@ ALTER TABLE ONLY family_history_relation_condition_outcome_cd
 --
 
 ALTER TABLE ONLY family_history_relation_condition_outcome_cd
-    ADD CONSTRAINT family_history_relation_condition_outcome_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_condition_outcome_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63536,7 +63558,7 @@ ALTER TABLE ONLY family_history_relation_condition_outcome_cd
 --
 
 ALTER TABLE ONLY family_history_relation_condition_outcome_cd_vs
-    ADD CONSTRAINT family_history_relation_condition_outcome_cd_v_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_condition_outcome_cd_v_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63544,7 +63566,7 @@ ALTER TABLE ONLY family_history_relation_condition_outcome_cd_vs
 --
 
 ALTER TABLE ONLY family_history_relation_condition_outcome_cd_vs
-    ADD CONSTRAINT family_history_relation_condition_outcome_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_outcome_cd(id);
+    ADD CONSTRAINT family_history_relation_condition_outcome_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_outcome_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -63552,7 +63574,7 @@ ALTER TABLE ONLY family_history_relation_condition_outcome_cd_vs
 --
 
 ALTER TABLE ONLY family_history_relation_condition_outcome
-    ADD CONSTRAINT family_history_relation_condition_outcome_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition(id);
+    ADD CONSTRAINT family_history_relation_condition_outcome_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition(id) ON DELETE CASCADE;
 
 
 --
@@ -63560,7 +63582,7 @@ ALTER TABLE ONLY family_history_relation_condition_outcome
 --
 
 ALTER TABLE ONLY family_history_relation_condition_outcome
-    ADD CONSTRAINT family_history_relation_condition_outcome_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_condition_outcome_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63568,7 +63590,7 @@ ALTER TABLE ONLY family_history_relation_condition_outcome
 --
 
 ALTER TABLE ONLY family_history_relation_condition
-    ADD CONSTRAINT family_history_relation_condition_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation(id);
+    ADD CONSTRAINT family_history_relation_condition_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation(id) ON DELETE CASCADE;
 
 
 --
@@ -63576,7 +63598,7 @@ ALTER TABLE ONLY family_history_relation_condition
 --
 
 ALTER TABLE ONLY family_history_relation_condition
-    ADD CONSTRAINT family_history_relation_condition_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_condition_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63584,7 +63606,7 @@ ALTER TABLE ONLY family_history_relation_condition
 --
 
 ALTER TABLE ONLY family_history_relation_condition_type_cd
-    ADD CONSTRAINT family_history_relation_condition_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_type(id);
+    ADD CONSTRAINT family_history_relation_condition_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_type(id) ON DELETE CASCADE;
 
 
 --
@@ -63592,7 +63614,7 @@ ALTER TABLE ONLY family_history_relation_condition_type_cd
 --
 
 ALTER TABLE ONLY family_history_relation_condition_type_cd
-    ADD CONSTRAINT family_history_relation_condition_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_condition_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63600,7 +63622,7 @@ ALTER TABLE ONLY family_history_relation_condition_type_cd
 --
 
 ALTER TABLE ONLY family_history_relation_condition_type_cd_vs
-    ADD CONSTRAINT family_history_relation_condition_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_type_cd(id);
+    ADD CONSTRAINT family_history_relation_condition_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -63608,7 +63630,7 @@ ALTER TABLE ONLY family_history_relation_condition_type_cd_vs
 --
 
 ALTER TABLE ONLY family_history_relation_condition_type_cd_vs
-    ADD CONSTRAINT family_history_relation_condition_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_condition_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63616,7 +63638,7 @@ ALTER TABLE ONLY family_history_relation_condition_type_cd_vs
 --
 
 ALTER TABLE ONLY family_history_relation_condition_type
-    ADD CONSTRAINT family_history_relation_condition_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition(id);
+    ADD CONSTRAINT family_history_relation_condition_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition(id) ON DELETE CASCADE;
 
 
 --
@@ -63624,7 +63646,7 @@ ALTER TABLE ONLY family_history_relation_condition_type
 --
 
 ALTER TABLE ONLY family_history_relation_condition_type
-    ADD CONSTRAINT family_history_relation_condition_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_condition_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63632,7 +63654,7 @@ ALTER TABLE ONLY family_history_relation_condition_type
 --
 
 ALTER TABLE ONLY family_history_relation_deceased_range_high
-    ADD CONSTRAINT family_history_relation_deceased_range_high_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_deceased_range(id);
+    ADD CONSTRAINT family_history_relation_deceased_range_high_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_deceased_range(id) ON DELETE CASCADE;
 
 
 --
@@ -63640,7 +63662,7 @@ ALTER TABLE ONLY family_history_relation_deceased_range_high
 --
 
 ALTER TABLE ONLY family_history_relation_deceased_range_high
-    ADD CONSTRAINT family_history_relation_deceased_range_high_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_deceased_range_high_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63648,7 +63670,7 @@ ALTER TABLE ONLY family_history_relation_deceased_range_high
 --
 
 ALTER TABLE ONLY family_history_relation_deceased_range_low
-    ADD CONSTRAINT family_history_relation_deceased_range_low_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_deceased_range(id);
+    ADD CONSTRAINT family_history_relation_deceased_range_low_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_deceased_range(id) ON DELETE CASCADE;
 
 
 --
@@ -63656,7 +63678,7 @@ ALTER TABLE ONLY family_history_relation_deceased_range_low
 --
 
 ALTER TABLE ONLY family_history_relation_deceased_range_low
-    ADD CONSTRAINT family_history_relation_deceased_range_low_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_deceased_range_low_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63664,7 +63686,7 @@ ALTER TABLE ONLY family_history_relation_deceased_range_low
 --
 
 ALTER TABLE ONLY family_history_relation_deceased_range
-    ADD CONSTRAINT family_history_relation_deceased_range_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation(id);
+    ADD CONSTRAINT family_history_relation_deceased_range_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation(id) ON DELETE CASCADE;
 
 
 --
@@ -63672,7 +63694,7 @@ ALTER TABLE ONLY family_history_relation_deceased_range
 --
 
 ALTER TABLE ONLY family_history_relation_deceased_range
-    ADD CONSTRAINT family_history_relation_deceased_range_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_deceased_range_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63680,7 +63702,7 @@ ALTER TABLE ONLY family_history_relation_deceased_range
 --
 
 ALTER TABLE ONLY family_history_relation
-    ADD CONSTRAINT family_history_relation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63688,7 +63710,7 @@ ALTER TABLE ONLY family_history_relation
 --
 
 ALTER TABLE ONLY family_history_relation_relationship_cd
-    ADD CONSTRAINT family_history_relation_relationship_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_relationship(id);
+    ADD CONSTRAINT family_history_relation_relationship_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_relationship(id) ON DELETE CASCADE;
 
 
 --
@@ -63696,7 +63718,7 @@ ALTER TABLE ONLY family_history_relation_relationship_cd
 --
 
 ALTER TABLE ONLY family_history_relation_relationship_cd
-    ADD CONSTRAINT family_history_relation_relationship_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_relationship_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63704,7 +63726,7 @@ ALTER TABLE ONLY family_history_relation_relationship_cd
 --
 
 ALTER TABLE ONLY family_history_relation_relationship_cd_vs
-    ADD CONSTRAINT family_history_relation_relationship_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_relationship_cd(id);
+    ADD CONSTRAINT family_history_relation_relationship_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_relationship_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -63712,7 +63734,7 @@ ALTER TABLE ONLY family_history_relation_relationship_cd_vs
 --
 
 ALTER TABLE ONLY family_history_relation_relationship_cd_vs
-    ADD CONSTRAINT family_history_relation_relationship_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_relationship_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63720,7 +63742,7 @@ ALTER TABLE ONLY family_history_relation_relationship_cd_vs
 --
 
 ALTER TABLE ONLY family_history_relation_relationship
-    ADD CONSTRAINT family_history_relation_relationship_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation(id);
+    ADD CONSTRAINT family_history_relation_relationship_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation(id) ON DELETE CASCADE;
 
 
 --
@@ -63728,7 +63750,7 @@ ALTER TABLE ONLY family_history_relation_relationship
 --
 
 ALTER TABLE ONLY family_history_relation_relationship
-    ADD CONSTRAINT family_history_relation_relationship_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_relationship_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63736,7 +63758,7 @@ ALTER TABLE ONLY family_history_relation_relationship
 --
 
 ALTER TABLE ONLY family_history_relation
-    ADD CONSTRAINT family_history_relation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_relation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63744,7 +63766,7 @@ ALTER TABLE ONLY family_history_relation
 --
 
 ALTER TABLE ONLY family_history_subject
-    ADD CONSTRAINT family_history_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63752,7 +63774,7 @@ ALTER TABLE ONLY family_history_subject
 --
 
 ALTER TABLE ONLY family_history_subject
-    ADD CONSTRAINT family_history_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63760,7 +63782,7 @@ ALTER TABLE ONLY family_history_subject
 --
 
 ALTER TABLE ONLY family_history_text
-    ADD CONSTRAINT family_history_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63768,7 +63790,7 @@ ALTER TABLE ONLY family_history_text
 --
 
 ALTER TABLE ONLY family_history_text
-    ADD CONSTRAINT family_history_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id);
+    ADD CONSTRAINT family_history_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(id) ON DELETE CASCADE;
 
 
 --
@@ -63776,7 +63798,7 @@ ALTER TABLE ONLY family_history_text
 --
 
 ALTER TABLE ONLY group_characteristic_code_cd
-    ADD CONSTRAINT group_characteristic_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_code(id);
+    ADD CONSTRAINT group_characteristic_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_code(id) ON DELETE CASCADE;
 
 
 --
@@ -63784,7 +63806,7 @@ ALTER TABLE ONLY group_characteristic_code_cd
 --
 
 ALTER TABLE ONLY group_characteristic_code_cd
-    ADD CONSTRAINT group_characteristic_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_characteristic_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -63792,7 +63814,7 @@ ALTER TABLE ONLY group_characteristic_code_cd
 --
 
 ALTER TABLE ONLY group_characteristic_code_cd_vs
-    ADD CONSTRAINT group_characteristic_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_code_cd(id);
+    ADD CONSTRAINT group_characteristic_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -63800,7 +63822,7 @@ ALTER TABLE ONLY group_characteristic_code_cd_vs
 --
 
 ALTER TABLE ONLY group_characteristic_code_cd_vs
-    ADD CONSTRAINT group_characteristic_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_characteristic_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -63808,7 +63830,7 @@ ALTER TABLE ONLY group_characteristic_code_cd_vs
 --
 
 ALTER TABLE ONLY group_characteristic_code
-    ADD CONSTRAINT group_characteristic_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic(id);
+    ADD CONSTRAINT group_characteristic_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic(id) ON DELETE CASCADE;
 
 
 --
@@ -63816,7 +63838,7 @@ ALTER TABLE ONLY group_characteristic_code
 --
 
 ALTER TABLE ONLY group_characteristic_code
-    ADD CONSTRAINT group_characteristic_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_characteristic_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -63824,7 +63846,7 @@ ALTER TABLE ONLY group_characteristic_code
 --
 
 ALTER TABLE ONLY group_characteristic
-    ADD CONSTRAINT group_characteristic_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_characteristic_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -63832,7 +63854,7 @@ ALTER TABLE ONLY group_characteristic
 --
 
 ALTER TABLE ONLY group_characteristic
-    ADD CONSTRAINT group_characteristic_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_characteristic_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -63840,7 +63862,7 @@ ALTER TABLE ONLY group_characteristic
 --
 
 ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd_vs
-    ADD CONSTRAINT group_characteristic_value_codeable_concept_c_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_characteristic_value_codeable_concept_c_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -63848,7 +63870,7 @@ ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd
-    ADD CONSTRAINT group_characteristic_value_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_value_codeable_concept(id);
+    ADD CONSTRAINT group_characteristic_value_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_value_codeable_concept(id) ON DELETE CASCADE;
 
 
 --
@@ -63856,7 +63878,7 @@ ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd
 --
 
 ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd
-    ADD CONSTRAINT group_characteristic_value_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_characteristic_value_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -63864,7 +63886,7 @@ ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd
 --
 
 ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd_vs
-    ADD CONSTRAINT group_characteristic_value_codeable_concept_cd_v_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_value_codeable_concept_cd(id);
+    ADD CONSTRAINT group_characteristic_value_codeable_concept_cd_v_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_value_codeable_concept_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -63872,7 +63894,7 @@ ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY group_characteristic_value_codeable_concept
-    ADD CONSTRAINT group_characteristic_value_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic(id);
+    ADD CONSTRAINT group_characteristic_value_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic(id) ON DELETE CASCADE;
 
 
 --
@@ -63880,7 +63902,7 @@ ALTER TABLE ONLY group_characteristic_value_codeable_concept
 --
 
 ALTER TABLE ONLY group_characteristic_value_codeable_concept
-    ADD CONSTRAINT group_characteristic_value_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_characteristic_value_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -63888,7 +63910,7 @@ ALTER TABLE ONLY group_characteristic_value_codeable_concept
 --
 
 ALTER TABLE ONLY group_characteristic_value_quantity
-    ADD CONSTRAINT group_characteristic_value_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic(id);
+    ADD CONSTRAINT group_characteristic_value_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic(id) ON DELETE CASCADE;
 
 
 --
@@ -63896,7 +63918,7 @@ ALTER TABLE ONLY group_characteristic_value_quantity
 --
 
 ALTER TABLE ONLY group_characteristic_value_quantity
-    ADD CONSTRAINT group_characteristic_value_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_characteristic_value_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -63904,7 +63926,7 @@ ALTER TABLE ONLY group_characteristic_value_quantity
 --
 
 ALTER TABLE ONLY group_characteristic_value_range_high
-    ADD CONSTRAINT group_characteristic_value_range_high_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_value_range(id);
+    ADD CONSTRAINT group_characteristic_value_range_high_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_value_range(id) ON DELETE CASCADE;
 
 
 --
@@ -63912,7 +63934,7 @@ ALTER TABLE ONLY group_characteristic_value_range_high
 --
 
 ALTER TABLE ONLY group_characteristic_value_range_high
-    ADD CONSTRAINT group_characteristic_value_range_high_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_characteristic_value_range_high_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -63920,7 +63942,7 @@ ALTER TABLE ONLY group_characteristic_value_range_high
 --
 
 ALTER TABLE ONLY group_characteristic_value_range_low
-    ADD CONSTRAINT group_characteristic_value_range_low_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_value_range(id);
+    ADD CONSTRAINT group_characteristic_value_range_low_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_value_range(id) ON DELETE CASCADE;
 
 
 --
@@ -63928,7 +63950,7 @@ ALTER TABLE ONLY group_characteristic_value_range_low
 --
 
 ALTER TABLE ONLY group_characteristic_value_range_low
-    ADD CONSTRAINT group_characteristic_value_range_low_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_characteristic_value_range_low_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -63936,7 +63958,7 @@ ALTER TABLE ONLY group_characteristic_value_range_low
 --
 
 ALTER TABLE ONLY group_characteristic_value_range
-    ADD CONSTRAINT group_characteristic_value_range_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic(id);
+    ADD CONSTRAINT group_characteristic_value_range_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic(id) ON DELETE CASCADE;
 
 
 --
@@ -63944,7 +63966,7 @@ ALTER TABLE ONLY group_characteristic_value_range
 --
 
 ALTER TABLE ONLY group_characteristic_value_range
-    ADD CONSTRAINT group_characteristic_value_range_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_characteristic_value_range_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -63952,7 +63974,7 @@ ALTER TABLE ONLY group_characteristic_value_range
 --
 
 ALTER TABLE ONLY group_code_cd
-    ADD CONSTRAINT group_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_code(id);
+    ADD CONSTRAINT group_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_code(id) ON DELETE CASCADE;
 
 
 --
@@ -63960,7 +63982,7 @@ ALTER TABLE ONLY group_code_cd
 --
 
 ALTER TABLE ONLY group_code_cd
-    ADD CONSTRAINT group_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -63968,7 +63990,7 @@ ALTER TABLE ONLY group_code_cd
 --
 
 ALTER TABLE ONLY group_code_cd_vs
-    ADD CONSTRAINT group_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_code_cd(id);
+    ADD CONSTRAINT group_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -63976,7 +63998,7 @@ ALTER TABLE ONLY group_code_cd_vs
 --
 
 ALTER TABLE ONLY group_code_cd_vs
-    ADD CONSTRAINT group_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -63984,7 +64006,7 @@ ALTER TABLE ONLY group_code_cd_vs
 --
 
 ALTER TABLE ONLY group_code
-    ADD CONSTRAINT group_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -63992,7 +64014,7 @@ ALTER TABLE ONLY group_code
 --
 
 ALTER TABLE ONLY group_code
-    ADD CONSTRAINT group_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -64000,7 +64022,7 @@ ALTER TABLE ONLY group_code
 --
 
 ALTER TABLE ONLY group_idn_assigner
-    ADD CONSTRAINT group_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_idn(id);
+    ADD CONSTRAINT group_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -64008,7 +64030,7 @@ ALTER TABLE ONLY group_idn_assigner
 --
 
 ALTER TABLE ONLY group_idn_assigner
-    ADD CONSTRAINT group_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -64016,7 +64038,7 @@ ALTER TABLE ONLY group_idn_assigner
 --
 
 ALTER TABLE ONLY group_idn
-    ADD CONSTRAINT group_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -64024,7 +64046,7 @@ ALTER TABLE ONLY group_idn
 --
 
 ALTER TABLE ONLY group_idn_period
-    ADD CONSTRAINT group_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_idn(id);
+    ADD CONSTRAINT group_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -64032,7 +64054,7 @@ ALTER TABLE ONLY group_idn_period
 --
 
 ALTER TABLE ONLY group_idn_period
-    ADD CONSTRAINT group_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -64040,7 +64062,7 @@ ALTER TABLE ONLY group_idn_period
 --
 
 ALTER TABLE ONLY group_idn
-    ADD CONSTRAINT group_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -64048,7 +64070,7 @@ ALTER TABLE ONLY group_idn
 --
 
 ALTER TABLE ONLY group_member
-    ADD CONSTRAINT group_member_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_member_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -64056,7 +64078,7 @@ ALTER TABLE ONLY group_member
 --
 
 ALTER TABLE ONLY group_member
-    ADD CONSTRAINT group_member_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_member_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -64064,7 +64086,7 @@ ALTER TABLE ONLY group_member
 --
 
 ALTER TABLE ONLY group_text
-    ADD CONSTRAINT group_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -64072,7 +64094,7 @@ ALTER TABLE ONLY group_text
 --
 
 ALTER TABLE ONLY group_text
-    ADD CONSTRAINT group_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id);
+    ADD CONSTRAINT group_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(id) ON DELETE CASCADE;
 
 
 --
@@ -64080,7 +64102,7 @@ ALTER TABLE ONLY group_text
 --
 
 ALTER TABLE ONLY imaging_study_accession_no_assigner
-    ADD CONSTRAINT imaging_study_accession_no_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_accession_no(id);
+    ADD CONSTRAINT imaging_study_accession_no_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_accession_no(id) ON DELETE CASCADE;
 
 
 --
@@ -64088,7 +64110,7 @@ ALTER TABLE ONLY imaging_study_accession_no_assigner
 --
 
 ALTER TABLE ONLY imaging_study_accession_no_assigner
-    ADD CONSTRAINT imaging_study_accession_no_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_accession_no_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64096,7 +64118,7 @@ ALTER TABLE ONLY imaging_study_accession_no_assigner
 --
 
 ALTER TABLE ONLY imaging_study_accession_no
-    ADD CONSTRAINT imaging_study_accession_no_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_accession_no_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64104,7 +64126,7 @@ ALTER TABLE ONLY imaging_study_accession_no
 --
 
 ALTER TABLE ONLY imaging_study_accession_no_period
-    ADD CONSTRAINT imaging_study_accession_no_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_accession_no(id);
+    ADD CONSTRAINT imaging_study_accession_no_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_accession_no(id) ON DELETE CASCADE;
 
 
 --
@@ -64112,7 +64134,7 @@ ALTER TABLE ONLY imaging_study_accession_no_period
 --
 
 ALTER TABLE ONLY imaging_study_accession_no_period
-    ADD CONSTRAINT imaging_study_accession_no_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_accession_no_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64120,7 +64142,7 @@ ALTER TABLE ONLY imaging_study_accession_no_period
 --
 
 ALTER TABLE ONLY imaging_study_accession_no
-    ADD CONSTRAINT imaging_study_accession_no_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_accession_no_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64128,7 +64150,7 @@ ALTER TABLE ONLY imaging_study_accession_no
 --
 
 ALTER TABLE ONLY imaging_study_idn_assigner
-    ADD CONSTRAINT imaging_study_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_idn(id);
+    ADD CONSTRAINT imaging_study_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -64136,7 +64158,7 @@ ALTER TABLE ONLY imaging_study_idn_assigner
 --
 
 ALTER TABLE ONLY imaging_study_idn_assigner
-    ADD CONSTRAINT imaging_study_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64144,7 +64166,7 @@ ALTER TABLE ONLY imaging_study_idn_assigner
 --
 
 ALTER TABLE ONLY imaging_study_idn
-    ADD CONSTRAINT imaging_study_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64152,7 +64174,7 @@ ALTER TABLE ONLY imaging_study_idn
 --
 
 ALTER TABLE ONLY imaging_study_idn_period
-    ADD CONSTRAINT imaging_study_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_idn(id);
+    ADD CONSTRAINT imaging_study_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -64160,7 +64182,7 @@ ALTER TABLE ONLY imaging_study_idn_period
 --
 
 ALTER TABLE ONLY imaging_study_idn_period
-    ADD CONSTRAINT imaging_study_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64168,7 +64190,7 @@ ALTER TABLE ONLY imaging_study_idn_period
 --
 
 ALTER TABLE ONLY imaging_study_idn
-    ADD CONSTRAINT imaging_study_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64176,7 +64198,7 @@ ALTER TABLE ONLY imaging_study_idn
 --
 
 ALTER TABLE ONLY imaging_study_interpreter
-    ADD CONSTRAINT imaging_study_interpreter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_interpreter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64184,7 +64206,7 @@ ALTER TABLE ONLY imaging_study_interpreter
 --
 
 ALTER TABLE ONLY imaging_study_interpreter
-    ADD CONSTRAINT imaging_study_interpreter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_interpreter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64192,7 +64214,7 @@ ALTER TABLE ONLY imaging_study_interpreter
 --
 
 ALTER TABLE ONLY imaging_study_order
-    ADD CONSTRAINT imaging_study_order_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_order_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64200,7 +64222,7 @@ ALTER TABLE ONLY imaging_study_order
 --
 
 ALTER TABLE ONLY imaging_study_order
-    ADD CONSTRAINT imaging_study_order_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_order_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64208,7 +64230,7 @@ ALTER TABLE ONLY imaging_study_order
 --
 
 ALTER TABLE ONLY imaging_study_procedure
-    ADD CONSTRAINT imaging_study_procedure_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_procedure_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64216,7 +64238,7 @@ ALTER TABLE ONLY imaging_study_procedure
 --
 
 ALTER TABLE ONLY imaging_study_procedure
-    ADD CONSTRAINT imaging_study_procedure_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_procedure_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64224,7 +64246,7 @@ ALTER TABLE ONLY imaging_study_procedure
 --
 
 ALTER TABLE ONLY imaging_study_procedure_vs
-    ADD CONSTRAINT imaging_study_procedure_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_procedure(id);
+    ADD CONSTRAINT imaging_study_procedure_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -64232,7 +64254,7 @@ ALTER TABLE ONLY imaging_study_procedure_vs
 --
 
 ALTER TABLE ONLY imaging_study_procedure_vs
-    ADD CONSTRAINT imaging_study_procedure_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_procedure_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64240,7 +64262,7 @@ ALTER TABLE ONLY imaging_study_procedure_vs
 --
 
 ALTER TABLE ONLY imaging_study_referrer
-    ADD CONSTRAINT imaging_study_referrer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_referrer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64248,7 +64270,7 @@ ALTER TABLE ONLY imaging_study_referrer
 --
 
 ALTER TABLE ONLY imaging_study_referrer
-    ADD CONSTRAINT imaging_study_referrer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_referrer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64256,7 +64278,7 @@ ALTER TABLE ONLY imaging_study_referrer
 --
 
 ALTER TABLE ONLY imaging_study_series_body_site
-    ADD CONSTRAINT imaging_study_series_body_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_series(id);
+    ADD CONSTRAINT imaging_study_series_body_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_series(id) ON DELETE CASCADE;
 
 
 --
@@ -64264,7 +64286,7 @@ ALTER TABLE ONLY imaging_study_series_body_site
 --
 
 ALTER TABLE ONLY imaging_study_series_body_site
-    ADD CONSTRAINT imaging_study_series_body_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_series_body_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64272,7 +64294,7 @@ ALTER TABLE ONLY imaging_study_series_body_site
 --
 
 ALTER TABLE ONLY imaging_study_series_body_site_vs
-    ADD CONSTRAINT imaging_study_series_body_site_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_series_body_site(id);
+    ADD CONSTRAINT imaging_study_series_body_site_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_series_body_site(id) ON DELETE CASCADE;
 
 
 --
@@ -64280,7 +64302,7 @@ ALTER TABLE ONLY imaging_study_series_body_site_vs
 --
 
 ALTER TABLE ONLY imaging_study_series_body_site_vs
-    ADD CONSTRAINT imaging_study_series_body_site_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_series_body_site_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64288,7 +64310,7 @@ ALTER TABLE ONLY imaging_study_series_body_site_vs
 --
 
 ALTER TABLE ONLY imaging_study_series_instance_attachment
-    ADD CONSTRAINT imaging_study_series_instance_attachment_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_series_instance(id);
+    ADD CONSTRAINT imaging_study_series_instance_attachment_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_series_instance(id) ON DELETE CASCADE;
 
 
 --
@@ -64296,7 +64318,7 @@ ALTER TABLE ONLY imaging_study_series_instance_attachment
 --
 
 ALTER TABLE ONLY imaging_study_series_instance_attachment
-    ADD CONSTRAINT imaging_study_series_instance_attachment_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_series_instance_attachment_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64304,7 +64326,7 @@ ALTER TABLE ONLY imaging_study_series_instance_attachment
 --
 
 ALTER TABLE ONLY imaging_study_series_instance
-    ADD CONSTRAINT imaging_study_series_instance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_series(id);
+    ADD CONSTRAINT imaging_study_series_instance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_series(id) ON DELETE CASCADE;
 
 
 --
@@ -64312,7 +64334,7 @@ ALTER TABLE ONLY imaging_study_series_instance
 --
 
 ALTER TABLE ONLY imaging_study_series_instance
-    ADD CONSTRAINT imaging_study_series_instance_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_series_instance_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64320,7 +64342,7 @@ ALTER TABLE ONLY imaging_study_series_instance
 --
 
 ALTER TABLE ONLY imaging_study_series
-    ADD CONSTRAINT imaging_study_series_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_series_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64328,7 +64350,7 @@ ALTER TABLE ONLY imaging_study_series
 --
 
 ALTER TABLE ONLY imaging_study_series
-    ADD CONSTRAINT imaging_study_series_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_series_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64336,7 +64358,7 @@ ALTER TABLE ONLY imaging_study_series
 --
 
 ALTER TABLE ONLY imaging_study_subject
-    ADD CONSTRAINT imaging_study_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64344,7 +64366,7 @@ ALTER TABLE ONLY imaging_study_subject
 --
 
 ALTER TABLE ONLY imaging_study_subject
-    ADD CONSTRAINT imaging_study_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64352,7 +64374,7 @@ ALTER TABLE ONLY imaging_study_subject
 --
 
 ALTER TABLE ONLY imaging_study_text
-    ADD CONSTRAINT imaging_study_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64360,7 +64382,7 @@ ALTER TABLE ONLY imaging_study_text
 --
 
 ALTER TABLE ONLY imaging_study_text
-    ADD CONSTRAINT imaging_study_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id);
+    ADD CONSTRAINT imaging_study_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(id) ON DELETE CASCADE;
 
 
 --
@@ -64368,7 +64390,7 @@ ALTER TABLE ONLY imaging_study_text
 --
 
 ALTER TABLE ONLY imm_dose_quantity
-    ADD CONSTRAINT imm_dose_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_dose_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64376,7 +64398,7 @@ ALTER TABLE ONLY imm_dose_quantity
 --
 
 ALTER TABLE ONLY imm_dose_quantity
-    ADD CONSTRAINT imm_dose_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_dose_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64384,7 +64406,7 @@ ALTER TABLE ONLY imm_dose_quantity
 --
 
 ALTER TABLE ONLY imm_explanation
-    ADD CONSTRAINT imm_explanation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_explanation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64392,7 +64414,7 @@ ALTER TABLE ONLY imm_explanation
 --
 
 ALTER TABLE ONLY imm_explanation_reason_cd
-    ADD CONSTRAINT imm_explanation_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation_reason(id);
+    ADD CONSTRAINT imm_explanation_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation_reason(id) ON DELETE CASCADE;
 
 
 --
@@ -64400,7 +64422,7 @@ ALTER TABLE ONLY imm_explanation_reason_cd
 --
 
 ALTER TABLE ONLY imm_explanation_reason_cd
-    ADD CONSTRAINT imm_explanation_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_explanation_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64408,7 +64430,7 @@ ALTER TABLE ONLY imm_explanation_reason_cd
 --
 
 ALTER TABLE ONLY imm_explanation_reason_cd_vs
-    ADD CONSTRAINT imm_explanation_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation_reason_cd(id);
+    ADD CONSTRAINT imm_explanation_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation_reason_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -64416,7 +64438,7 @@ ALTER TABLE ONLY imm_explanation_reason_cd_vs
 --
 
 ALTER TABLE ONLY imm_explanation_reason_cd_vs
-    ADD CONSTRAINT imm_explanation_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_explanation_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64424,7 +64446,7 @@ ALTER TABLE ONLY imm_explanation_reason_cd_vs
 --
 
 ALTER TABLE ONLY imm_explanation_reason
-    ADD CONSTRAINT imm_explanation_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation(id);
+    ADD CONSTRAINT imm_explanation_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation(id) ON DELETE CASCADE;
 
 
 --
@@ -64432,7 +64454,7 @@ ALTER TABLE ONLY imm_explanation_reason
 --
 
 ALTER TABLE ONLY imm_explanation_reason
-    ADD CONSTRAINT imm_explanation_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_explanation_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64440,7 +64462,7 @@ ALTER TABLE ONLY imm_explanation_reason
 --
 
 ALTER TABLE ONLY imm_explanation_refusal_reason_cd
-    ADD CONSTRAINT imm_explanation_refusal_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation_refusal_reason(id);
+    ADD CONSTRAINT imm_explanation_refusal_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation_refusal_reason(id) ON DELETE CASCADE;
 
 
 --
@@ -64448,7 +64470,7 @@ ALTER TABLE ONLY imm_explanation_refusal_reason_cd
 --
 
 ALTER TABLE ONLY imm_explanation_refusal_reason_cd
-    ADD CONSTRAINT imm_explanation_refusal_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_explanation_refusal_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64456,7 +64478,7 @@ ALTER TABLE ONLY imm_explanation_refusal_reason_cd
 --
 
 ALTER TABLE ONLY imm_explanation_refusal_reason_cd_vs
-    ADD CONSTRAINT imm_explanation_refusal_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation_refusal_reason_cd(id);
+    ADD CONSTRAINT imm_explanation_refusal_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation_refusal_reason_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -64464,7 +64486,7 @@ ALTER TABLE ONLY imm_explanation_refusal_reason_cd_vs
 --
 
 ALTER TABLE ONLY imm_explanation_refusal_reason_cd_vs
-    ADD CONSTRAINT imm_explanation_refusal_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_explanation_refusal_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64472,7 +64494,7 @@ ALTER TABLE ONLY imm_explanation_refusal_reason_cd_vs
 --
 
 ALTER TABLE ONLY imm_explanation_refusal_reason
-    ADD CONSTRAINT imm_explanation_refusal_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation(id);
+    ADD CONSTRAINT imm_explanation_refusal_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation(id) ON DELETE CASCADE;
 
 
 --
@@ -64480,7 +64502,7 @@ ALTER TABLE ONLY imm_explanation_refusal_reason
 --
 
 ALTER TABLE ONLY imm_explanation_refusal_reason
-    ADD CONSTRAINT imm_explanation_refusal_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_explanation_refusal_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64488,7 +64510,7 @@ ALTER TABLE ONLY imm_explanation_refusal_reason
 --
 
 ALTER TABLE ONLY imm_explanation
-    ADD CONSTRAINT imm_explanation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_explanation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64496,7 +64518,7 @@ ALTER TABLE ONLY imm_explanation
 --
 
 ALTER TABLE ONLY imm_idn_assigner
-    ADD CONSTRAINT imm_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_idn(id);
+    ADD CONSTRAINT imm_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -64504,7 +64526,7 @@ ALTER TABLE ONLY imm_idn_assigner
 --
 
 ALTER TABLE ONLY imm_idn_assigner
-    ADD CONSTRAINT imm_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64512,7 +64534,7 @@ ALTER TABLE ONLY imm_idn_assigner
 --
 
 ALTER TABLE ONLY imm_idn
-    ADD CONSTRAINT imm_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64520,7 +64542,7 @@ ALTER TABLE ONLY imm_idn
 --
 
 ALTER TABLE ONLY imm_idn_period
-    ADD CONSTRAINT imm_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_idn(id);
+    ADD CONSTRAINT imm_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -64528,7 +64550,7 @@ ALTER TABLE ONLY imm_idn_period
 --
 
 ALTER TABLE ONLY imm_idn_period
-    ADD CONSTRAINT imm_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64536,7 +64558,7 @@ ALTER TABLE ONLY imm_idn_period
 --
 
 ALTER TABLE ONLY imm_idn
-    ADD CONSTRAINT imm_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64544,7 +64566,7 @@ ALTER TABLE ONLY imm_idn
 --
 
 ALTER TABLE ONLY imm_loc
-    ADD CONSTRAINT imm_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64552,7 +64574,7 @@ ALTER TABLE ONLY imm_loc
 --
 
 ALTER TABLE ONLY imm_loc
-    ADD CONSTRAINT imm_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64560,7 +64582,7 @@ ALTER TABLE ONLY imm_loc
 --
 
 ALTER TABLE ONLY imm_manufacturer
-    ADD CONSTRAINT imm_manufacturer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_manufacturer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64568,7 +64590,7 @@ ALTER TABLE ONLY imm_manufacturer
 --
 
 ALTER TABLE ONLY imm_manufacturer
-    ADD CONSTRAINT imm_manufacturer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_manufacturer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64576,7 +64598,7 @@ ALTER TABLE ONLY imm_manufacturer
 --
 
 ALTER TABLE ONLY imm_performer
-    ADD CONSTRAINT imm_performer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_performer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64584,7 +64606,7 @@ ALTER TABLE ONLY imm_performer
 --
 
 ALTER TABLE ONLY imm_performer
-    ADD CONSTRAINT imm_performer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_performer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64592,7 +64614,7 @@ ALTER TABLE ONLY imm_performer
 --
 
 ALTER TABLE ONLY imm_reaction_detail
-    ADD CONSTRAINT imm_reaction_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_reaction(id);
+    ADD CONSTRAINT imm_reaction_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_reaction(id) ON DELETE CASCADE;
 
 
 --
@@ -64600,7 +64622,7 @@ ALTER TABLE ONLY imm_reaction_detail
 --
 
 ALTER TABLE ONLY imm_reaction_detail
-    ADD CONSTRAINT imm_reaction_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_reaction_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64608,7 +64630,7 @@ ALTER TABLE ONLY imm_reaction_detail
 --
 
 ALTER TABLE ONLY imm_reaction
-    ADD CONSTRAINT imm_reaction_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_reaction_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64616,7 +64638,7 @@ ALTER TABLE ONLY imm_reaction
 --
 
 ALTER TABLE ONLY imm_reaction
-    ADD CONSTRAINT imm_reaction_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_reaction_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64624,7 +64646,7 @@ ALTER TABLE ONLY imm_reaction
 --
 
 ALTER TABLE ONLY imm_rec_idn_assigner
-    ADD CONSTRAINT imm_rec_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_idn(id);
+    ADD CONSTRAINT imm_rec_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -64632,7 +64654,7 @@ ALTER TABLE ONLY imm_rec_idn_assigner
 --
 
 ALTER TABLE ONLY imm_rec_idn_assigner
-    ADD CONSTRAINT imm_rec_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64640,7 +64662,7 @@ ALTER TABLE ONLY imm_rec_idn_assigner
 --
 
 ALTER TABLE ONLY imm_rec_idn
-    ADD CONSTRAINT imm_rec_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64648,7 +64670,7 @@ ALTER TABLE ONLY imm_rec_idn
 --
 
 ALTER TABLE ONLY imm_rec_idn_period
-    ADD CONSTRAINT imm_rec_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_idn(id);
+    ADD CONSTRAINT imm_rec_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -64656,7 +64678,7 @@ ALTER TABLE ONLY imm_rec_idn_period
 --
 
 ALTER TABLE ONLY imm_rec_idn_period
-    ADD CONSTRAINT imm_rec_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64664,7 +64686,7 @@ ALTER TABLE ONLY imm_rec_idn_period
 --
 
 ALTER TABLE ONLY imm_rec_idn
-    ADD CONSTRAINT imm_rec_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64672,7 +64694,7 @@ ALTER TABLE ONLY imm_rec_idn
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd_vs
-    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_cd__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_cd__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64680,7 +64702,7 @@ ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd_vs
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd
-    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_date_criterion_code(id);
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_date_criterion_code(id) ON DELETE CASCADE;
 
 
 --
@@ -64688,7 +64710,7 @@ ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd
-    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64696,7 +64718,7 @@ ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd_vs
-    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_date_criterion_code_cd(id);
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_date_criterion_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -64704,7 +64726,7 @@ ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd_vs
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code
-    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_date_criterion(id);
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_date_criterion(id) ON DELETE CASCADE;
 
 
 --
@@ -64712,7 +64734,7 @@ ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code
-    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64720,7 +64742,7 @@ ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_date_criterion
-    ADD CONSTRAINT imm_rec_recommendation_date_criterion_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(id);
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(id) ON DELETE CASCADE;
 
 
 --
@@ -64728,7 +64750,7 @@ ALTER TABLE ONLY imm_rec_recommendation_date_criterion
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_date_criterion
-    ADD CONSTRAINT imm_rec_recommendation_date_criterion_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64736,7 +64758,7 @@ ALTER TABLE ONLY imm_rec_recommendation_date_criterion
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd
-    ADD CONSTRAINT imm_rec_recommendation_forecast_status_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_forecast_status(id);
+    ADD CONSTRAINT imm_rec_recommendation_forecast_status_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_forecast_status(id) ON DELETE CASCADE;
 
 
 --
@@ -64744,7 +64766,7 @@ ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd
-    ADD CONSTRAINT imm_rec_recommendation_forecast_status_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_forecast_status_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64752,7 +64774,7 @@ ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd_vs
-    ADD CONSTRAINT imm_rec_recommendation_forecast_status_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_forecast_status_cd(id);
+    ADD CONSTRAINT imm_rec_recommendation_forecast_status_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_forecast_status_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -64760,7 +64782,7 @@ ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd_vs
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd_vs
-    ADD CONSTRAINT imm_rec_recommendation_forecast_status_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_forecast_status_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64768,7 +64790,7 @@ ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd_vs
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_forecast_status
-    ADD CONSTRAINT imm_rec_recommendation_forecast_status_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(id);
+    ADD CONSTRAINT imm_rec_recommendation_forecast_status_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(id) ON DELETE CASCADE;
 
 
 --
@@ -64776,7 +64798,7 @@ ALTER TABLE ONLY imm_rec_recommendation_forecast_status
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_forecast_status
-    ADD CONSTRAINT imm_rec_recommendation_forecast_status_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_forecast_status_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64784,7 +64806,7 @@ ALTER TABLE ONLY imm_rec_recommendation_forecast_status
 --
 
 ALTER TABLE ONLY imm_rec_recommendation
-    ADD CONSTRAINT imm_rec_recommendation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64792,7 +64814,7 @@ ALTER TABLE ONLY imm_rec_recommendation
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_protocol_authority
-    ADD CONSTRAINT imm_rec_recommendation_protocol_authority_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_protocol(id);
+    ADD CONSTRAINT imm_rec_recommendation_protocol_authority_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_protocol(id) ON DELETE CASCADE;
 
 
 --
@@ -64800,7 +64822,7 @@ ALTER TABLE ONLY imm_rec_recommendation_protocol_authority
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_protocol_authority
-    ADD CONSTRAINT imm_rec_recommendation_protocol_authority_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_protocol_authority_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64808,7 +64830,7 @@ ALTER TABLE ONLY imm_rec_recommendation_protocol_authority
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_protocol
-    ADD CONSTRAINT imm_rec_recommendation_protocol_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(id);
+    ADD CONSTRAINT imm_rec_recommendation_protocol_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(id) ON DELETE CASCADE;
 
 
 --
@@ -64816,7 +64838,7 @@ ALTER TABLE ONLY imm_rec_recommendation_protocol
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_protocol
-    ADD CONSTRAINT imm_rec_recommendation_protocol_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_protocol_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64824,7 +64846,7 @@ ALTER TABLE ONLY imm_rec_recommendation_protocol
 --
 
 ALTER TABLE ONLY imm_rec_recommendation
-    ADD CONSTRAINT imm_rec_recommendation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64832,7 +64854,7 @@ ALTER TABLE ONLY imm_rec_recommendation
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_supporting_immunization
-    ADD CONSTRAINT imm_rec_recommendation_supporting_immunization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(id);
+    ADD CONSTRAINT imm_rec_recommendation_supporting_immunization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(id) ON DELETE CASCADE;
 
 
 --
@@ -64840,7 +64862,7 @@ ALTER TABLE ONLY imm_rec_recommendation_supporting_immunization
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_supporting_immunization
-    ADD CONSTRAINT imm_rec_recommendation_supporting_immunization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_supporting_immunization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64848,7 +64870,7 @@ ALTER TABLE ONLY imm_rec_recommendation_supporting_immunization
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_supporting_patient_information
-    ADD CONSTRAINT imm_rec_recommendation_supporting_patient_info_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_supporting_patient_info_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64856,7 +64878,7 @@ ALTER TABLE ONLY imm_rec_recommendation_supporting_patient_information
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_supporting_patient_information
-    ADD CONSTRAINT imm_rec_recommendation_supporting_patient_inform_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(id);
+    ADD CONSTRAINT imm_rec_recommendation_supporting_patient_inform_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(id) ON DELETE CASCADE;
 
 
 --
@@ -64864,7 +64886,7 @@ ALTER TABLE ONLY imm_rec_recommendation_supporting_patient_information
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd
-    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_vaccine_type(id);
+    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_vaccine_type(id) ON DELETE CASCADE;
 
 
 --
@@ -64872,7 +64894,7 @@ ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd
-    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64880,7 +64902,7 @@ ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd_vs
-    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_vaccine_type_cd(id);
+    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_vaccine_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -64888,7 +64910,7 @@ ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd_vs
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd_vs
-    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64896,7 +64918,7 @@ ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd_vs
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_vaccine_type
-    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(id);
+    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(id) ON DELETE CASCADE;
 
 
 --
@@ -64904,7 +64926,7 @@ ALTER TABLE ONLY imm_rec_recommendation_vaccine_type
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_vaccine_type
-    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64912,7 +64934,7 @@ ALTER TABLE ONLY imm_rec_recommendation_vaccine_type
 --
 
 ALTER TABLE ONLY imm_rec_subject
-    ADD CONSTRAINT imm_rec_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64920,7 +64942,7 @@ ALTER TABLE ONLY imm_rec_subject
 --
 
 ALTER TABLE ONLY imm_rec_subject
-    ADD CONSTRAINT imm_rec_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64928,7 +64950,7 @@ ALTER TABLE ONLY imm_rec_subject
 --
 
 ALTER TABLE ONLY imm_rec_text
-    ADD CONSTRAINT imm_rec_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64936,7 +64958,7 @@ ALTER TABLE ONLY imm_rec_text
 --
 
 ALTER TABLE ONLY imm_rec_text
-    ADD CONSTRAINT imm_rec_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id);
+    ADD CONSTRAINT imm_rec_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(id) ON DELETE CASCADE;
 
 
 --
@@ -64944,7 +64966,7 @@ ALTER TABLE ONLY imm_rec_text
 --
 
 ALTER TABLE ONLY imm_requester
-    ADD CONSTRAINT imm_requester_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_requester_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64952,7 +64974,7 @@ ALTER TABLE ONLY imm_requester
 --
 
 ALTER TABLE ONLY imm_requester
-    ADD CONSTRAINT imm_requester_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_requester_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64960,7 +64982,7 @@ ALTER TABLE ONLY imm_requester
 --
 
 ALTER TABLE ONLY imm_route_cd
-    ADD CONSTRAINT imm_route_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_route(id);
+    ADD CONSTRAINT imm_route_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_route(id) ON DELETE CASCADE;
 
 
 --
@@ -64968,7 +64990,7 @@ ALTER TABLE ONLY imm_route_cd
 --
 
 ALTER TABLE ONLY imm_route_cd
-    ADD CONSTRAINT imm_route_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_route_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64976,7 +64998,7 @@ ALTER TABLE ONLY imm_route_cd
 --
 
 ALTER TABLE ONLY imm_route_cd_vs
-    ADD CONSTRAINT imm_route_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_route_cd(id);
+    ADD CONSTRAINT imm_route_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_route_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -64984,7 +65006,7 @@ ALTER TABLE ONLY imm_route_cd_vs
 --
 
 ALTER TABLE ONLY imm_route_cd_vs
-    ADD CONSTRAINT imm_route_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_route_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -64992,7 +65014,7 @@ ALTER TABLE ONLY imm_route_cd_vs
 --
 
 ALTER TABLE ONLY imm_route
-    ADD CONSTRAINT imm_route_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_route_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65000,7 +65022,7 @@ ALTER TABLE ONLY imm_route
 --
 
 ALTER TABLE ONLY imm_route
-    ADD CONSTRAINT imm_route_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_route_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65008,7 +65030,7 @@ ALTER TABLE ONLY imm_route
 --
 
 ALTER TABLE ONLY imm_site_cd
-    ADD CONSTRAINT imm_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_site(id);
+    ADD CONSTRAINT imm_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_site(id) ON DELETE CASCADE;
 
 
 --
@@ -65016,7 +65038,7 @@ ALTER TABLE ONLY imm_site_cd
 --
 
 ALTER TABLE ONLY imm_site_cd
-    ADD CONSTRAINT imm_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65024,7 +65046,7 @@ ALTER TABLE ONLY imm_site_cd
 --
 
 ALTER TABLE ONLY imm_site_cd_vs
-    ADD CONSTRAINT imm_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_site_cd(id);
+    ADD CONSTRAINT imm_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_site_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -65032,7 +65054,7 @@ ALTER TABLE ONLY imm_site_cd_vs
 --
 
 ALTER TABLE ONLY imm_site_cd_vs
-    ADD CONSTRAINT imm_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65040,7 +65062,7 @@ ALTER TABLE ONLY imm_site_cd_vs
 --
 
 ALTER TABLE ONLY imm_site
-    ADD CONSTRAINT imm_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65048,7 +65070,7 @@ ALTER TABLE ONLY imm_site
 --
 
 ALTER TABLE ONLY imm_site
-    ADD CONSTRAINT imm_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65056,7 +65078,7 @@ ALTER TABLE ONLY imm_site
 --
 
 ALTER TABLE ONLY imm_subject
-    ADD CONSTRAINT imm_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65064,7 +65086,7 @@ ALTER TABLE ONLY imm_subject
 --
 
 ALTER TABLE ONLY imm_subject
-    ADD CONSTRAINT imm_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65072,7 +65094,7 @@ ALTER TABLE ONLY imm_subject
 --
 
 ALTER TABLE ONLY imm_text
-    ADD CONSTRAINT imm_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65080,7 +65102,7 @@ ALTER TABLE ONLY imm_text
 --
 
 ALTER TABLE ONLY imm_text
-    ADD CONSTRAINT imm_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65088,7 +65110,7 @@ ALTER TABLE ONLY imm_text
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_authority
-    ADD CONSTRAINT imm_vaccination_protocol_authority_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol(id);
+    ADD CONSTRAINT imm_vaccination_protocol_authority_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol(id) ON DELETE CASCADE;
 
 
 --
@@ -65096,7 +65118,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_authority
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_authority
-    ADD CONSTRAINT imm_vaccination_protocol_authority_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccination_protocol_authority_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65104,7 +65126,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_authority
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd
-    ADD CONSTRAINT imm_vaccination_protocol_dose_status_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_status(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_status(id) ON DELETE CASCADE;
 
 
 --
@@ -65112,7 +65134,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd
-    ADD CONSTRAINT imm_vaccination_protocol_dose_status_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65120,7 +65142,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd_vs
-    ADD CONSTRAINT imm_vaccination_protocol_dose_status_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_status_cd(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_status_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -65128,7 +65150,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd_vs
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd_vs
-    ADD CONSTRAINT imm_vaccination_protocol_dose_status_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65136,7 +65158,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd_vs
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_status
-    ADD CONSTRAINT imm_vaccination_protocol_dose_status_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol(id) ON DELETE CASCADE;
 
 
 --
@@ -65144,7 +65166,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_status
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd_vs
-    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_c_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_c_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65152,7 +65174,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd_vs
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd
-    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_status_reason(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_status_reason(id) ON DELETE CASCADE;
 
 
 --
@@ -65160,7 +65182,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd
-    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65168,7 +65190,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd_vs
-    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_cd_v_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_status_reason_cd(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_cd_v_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_status_reason_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -65176,7 +65198,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd_vs
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason
-    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol(id) ON DELETE CASCADE;
 
 
 --
@@ -65184,7 +65206,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason
-    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65192,7 +65214,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_status
-    ADD CONSTRAINT imm_vaccination_protocol_dose_status_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65200,7 +65222,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_status
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd
-    ADD CONSTRAINT imm_vaccination_protocol_dose_target_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_target(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_target_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_target(id) ON DELETE CASCADE;
 
 
 --
@@ -65208,7 +65230,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd
-    ADD CONSTRAINT imm_vaccination_protocol_dose_target_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_target_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65216,7 +65238,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd_vs
-    ADD CONSTRAINT imm_vaccination_protocol_dose_target_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_target_cd(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_target_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_target_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -65224,7 +65246,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd_vs
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd_vs
-    ADD CONSTRAINT imm_vaccination_protocol_dose_target_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_target_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65232,7 +65254,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd_vs
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_target
-    ADD CONSTRAINT imm_vaccination_protocol_dose_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol(id) ON DELETE CASCADE;
 
 
 --
@@ -65240,7 +65262,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_target
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_target
-    ADD CONSTRAINT imm_vaccination_protocol_dose_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccination_protocol_dose_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65248,7 +65270,7 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_target
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol
-    ADD CONSTRAINT imm_vaccination_protocol_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccination_protocol_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65256,7 +65278,7 @@ ALTER TABLE ONLY imm_vaccination_protocol
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol
-    ADD CONSTRAINT imm_vaccination_protocol_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccination_protocol_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65264,7 +65286,7 @@ ALTER TABLE ONLY imm_vaccination_protocol
 --
 
 ALTER TABLE ONLY imm_vaccine_type_cd
-    ADD CONSTRAINT imm_vaccine_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccine_type(id);
+    ADD CONSTRAINT imm_vaccine_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccine_type(id) ON DELETE CASCADE;
 
 
 --
@@ -65272,7 +65294,7 @@ ALTER TABLE ONLY imm_vaccine_type_cd
 --
 
 ALTER TABLE ONLY imm_vaccine_type_cd
-    ADD CONSTRAINT imm_vaccine_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccine_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65280,7 +65302,7 @@ ALTER TABLE ONLY imm_vaccine_type_cd
 --
 
 ALTER TABLE ONLY imm_vaccine_type_cd_vs
-    ADD CONSTRAINT imm_vaccine_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccine_type_cd(id);
+    ADD CONSTRAINT imm_vaccine_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccine_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -65288,7 +65310,7 @@ ALTER TABLE ONLY imm_vaccine_type_cd_vs
 --
 
 ALTER TABLE ONLY imm_vaccine_type_cd_vs
-    ADD CONSTRAINT imm_vaccine_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccine_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65296,7 +65318,7 @@ ALTER TABLE ONLY imm_vaccine_type_cd_vs
 --
 
 ALTER TABLE ONLY imm_vaccine_type
-    ADD CONSTRAINT imm_vaccine_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccine_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65304,7 +65326,7 @@ ALTER TABLE ONLY imm_vaccine_type
 --
 
 ALTER TABLE ONLY imm_vaccine_type
-    ADD CONSTRAINT imm_vaccine_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id);
+    ADD CONSTRAINT imm_vaccine_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(id) ON DELETE CASCADE;
 
 
 --
@@ -65312,7 +65334,7 @@ ALTER TABLE ONLY imm_vaccine_type
 --
 
 ALTER TABLE ONLY list_code_cd
-    ADD CONSTRAINT list_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_code(id);
+    ADD CONSTRAINT list_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_code(id) ON DELETE CASCADE;
 
 
 --
@@ -65320,7 +65342,7 @@ ALTER TABLE ONLY list_code_cd
 --
 
 ALTER TABLE ONLY list_code_cd
-    ADD CONSTRAINT list_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65328,7 +65350,7 @@ ALTER TABLE ONLY list_code_cd
 --
 
 ALTER TABLE ONLY list_code_cd_vs
-    ADD CONSTRAINT list_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_code_cd(id);
+    ADD CONSTRAINT list_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -65336,7 +65358,7 @@ ALTER TABLE ONLY list_code_cd_vs
 --
 
 ALTER TABLE ONLY list_code_cd_vs
-    ADD CONSTRAINT list_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65344,7 +65366,7 @@ ALTER TABLE ONLY list_code_cd_vs
 --
 
 ALTER TABLE ONLY list_code
-    ADD CONSTRAINT list_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(id);
+    ADD CONSTRAINT list_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65352,7 +65374,7 @@ ALTER TABLE ONLY list_code
 --
 
 ALTER TABLE ONLY list_code
-    ADD CONSTRAINT list_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65360,7 +65382,7 @@ ALTER TABLE ONLY list_code
 --
 
 ALTER TABLE ONLY list_empty_reason_cd
-    ADD CONSTRAINT list_empty_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_empty_reason(id);
+    ADD CONSTRAINT list_empty_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_empty_reason(id) ON DELETE CASCADE;
 
 
 --
@@ -65368,7 +65390,7 @@ ALTER TABLE ONLY list_empty_reason_cd
 --
 
 ALTER TABLE ONLY list_empty_reason_cd
-    ADD CONSTRAINT list_empty_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_empty_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65376,7 +65398,7 @@ ALTER TABLE ONLY list_empty_reason_cd
 --
 
 ALTER TABLE ONLY list_empty_reason_cd_vs
-    ADD CONSTRAINT list_empty_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_empty_reason_cd(id);
+    ADD CONSTRAINT list_empty_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_empty_reason_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -65384,7 +65406,7 @@ ALTER TABLE ONLY list_empty_reason_cd_vs
 --
 
 ALTER TABLE ONLY list_empty_reason_cd_vs
-    ADD CONSTRAINT list_empty_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_empty_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65392,7 +65414,7 @@ ALTER TABLE ONLY list_empty_reason_cd_vs
 --
 
 ALTER TABLE ONLY list_empty_reason
-    ADD CONSTRAINT list_empty_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(id);
+    ADD CONSTRAINT list_empty_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65400,7 +65422,7 @@ ALTER TABLE ONLY list_empty_reason
 --
 
 ALTER TABLE ONLY list_empty_reason
-    ADD CONSTRAINT list_empty_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_empty_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65408,7 +65430,7 @@ ALTER TABLE ONLY list_empty_reason
 --
 
 ALTER TABLE ONLY list_entry_flag_cd
-    ADD CONSTRAINT list_entry_flag_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_entry_flag(id);
+    ADD CONSTRAINT list_entry_flag_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_entry_flag(id) ON DELETE CASCADE;
 
 
 --
@@ -65416,7 +65438,7 @@ ALTER TABLE ONLY list_entry_flag_cd
 --
 
 ALTER TABLE ONLY list_entry_flag_cd
-    ADD CONSTRAINT list_entry_flag_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_entry_flag_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65424,7 +65446,7 @@ ALTER TABLE ONLY list_entry_flag_cd
 --
 
 ALTER TABLE ONLY list_entry_flag_cd_vs
-    ADD CONSTRAINT list_entry_flag_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_entry_flag_cd(id);
+    ADD CONSTRAINT list_entry_flag_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_entry_flag_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -65432,7 +65454,7 @@ ALTER TABLE ONLY list_entry_flag_cd_vs
 --
 
 ALTER TABLE ONLY list_entry_flag_cd_vs
-    ADD CONSTRAINT list_entry_flag_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_entry_flag_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65440,7 +65462,7 @@ ALTER TABLE ONLY list_entry_flag_cd_vs
 --
 
 ALTER TABLE ONLY list_entry_flag
-    ADD CONSTRAINT list_entry_flag_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_entry(id);
+    ADD CONSTRAINT list_entry_flag_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_entry(id) ON DELETE CASCADE;
 
 
 --
@@ -65448,7 +65470,7 @@ ALTER TABLE ONLY list_entry_flag
 --
 
 ALTER TABLE ONLY list_entry_flag
-    ADD CONSTRAINT list_entry_flag_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_entry_flag_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65456,7 +65478,7 @@ ALTER TABLE ONLY list_entry_flag
 --
 
 ALTER TABLE ONLY list_entry_item
-    ADD CONSTRAINT list_entry_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_entry(id);
+    ADD CONSTRAINT list_entry_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_entry(id) ON DELETE CASCADE;
 
 
 --
@@ -65464,7 +65486,7 @@ ALTER TABLE ONLY list_entry_item
 --
 
 ALTER TABLE ONLY list_entry_item
-    ADD CONSTRAINT list_entry_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_entry_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65472,7 +65494,7 @@ ALTER TABLE ONLY list_entry_item
 --
 
 ALTER TABLE ONLY list_entry
-    ADD CONSTRAINT list_entry_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(id);
+    ADD CONSTRAINT list_entry_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65480,7 +65502,7 @@ ALTER TABLE ONLY list_entry
 --
 
 ALTER TABLE ONLY list_entry
-    ADD CONSTRAINT list_entry_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_entry_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65488,7 +65510,7 @@ ALTER TABLE ONLY list_entry
 --
 
 ALTER TABLE ONLY list_idn_assigner
-    ADD CONSTRAINT list_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_idn(id);
+    ADD CONSTRAINT list_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -65496,7 +65518,7 @@ ALTER TABLE ONLY list_idn_assigner
 --
 
 ALTER TABLE ONLY list_idn_assigner
-    ADD CONSTRAINT list_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65504,7 +65526,7 @@ ALTER TABLE ONLY list_idn_assigner
 --
 
 ALTER TABLE ONLY list_idn
-    ADD CONSTRAINT list_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(id);
+    ADD CONSTRAINT list_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65512,7 +65534,7 @@ ALTER TABLE ONLY list_idn
 --
 
 ALTER TABLE ONLY list_idn_period
-    ADD CONSTRAINT list_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_idn(id);
+    ADD CONSTRAINT list_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -65520,7 +65542,7 @@ ALTER TABLE ONLY list_idn_period
 --
 
 ALTER TABLE ONLY list_idn_period
-    ADD CONSTRAINT list_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65528,7 +65550,7 @@ ALTER TABLE ONLY list_idn_period
 --
 
 ALTER TABLE ONLY list_idn
-    ADD CONSTRAINT list_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65536,7 +65558,7 @@ ALTER TABLE ONLY list_idn
 --
 
 ALTER TABLE ONLY list_source
-    ADD CONSTRAINT list_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(id);
+    ADD CONSTRAINT list_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65544,7 +65566,7 @@ ALTER TABLE ONLY list_source
 --
 
 ALTER TABLE ONLY list_source
-    ADD CONSTRAINT list_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65552,7 +65574,7 @@ ALTER TABLE ONLY list_source
 --
 
 ALTER TABLE ONLY list_subject
-    ADD CONSTRAINT list_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(id);
+    ADD CONSTRAINT list_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65560,7 +65582,7 @@ ALTER TABLE ONLY list_subject
 --
 
 ALTER TABLE ONLY list_subject
-    ADD CONSTRAINT list_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65568,7 +65590,7 @@ ALTER TABLE ONLY list_subject
 --
 
 ALTER TABLE ONLY list_text
-    ADD CONSTRAINT list_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(id);
+    ADD CONSTRAINT list_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65576,7 +65598,7 @@ ALTER TABLE ONLY list_text
 --
 
 ALTER TABLE ONLY list_text
-    ADD CONSTRAINT list_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id);
+    ADD CONSTRAINT list_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(id) ON DELETE CASCADE;
 
 
 --
@@ -65584,7 +65606,7 @@ ALTER TABLE ONLY list_text
 --
 
 ALTER TABLE ONLY loc_address
-    ADD CONSTRAINT loc_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65592,7 +65614,7 @@ ALTER TABLE ONLY loc_address
 --
 
 ALTER TABLE ONLY loc_address_period
-    ADD CONSTRAINT loc_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_address(id);
+    ADD CONSTRAINT loc_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_address(id) ON DELETE CASCADE;
 
 
 --
@@ -65600,7 +65622,7 @@ ALTER TABLE ONLY loc_address_period
 --
 
 ALTER TABLE ONLY loc_address_period
-    ADD CONSTRAINT loc_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65608,7 +65630,7 @@ ALTER TABLE ONLY loc_address_period
 --
 
 ALTER TABLE ONLY loc_address
-    ADD CONSTRAINT loc_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65616,7 +65638,7 @@ ALTER TABLE ONLY loc_address
 --
 
 ALTER TABLE ONLY loc_idn_assigner
-    ADD CONSTRAINT loc_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_idn(id);
+    ADD CONSTRAINT loc_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -65624,7 +65646,7 @@ ALTER TABLE ONLY loc_idn_assigner
 --
 
 ALTER TABLE ONLY loc_idn_assigner
-    ADD CONSTRAINT loc_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65632,7 +65654,7 @@ ALTER TABLE ONLY loc_idn_assigner
 --
 
 ALTER TABLE ONLY loc_idn
-    ADD CONSTRAINT loc_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65640,7 +65662,7 @@ ALTER TABLE ONLY loc_idn
 --
 
 ALTER TABLE ONLY loc_idn_period
-    ADD CONSTRAINT loc_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_idn(id);
+    ADD CONSTRAINT loc_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -65648,7 +65670,7 @@ ALTER TABLE ONLY loc_idn_period
 --
 
 ALTER TABLE ONLY loc_idn_period
-    ADD CONSTRAINT loc_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65656,7 +65678,7 @@ ALTER TABLE ONLY loc_idn_period
 --
 
 ALTER TABLE ONLY loc_idn
-    ADD CONSTRAINT loc_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65664,7 +65686,7 @@ ALTER TABLE ONLY loc_idn
 --
 
 ALTER TABLE ONLY loc_managing_organization
-    ADD CONSTRAINT loc_managing_organization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_managing_organization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65672,7 +65694,7 @@ ALTER TABLE ONLY loc_managing_organization
 --
 
 ALTER TABLE ONLY loc_managing_organization
-    ADD CONSTRAINT loc_managing_organization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_managing_organization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65680,7 +65702,7 @@ ALTER TABLE ONLY loc_managing_organization
 --
 
 ALTER TABLE ONLY loc_part_of
-    ADD CONSTRAINT loc_part_of_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_part_of_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65688,7 +65710,7 @@ ALTER TABLE ONLY loc_part_of
 --
 
 ALTER TABLE ONLY loc_part_of
-    ADD CONSTRAINT loc_part_of_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_part_of_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65696,7 +65718,7 @@ ALTER TABLE ONLY loc_part_of
 --
 
 ALTER TABLE ONLY loc_physical_type_cd
-    ADD CONSTRAINT loc_physical_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_physical_type(id);
+    ADD CONSTRAINT loc_physical_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_physical_type(id) ON DELETE CASCADE;
 
 
 --
@@ -65704,7 +65726,7 @@ ALTER TABLE ONLY loc_physical_type_cd
 --
 
 ALTER TABLE ONLY loc_physical_type_cd
-    ADD CONSTRAINT loc_physical_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_physical_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65712,7 +65734,7 @@ ALTER TABLE ONLY loc_physical_type_cd
 --
 
 ALTER TABLE ONLY loc_physical_type_cd_vs
-    ADD CONSTRAINT loc_physical_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_physical_type_cd(id);
+    ADD CONSTRAINT loc_physical_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_physical_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -65720,7 +65742,7 @@ ALTER TABLE ONLY loc_physical_type_cd_vs
 --
 
 ALTER TABLE ONLY loc_physical_type_cd_vs
-    ADD CONSTRAINT loc_physical_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_physical_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65728,7 +65750,7 @@ ALTER TABLE ONLY loc_physical_type_cd_vs
 --
 
 ALTER TABLE ONLY loc_physical_type
-    ADD CONSTRAINT loc_physical_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_physical_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65736,7 +65758,7 @@ ALTER TABLE ONLY loc_physical_type
 --
 
 ALTER TABLE ONLY loc_physical_type
-    ADD CONSTRAINT loc_physical_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_physical_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65744,7 +65766,7 @@ ALTER TABLE ONLY loc_physical_type
 --
 
 ALTER TABLE ONLY loc_position
-    ADD CONSTRAINT loc_position_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_position_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65752,7 +65774,7 @@ ALTER TABLE ONLY loc_position
 --
 
 ALTER TABLE ONLY loc_position
-    ADD CONSTRAINT loc_position_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_position_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65760,7 +65782,7 @@ ALTER TABLE ONLY loc_position
 --
 
 ALTER TABLE ONLY loc_telecom
-    ADD CONSTRAINT loc_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65768,7 +65790,7 @@ ALTER TABLE ONLY loc_telecom
 --
 
 ALTER TABLE ONLY loc_telecom_period
-    ADD CONSTRAINT loc_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_telecom(id);
+    ADD CONSTRAINT loc_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_telecom(id) ON DELETE CASCADE;
 
 
 --
@@ -65776,7 +65798,7 @@ ALTER TABLE ONLY loc_telecom_period
 --
 
 ALTER TABLE ONLY loc_telecom_period
-    ADD CONSTRAINT loc_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65784,7 +65806,7 @@ ALTER TABLE ONLY loc_telecom_period
 --
 
 ALTER TABLE ONLY loc_telecom
-    ADD CONSTRAINT loc_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65792,7 +65814,7 @@ ALTER TABLE ONLY loc_telecom
 --
 
 ALTER TABLE ONLY loc_text
-    ADD CONSTRAINT loc_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65800,7 +65822,7 @@ ALTER TABLE ONLY loc_text
 --
 
 ALTER TABLE ONLY loc_text
-    ADD CONSTRAINT loc_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65808,7 +65830,7 @@ ALTER TABLE ONLY loc_text
 --
 
 ALTER TABLE ONLY loc_type_cd
-    ADD CONSTRAINT loc_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_type(id);
+    ADD CONSTRAINT loc_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_type(id) ON DELETE CASCADE;
 
 
 --
@@ -65816,7 +65838,7 @@ ALTER TABLE ONLY loc_type_cd
 --
 
 ALTER TABLE ONLY loc_type_cd
-    ADD CONSTRAINT loc_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65824,7 +65846,7 @@ ALTER TABLE ONLY loc_type_cd
 --
 
 ALTER TABLE ONLY loc_type_cd_vs
-    ADD CONSTRAINT loc_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_type_cd(id);
+    ADD CONSTRAINT loc_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -65832,7 +65854,7 @@ ALTER TABLE ONLY loc_type_cd_vs
 --
 
 ALTER TABLE ONLY loc_type_cd_vs
-    ADD CONSTRAINT loc_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65840,7 +65862,7 @@ ALTER TABLE ONLY loc_type_cd_vs
 --
 
 ALTER TABLE ONLY loc_type
-    ADD CONSTRAINT loc_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65848,7 +65870,7 @@ ALTER TABLE ONLY loc_type
 --
 
 ALTER TABLE ONLY loc_type
-    ADD CONSTRAINT loc_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id);
+    ADD CONSTRAINT loc_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(id) ON DELETE CASCADE;
 
 
 --
@@ -65856,7 +65878,7 @@ ALTER TABLE ONLY loc_type
 --
 
 ALTER TABLE ONLY med_adm_device
-    ADD CONSTRAINT med_adm_device_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_device_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -65864,7 +65886,7 @@ ALTER TABLE ONLY med_adm_device
 --
 
 ALTER TABLE ONLY med_adm_device
-    ADD CONSTRAINT med_adm_device_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_device_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -65872,7 +65894,7 @@ ALTER TABLE ONLY med_adm_device
 --
 
 ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd
-    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_as_needed_codeable_concept(id);
+    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_as_needed_codeable_concept(id) ON DELETE CASCADE;
 
 
 --
@@ -65880,7 +65902,7 @@ ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd
 --
 
 ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd
-    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -65888,7 +65910,7 @@ ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd
 --
 
 ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd_vs
-    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_cd_v_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_cd_v_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -65896,7 +65918,7 @@ ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd_vs
-    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_as_needed_codeable_concept_cd(id);
+    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_as_needed_codeable_concept_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -65904,7 +65926,7 @@ ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept
-    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id);
+    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -65912,7 +65934,7 @@ ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept
 --
 
 ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept
-    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -65920,7 +65942,7 @@ ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept
 --
 
 ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_denominator
-    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_max_dose_per_period(id);
+    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_max_dose_per_period(id) ON DELETE CASCADE;
 
 
 --
@@ -65928,7 +65950,7 @@ ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_denominator
 --
 
 ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_denominator
-    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -65936,7 +65958,7 @@ ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_denominator
 --
 
 ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_numerator
-    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_max_dose_per_period(id);
+    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_max_dose_per_period(id) ON DELETE CASCADE;
 
 
 --
@@ -65944,7 +65966,7 @@ ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_numerator
 --
 
 ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_numerator
-    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -65952,7 +65974,7 @@ ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_numerator
 --
 
 ALTER TABLE ONLY med_adm_dosage_max_dose_per_period
-    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id);
+    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -65960,7 +65982,7 @@ ALTER TABLE ONLY med_adm_dosage_max_dose_per_period
 --
 
 ALTER TABLE ONLY med_adm_dosage_max_dose_per_period
-    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -65968,7 +65990,7 @@ ALTER TABLE ONLY med_adm_dosage_max_dose_per_period
 --
 
 ALTER TABLE ONLY med_adm_dosage_method_cd
-    ADD CONSTRAINT med_adm_dosage_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_method(id);
+    ADD CONSTRAINT med_adm_dosage_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_method(id) ON DELETE CASCADE;
 
 
 --
@@ -65976,7 +65998,7 @@ ALTER TABLE ONLY med_adm_dosage_method_cd
 --
 
 ALTER TABLE ONLY med_adm_dosage_method_cd
-    ADD CONSTRAINT med_adm_dosage_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -65984,7 +66006,7 @@ ALTER TABLE ONLY med_adm_dosage_method_cd
 --
 
 ALTER TABLE ONLY med_adm_dosage_method_cd_vs
-    ADD CONSTRAINT med_adm_dosage_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_method_cd(id);
+    ADD CONSTRAINT med_adm_dosage_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_method_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -65992,7 +66014,7 @@ ALTER TABLE ONLY med_adm_dosage_method_cd_vs
 --
 
 ALTER TABLE ONLY med_adm_dosage_method_cd_vs
-    ADD CONSTRAINT med_adm_dosage_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66000,7 +66022,7 @@ ALTER TABLE ONLY med_adm_dosage_method_cd_vs
 --
 
 ALTER TABLE ONLY med_adm_dosage_method
-    ADD CONSTRAINT med_adm_dosage_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id);
+    ADD CONSTRAINT med_adm_dosage_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66008,7 +66030,7 @@ ALTER TABLE ONLY med_adm_dosage_method
 --
 
 ALTER TABLE ONLY med_adm_dosage_method
-    ADD CONSTRAINT med_adm_dosage_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66016,7 +66038,7 @@ ALTER TABLE ONLY med_adm_dosage_method
 --
 
 ALTER TABLE ONLY med_adm_dosage
-    ADD CONSTRAINT med_adm_dosage_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66024,7 +66046,7 @@ ALTER TABLE ONLY med_adm_dosage
 --
 
 ALTER TABLE ONLY med_adm_dosage_quantity
-    ADD CONSTRAINT med_adm_dosage_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id);
+    ADD CONSTRAINT med_adm_dosage_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66032,7 +66054,7 @@ ALTER TABLE ONLY med_adm_dosage_quantity
 --
 
 ALTER TABLE ONLY med_adm_dosage_quantity
-    ADD CONSTRAINT med_adm_dosage_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66040,7 +66062,7 @@ ALTER TABLE ONLY med_adm_dosage_quantity
 --
 
 ALTER TABLE ONLY med_adm_dosage_rate_denominator
-    ADD CONSTRAINT med_adm_dosage_rate_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_rate(id);
+    ADD CONSTRAINT med_adm_dosage_rate_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_rate(id) ON DELETE CASCADE;
 
 
 --
@@ -66048,7 +66070,7 @@ ALTER TABLE ONLY med_adm_dosage_rate_denominator
 --
 
 ALTER TABLE ONLY med_adm_dosage_rate_denominator
-    ADD CONSTRAINT med_adm_dosage_rate_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_rate_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66056,7 +66078,7 @@ ALTER TABLE ONLY med_adm_dosage_rate_denominator
 --
 
 ALTER TABLE ONLY med_adm_dosage_rate_numerator
-    ADD CONSTRAINT med_adm_dosage_rate_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_rate(id);
+    ADD CONSTRAINT med_adm_dosage_rate_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_rate(id) ON DELETE CASCADE;
 
 
 --
@@ -66064,7 +66086,7 @@ ALTER TABLE ONLY med_adm_dosage_rate_numerator
 --
 
 ALTER TABLE ONLY med_adm_dosage_rate_numerator
-    ADD CONSTRAINT med_adm_dosage_rate_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_rate_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66072,7 +66094,7 @@ ALTER TABLE ONLY med_adm_dosage_rate_numerator
 --
 
 ALTER TABLE ONLY med_adm_dosage_rate
-    ADD CONSTRAINT med_adm_dosage_rate_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id);
+    ADD CONSTRAINT med_adm_dosage_rate_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66080,7 +66102,7 @@ ALTER TABLE ONLY med_adm_dosage_rate
 --
 
 ALTER TABLE ONLY med_adm_dosage_rate
-    ADD CONSTRAINT med_adm_dosage_rate_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_rate_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66088,7 +66110,7 @@ ALTER TABLE ONLY med_adm_dosage_rate
 --
 
 ALTER TABLE ONLY med_adm_dosage
-    ADD CONSTRAINT med_adm_dosage_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66096,7 +66118,7 @@ ALTER TABLE ONLY med_adm_dosage
 --
 
 ALTER TABLE ONLY med_adm_dosage_route_cd
-    ADD CONSTRAINT med_adm_dosage_route_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_route(id);
+    ADD CONSTRAINT med_adm_dosage_route_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_route(id) ON DELETE CASCADE;
 
 
 --
@@ -66104,7 +66126,7 @@ ALTER TABLE ONLY med_adm_dosage_route_cd
 --
 
 ALTER TABLE ONLY med_adm_dosage_route_cd
-    ADD CONSTRAINT med_adm_dosage_route_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_route_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66112,7 +66134,7 @@ ALTER TABLE ONLY med_adm_dosage_route_cd
 --
 
 ALTER TABLE ONLY med_adm_dosage_route_cd_vs
-    ADD CONSTRAINT med_adm_dosage_route_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_route_cd(id);
+    ADD CONSTRAINT med_adm_dosage_route_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_route_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -66120,7 +66142,7 @@ ALTER TABLE ONLY med_adm_dosage_route_cd_vs
 --
 
 ALTER TABLE ONLY med_adm_dosage_route_cd_vs
-    ADD CONSTRAINT med_adm_dosage_route_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_route_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66128,7 +66150,7 @@ ALTER TABLE ONLY med_adm_dosage_route_cd_vs
 --
 
 ALTER TABLE ONLY med_adm_dosage_route
-    ADD CONSTRAINT med_adm_dosage_route_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id);
+    ADD CONSTRAINT med_adm_dosage_route_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66136,7 +66158,7 @@ ALTER TABLE ONLY med_adm_dosage_route
 --
 
 ALTER TABLE ONLY med_adm_dosage_route
-    ADD CONSTRAINT med_adm_dosage_route_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_route_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66144,7 +66166,7 @@ ALTER TABLE ONLY med_adm_dosage_route
 --
 
 ALTER TABLE ONLY med_adm_dosage_site_cd
-    ADD CONSTRAINT med_adm_dosage_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_site(id);
+    ADD CONSTRAINT med_adm_dosage_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_site(id) ON DELETE CASCADE;
 
 
 --
@@ -66152,7 +66174,7 @@ ALTER TABLE ONLY med_adm_dosage_site_cd
 --
 
 ALTER TABLE ONLY med_adm_dosage_site_cd
-    ADD CONSTRAINT med_adm_dosage_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66160,7 +66182,7 @@ ALTER TABLE ONLY med_adm_dosage_site_cd
 --
 
 ALTER TABLE ONLY med_adm_dosage_site_cd_vs
-    ADD CONSTRAINT med_adm_dosage_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_site_cd(id);
+    ADD CONSTRAINT med_adm_dosage_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_site_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -66168,7 +66190,7 @@ ALTER TABLE ONLY med_adm_dosage_site_cd_vs
 --
 
 ALTER TABLE ONLY med_adm_dosage_site_cd_vs
-    ADD CONSTRAINT med_adm_dosage_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66176,7 +66198,7 @@ ALTER TABLE ONLY med_adm_dosage_site_cd_vs
 --
 
 ALTER TABLE ONLY med_adm_dosage_site
-    ADD CONSTRAINT med_adm_dosage_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id);
+    ADD CONSTRAINT med_adm_dosage_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66184,7 +66206,7 @@ ALTER TABLE ONLY med_adm_dosage_site
 --
 
 ALTER TABLE ONLY med_adm_dosage_site
-    ADD CONSTRAINT med_adm_dosage_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66192,7 +66214,7 @@ ALTER TABLE ONLY med_adm_dosage_site
 --
 
 ALTER TABLE ONLY med_adm_dosage_timing_period
-    ADD CONSTRAINT med_adm_dosage_timing_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id);
+    ADD CONSTRAINT med_adm_dosage_timing_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66200,7 +66222,7 @@ ALTER TABLE ONLY med_adm_dosage_timing_period
 --
 
 ALTER TABLE ONLY med_adm_dosage_timing_period
-    ADD CONSTRAINT med_adm_dosage_timing_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_dosage_timing_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66208,7 +66230,7 @@ ALTER TABLE ONLY med_adm_dosage_timing_period
 --
 
 ALTER TABLE ONLY med_adm_encounter
-    ADD CONSTRAINT med_adm_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66216,7 +66238,7 @@ ALTER TABLE ONLY med_adm_encounter
 --
 
 ALTER TABLE ONLY med_adm_encounter
-    ADD CONSTRAINT med_adm_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66224,7 +66246,7 @@ ALTER TABLE ONLY med_adm_encounter
 --
 
 ALTER TABLE ONLY med_adm_idn_assigner
-    ADD CONSTRAINT med_adm_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_idn(id);
+    ADD CONSTRAINT med_adm_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -66232,7 +66254,7 @@ ALTER TABLE ONLY med_adm_idn_assigner
 --
 
 ALTER TABLE ONLY med_adm_idn_assigner
-    ADD CONSTRAINT med_adm_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66240,7 +66262,7 @@ ALTER TABLE ONLY med_adm_idn_assigner
 --
 
 ALTER TABLE ONLY med_adm_idn
-    ADD CONSTRAINT med_adm_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66248,7 +66270,7 @@ ALTER TABLE ONLY med_adm_idn
 --
 
 ALTER TABLE ONLY med_adm_idn_period
-    ADD CONSTRAINT med_adm_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_idn(id);
+    ADD CONSTRAINT med_adm_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -66256,7 +66278,7 @@ ALTER TABLE ONLY med_adm_idn_period
 --
 
 ALTER TABLE ONLY med_adm_idn_period
-    ADD CONSTRAINT med_adm_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66264,7 +66286,7 @@ ALTER TABLE ONLY med_adm_idn_period
 --
 
 ALTER TABLE ONLY med_adm_idn
-    ADD CONSTRAINT med_adm_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66272,7 +66294,7 @@ ALTER TABLE ONLY med_adm_idn
 --
 
 ALTER TABLE ONLY med_adm_med
-    ADD CONSTRAINT med_adm_med_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_med_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66280,7 +66302,7 @@ ALTER TABLE ONLY med_adm_med
 --
 
 ALTER TABLE ONLY med_adm_med
-    ADD CONSTRAINT med_adm_med_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_med_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66288,7 +66310,7 @@ ALTER TABLE ONLY med_adm_med
 --
 
 ALTER TABLE ONLY med_adm_patient
-    ADD CONSTRAINT med_adm_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66296,7 +66318,7 @@ ALTER TABLE ONLY med_adm_patient
 --
 
 ALTER TABLE ONLY med_adm_patient
-    ADD CONSTRAINT med_adm_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66304,7 +66326,7 @@ ALTER TABLE ONLY med_adm_patient
 --
 
 ALTER TABLE ONLY med_adm_practitioner
-    ADD CONSTRAINT med_adm_practitioner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_practitioner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66312,7 +66334,7 @@ ALTER TABLE ONLY med_adm_practitioner
 --
 
 ALTER TABLE ONLY med_adm_practitioner
-    ADD CONSTRAINT med_adm_practitioner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_practitioner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66320,7 +66342,7 @@ ALTER TABLE ONLY med_adm_practitioner
 --
 
 ALTER TABLE ONLY med_adm_prs
-    ADD CONSTRAINT med_adm_prs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_prs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66328,7 +66350,7 @@ ALTER TABLE ONLY med_adm_prs
 --
 
 ALTER TABLE ONLY med_adm_prs
-    ADD CONSTRAINT med_adm_prs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_prs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66336,7 +66358,7 @@ ALTER TABLE ONLY med_adm_prs
 --
 
 ALTER TABLE ONLY med_adm_reason_not_given_cd
-    ADD CONSTRAINT med_adm_reason_not_given_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_reason_not_given(id);
+    ADD CONSTRAINT med_adm_reason_not_given_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_reason_not_given(id) ON DELETE CASCADE;
 
 
 --
@@ -66344,7 +66366,7 @@ ALTER TABLE ONLY med_adm_reason_not_given_cd
 --
 
 ALTER TABLE ONLY med_adm_reason_not_given_cd
-    ADD CONSTRAINT med_adm_reason_not_given_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_reason_not_given_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66352,7 +66374,7 @@ ALTER TABLE ONLY med_adm_reason_not_given_cd
 --
 
 ALTER TABLE ONLY med_adm_reason_not_given_cd_vs
-    ADD CONSTRAINT med_adm_reason_not_given_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_reason_not_given_cd(id);
+    ADD CONSTRAINT med_adm_reason_not_given_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_reason_not_given_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -66360,7 +66382,7 @@ ALTER TABLE ONLY med_adm_reason_not_given_cd_vs
 --
 
 ALTER TABLE ONLY med_adm_reason_not_given_cd_vs
-    ADD CONSTRAINT med_adm_reason_not_given_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_reason_not_given_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66368,7 +66390,7 @@ ALTER TABLE ONLY med_adm_reason_not_given_cd_vs
 --
 
 ALTER TABLE ONLY med_adm_reason_not_given
-    ADD CONSTRAINT med_adm_reason_not_given_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_reason_not_given_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66376,7 +66398,7 @@ ALTER TABLE ONLY med_adm_reason_not_given
 --
 
 ALTER TABLE ONLY med_adm_reason_not_given
-    ADD CONSTRAINT med_adm_reason_not_given_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_reason_not_given_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66384,7 +66406,7 @@ ALTER TABLE ONLY med_adm_reason_not_given
 --
 
 ALTER TABLE ONLY med_adm_text
-    ADD CONSTRAINT med_adm_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66392,7 +66414,7 @@ ALTER TABLE ONLY med_adm_text
 --
 
 ALTER TABLE ONLY med_adm_text
-    ADD CONSTRAINT med_adm_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66400,7 +66422,7 @@ ALTER TABLE ONLY med_adm_text
 --
 
 ALTER TABLE ONLY med_adm_when_given
-    ADD CONSTRAINT med_adm_when_given_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_when_given_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66408,7 +66430,7 @@ ALTER TABLE ONLY med_adm_when_given
 --
 
 ALTER TABLE ONLY med_adm_when_given
-    ADD CONSTRAINT med_adm_when_given_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id);
+    ADD CONSTRAINT med_adm_when_given_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(id) ON DELETE CASCADE;
 
 
 --
@@ -66416,7 +66438,7 @@ ALTER TABLE ONLY med_adm_when_given
 --
 
 ALTER TABLE ONLY med_code_cd
-    ADD CONSTRAINT med_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_code(id);
+    ADD CONSTRAINT med_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_code(id) ON DELETE CASCADE;
 
 
 --
@@ -66424,7 +66446,7 @@ ALTER TABLE ONLY med_code_cd
 --
 
 ALTER TABLE ONLY med_code_cd
-    ADD CONSTRAINT med_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -66432,7 +66454,7 @@ ALTER TABLE ONLY med_code_cd
 --
 
 ALTER TABLE ONLY med_code_cd_vs
-    ADD CONSTRAINT med_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_code_cd(id);
+    ADD CONSTRAINT med_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -66440,7 +66462,7 @@ ALTER TABLE ONLY med_code_cd_vs
 --
 
 ALTER TABLE ONLY med_code_cd_vs
-    ADD CONSTRAINT med_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -66448,7 +66470,7 @@ ALTER TABLE ONLY med_code_cd_vs
 --
 
 ALTER TABLE ONLY med_code
-    ADD CONSTRAINT med_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med(id);
+    ADD CONSTRAINT med_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -66456,7 +66478,7 @@ ALTER TABLE ONLY med_code
 --
 
 ALTER TABLE ONLY med_code
-    ADD CONSTRAINT med_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -66464,7 +66486,7 @@ ALTER TABLE ONLY med_code
 --
 
 ALTER TABLE ONLY med_disp_authorizing_prescription
-    ADD CONSTRAINT med_disp_authorizing_prescription_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_authorizing_prescription_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66472,7 +66494,7 @@ ALTER TABLE ONLY med_disp_authorizing_prescription
 --
 
 ALTER TABLE ONLY med_disp_authorizing_prescription
-    ADD CONSTRAINT med_disp_authorizing_prescription_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_authorizing_prescription_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66480,7 +66502,7 @@ ALTER TABLE ONLY med_disp_authorizing_prescription
 --
 
 ALTER TABLE ONLY med_disp_dispense_destination
-    ADD CONSTRAINT med_disp_dispense_destination_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(id);
+    ADD CONSTRAINT med_disp_dispense_destination_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -66488,7 +66510,7 @@ ALTER TABLE ONLY med_disp_dispense_destination
 --
 
 ALTER TABLE ONLY med_disp_dispense_destination
-    ADD CONSTRAINT med_disp_dispense_destination_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_destination_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66496,7 +66518,7 @@ ALTER TABLE ONLY med_disp_dispense_destination
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd
-    ADD CONSTRAINT med_disp_dispense_dosage_additional_instructi_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_additional_instructi_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66504,7 +66526,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd_vs
-    ADD CONSTRAINT med_disp_dispense_dosage_additional_instructi_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_additional_instructi_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66512,7 +66534,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions
-    ADD CONSTRAINT med_disp_dispense_dosage_additional_instructio_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_additional_instructio_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66520,7 +66542,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd
-    ADD CONSTRAINT med_disp_dispense_dosage_additional_instruction_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_additional_instructions(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_additional_instruction_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_additional_instructions(id) ON DELETE CASCADE;
 
 
 --
@@ -66528,7 +66550,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd_vs
-    ADD CONSTRAINT med_disp_dispense_dosage_additional_instruction_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_additional_instructions_cd(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_additional_instruction_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_additional_instructions_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -66536,7 +66558,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions
-    ADD CONSTRAINT med_disp_dispense_dosage_additional_instructions_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_additional_instructions_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66544,7 +66566,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd
-    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_c_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_c_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66552,7 +66574,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd_vs
-    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_c_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_c_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66560,7 +66582,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept
-    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_co_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_co_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66568,7 +66590,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd
-    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_con_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_as_needed_codeable_concept(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_con_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_as_needed_codeable_concept(id) ON DELETE CASCADE;
 
 
 --
@@ -66576,7 +66598,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd_vs
-    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_con_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_as_needed_codeable_concept_cd(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_con_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_as_needed_codeable_concept_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -66584,7 +66606,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept
-    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_conc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_conc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66592,7 +66614,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_denominator
-    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_d_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_d_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66600,7 +66622,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_denominator
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_denominator
-    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_den_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_max_dose_per_period(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_den_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_max_dose_per_period(id) ON DELETE CASCADE;
 
 
 --
@@ -66608,7 +66630,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_denominator
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_numerator
-    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_n_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_n_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66616,7 +66638,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_numerator
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_numerator
-    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_num_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_max_dose_per_period(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_num_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_max_dose_per_period(id) ON DELETE CASCADE;
 
 
 --
@@ -66624,7 +66646,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_numerator
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period
-    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66632,7 +66654,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period
-    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66640,7 +66662,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_method_cd
-    ADD CONSTRAINT med_disp_dispense_dosage_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_method(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_method(id) ON DELETE CASCADE;
 
 
 --
@@ -66648,7 +66670,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_method_cd
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_method_cd
-    ADD CONSTRAINT med_disp_dispense_dosage_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66656,7 +66678,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_method_cd
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_method_cd_vs
-    ADD CONSTRAINT med_disp_dispense_dosage_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_method_cd(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_method_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -66664,7 +66686,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_method_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_method_cd_vs
-    ADD CONSTRAINT med_disp_dispense_dosage_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66672,7 +66694,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_method_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_method
-    ADD CONSTRAINT med_disp_dispense_dosage_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66680,7 +66702,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_method
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_method
-    ADD CONSTRAINT med_disp_dispense_dosage_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66688,7 +66710,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_method
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage
-    ADD CONSTRAINT med_disp_dispense_dosage_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -66696,7 +66718,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_quantity
-    ADD CONSTRAINT med_disp_dispense_dosage_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66704,7 +66726,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_quantity
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_quantity
-    ADD CONSTRAINT med_disp_dispense_dosage_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66712,7 +66734,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_quantity
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_rate_denominator
-    ADD CONSTRAINT med_disp_dispense_dosage_rate_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_rate(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_rate_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_rate(id) ON DELETE CASCADE;
 
 
 --
@@ -66720,7 +66742,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_rate_denominator
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_rate_denominator
-    ADD CONSTRAINT med_disp_dispense_dosage_rate_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_rate_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66728,7 +66750,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_rate_denominator
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_rate_numerator
-    ADD CONSTRAINT med_disp_dispense_dosage_rate_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_rate(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_rate_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_rate(id) ON DELETE CASCADE;
 
 
 --
@@ -66736,7 +66758,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_rate_numerator
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_rate_numerator
-    ADD CONSTRAINT med_disp_dispense_dosage_rate_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_rate_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66744,7 +66766,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_rate_numerator
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_rate
-    ADD CONSTRAINT med_disp_dispense_dosage_rate_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_rate_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66752,7 +66774,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_rate
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_rate
-    ADD CONSTRAINT med_disp_dispense_dosage_rate_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_rate_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66760,7 +66782,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_rate
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage
-    ADD CONSTRAINT med_disp_dispense_dosage_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66768,7 +66790,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_route_cd
-    ADD CONSTRAINT med_disp_dispense_dosage_route_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_route(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_route_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_route(id) ON DELETE CASCADE;
 
 
 --
@@ -66776,7 +66798,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_route_cd
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_route_cd
-    ADD CONSTRAINT med_disp_dispense_dosage_route_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_route_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66784,7 +66806,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_route_cd
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_route_cd_vs
-    ADD CONSTRAINT med_disp_dispense_dosage_route_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_route_cd(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_route_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_route_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -66792,7 +66814,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_route_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_route_cd_vs
-    ADD CONSTRAINT med_disp_dispense_dosage_route_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_route_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66800,7 +66822,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_route_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_route
-    ADD CONSTRAINT med_disp_dispense_dosage_route_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_route_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66808,7 +66830,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_route
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_route
-    ADD CONSTRAINT med_disp_dispense_dosage_route_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_route_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66816,7 +66838,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_route
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_site_cd
-    ADD CONSTRAINT med_disp_dispense_dosage_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_site(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_site(id) ON DELETE CASCADE;
 
 
 --
@@ -66824,7 +66846,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_site_cd
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_site_cd
-    ADD CONSTRAINT med_disp_dispense_dosage_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66832,7 +66854,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_site_cd
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_site_cd_vs
-    ADD CONSTRAINT med_disp_dispense_dosage_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_site_cd(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_site_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -66840,7 +66862,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_site_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_site_cd_vs
-    ADD CONSTRAINT med_disp_dispense_dosage_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66848,7 +66870,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_site_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_site
-    ADD CONSTRAINT med_disp_dispense_dosage_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66856,7 +66878,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_site
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_site
-    ADD CONSTRAINT med_disp_dispense_dosage_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66864,7 +66886,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_site
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_timing_period
-    ADD CONSTRAINT med_disp_dispense_dosage_timing_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66872,7 +66894,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_timing_period
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_timing_period
-    ADD CONSTRAINT med_disp_dispense_dosage_timing_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66880,7 +66902,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_timing_period
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_event
-    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_timing_schedule(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_timing_schedule(id) ON DELETE CASCADE;
 
 
 --
@@ -66888,7 +66910,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_event
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_event
-    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66896,7 +66918,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_event
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule
-    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -66904,7 +66926,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_repeat
-    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_repea_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_repea_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66912,7 +66934,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_repeat
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_repeat
-    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_repeat_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_timing_schedule(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_repeat_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_timing_schedule(id) ON DELETE CASCADE;
 
 
 --
@@ -66920,7 +66942,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_repeat
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule
-    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66928,7 +66950,7 @@ ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule
 --
 
 ALTER TABLE ONLY med_disp_dispense_idn_assigner
-    ADD CONSTRAINT med_disp_dispense_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_idn(id);
+    ADD CONSTRAINT med_disp_dispense_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -66936,7 +66958,7 @@ ALTER TABLE ONLY med_disp_dispense_idn_assigner
 --
 
 ALTER TABLE ONLY med_disp_dispense_idn_assigner
-    ADD CONSTRAINT med_disp_dispense_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66944,7 +66966,7 @@ ALTER TABLE ONLY med_disp_dispense_idn_assigner
 --
 
 ALTER TABLE ONLY med_disp_dispense_idn
-    ADD CONSTRAINT med_disp_dispense_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(id);
+    ADD CONSTRAINT med_disp_dispense_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -66952,7 +66974,7 @@ ALTER TABLE ONLY med_disp_dispense_idn
 --
 
 ALTER TABLE ONLY med_disp_dispense_idn_period
-    ADD CONSTRAINT med_disp_dispense_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_idn(id);
+    ADD CONSTRAINT med_disp_dispense_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -66960,7 +66982,7 @@ ALTER TABLE ONLY med_disp_dispense_idn_period
 --
 
 ALTER TABLE ONLY med_disp_dispense_idn_period
-    ADD CONSTRAINT med_disp_dispense_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66968,7 +66990,7 @@ ALTER TABLE ONLY med_disp_dispense_idn_period
 --
 
 ALTER TABLE ONLY med_disp_dispense_idn
-    ADD CONSTRAINT med_disp_dispense_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66976,7 +66998,7 @@ ALTER TABLE ONLY med_disp_dispense_idn
 --
 
 ALTER TABLE ONLY med_disp_dispense_med
-    ADD CONSTRAINT med_disp_dispense_med_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(id);
+    ADD CONSTRAINT med_disp_dispense_med_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -66984,7 +67006,7 @@ ALTER TABLE ONLY med_disp_dispense_med
 --
 
 ALTER TABLE ONLY med_disp_dispense_med
-    ADD CONSTRAINT med_disp_dispense_med_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_med_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -66992,7 +67014,7 @@ ALTER TABLE ONLY med_disp_dispense_med
 --
 
 ALTER TABLE ONLY med_disp_dispense
-    ADD CONSTRAINT med_disp_dispense_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67000,7 +67022,7 @@ ALTER TABLE ONLY med_disp_dispense
 --
 
 ALTER TABLE ONLY med_disp_dispense_quantity
-    ADD CONSTRAINT med_disp_dispense_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(id);
+    ADD CONSTRAINT med_disp_dispense_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -67008,7 +67030,7 @@ ALTER TABLE ONLY med_disp_dispense_quantity
 --
 
 ALTER TABLE ONLY med_disp_dispense_quantity
-    ADD CONSTRAINT med_disp_dispense_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67016,7 +67038,7 @@ ALTER TABLE ONLY med_disp_dispense_quantity
 --
 
 ALTER TABLE ONLY med_disp_dispense_receiver
-    ADD CONSTRAINT med_disp_dispense_receiver_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(id);
+    ADD CONSTRAINT med_disp_dispense_receiver_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -67024,7 +67046,7 @@ ALTER TABLE ONLY med_disp_dispense_receiver
 --
 
 ALTER TABLE ONLY med_disp_dispense_receiver
-    ADD CONSTRAINT med_disp_dispense_receiver_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_receiver_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67032,7 +67054,7 @@ ALTER TABLE ONLY med_disp_dispense_receiver
 --
 
 ALTER TABLE ONLY med_disp_dispense
-    ADD CONSTRAINT med_disp_dispense_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67040,7 +67062,7 @@ ALTER TABLE ONLY med_disp_dispense
 --
 
 ALTER TABLE ONLY med_disp_dispense_type_cd
-    ADD CONSTRAINT med_disp_dispense_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_type(id);
+    ADD CONSTRAINT med_disp_dispense_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_type(id) ON DELETE CASCADE;
 
 
 --
@@ -67048,7 +67070,7 @@ ALTER TABLE ONLY med_disp_dispense_type_cd
 --
 
 ALTER TABLE ONLY med_disp_dispense_type_cd
-    ADD CONSTRAINT med_disp_dispense_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67056,7 +67078,7 @@ ALTER TABLE ONLY med_disp_dispense_type_cd
 --
 
 ALTER TABLE ONLY med_disp_dispense_type_cd_vs
-    ADD CONSTRAINT med_disp_dispense_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_type_cd(id);
+    ADD CONSTRAINT med_disp_dispense_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -67064,7 +67086,7 @@ ALTER TABLE ONLY med_disp_dispense_type_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_dispense_type_cd_vs
-    ADD CONSTRAINT med_disp_dispense_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67072,7 +67094,7 @@ ALTER TABLE ONLY med_disp_dispense_type_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_dispense_type
-    ADD CONSTRAINT med_disp_dispense_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(id);
+    ADD CONSTRAINT med_disp_dispense_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -67080,7 +67102,7 @@ ALTER TABLE ONLY med_disp_dispense_type
 --
 
 ALTER TABLE ONLY med_disp_dispense_type
-    ADD CONSTRAINT med_disp_dispense_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispense_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67088,7 +67110,7 @@ ALTER TABLE ONLY med_disp_dispense_type
 --
 
 ALTER TABLE ONLY med_disp_dispenser
-    ADD CONSTRAINT med_disp_dispenser_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispenser_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67096,7 +67118,7 @@ ALTER TABLE ONLY med_disp_dispenser
 --
 
 ALTER TABLE ONLY med_disp_dispenser
-    ADD CONSTRAINT med_disp_dispenser_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_dispenser_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67104,7 +67126,7 @@ ALTER TABLE ONLY med_disp_dispenser
 --
 
 ALTER TABLE ONLY med_disp_idn_assigner
-    ADD CONSTRAINT med_disp_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_idn(id);
+    ADD CONSTRAINT med_disp_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -67112,7 +67134,7 @@ ALTER TABLE ONLY med_disp_idn_assigner
 --
 
 ALTER TABLE ONLY med_disp_idn_assigner
-    ADD CONSTRAINT med_disp_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67120,7 +67142,7 @@ ALTER TABLE ONLY med_disp_idn_assigner
 --
 
 ALTER TABLE ONLY med_disp_idn
-    ADD CONSTRAINT med_disp_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67128,7 +67150,7 @@ ALTER TABLE ONLY med_disp_idn
 --
 
 ALTER TABLE ONLY med_disp_idn_period
-    ADD CONSTRAINT med_disp_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_idn(id);
+    ADD CONSTRAINT med_disp_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -67136,7 +67158,7 @@ ALTER TABLE ONLY med_disp_idn_period
 --
 
 ALTER TABLE ONLY med_disp_idn_period
-    ADD CONSTRAINT med_disp_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67144,7 +67166,7 @@ ALTER TABLE ONLY med_disp_idn_period
 --
 
 ALTER TABLE ONLY med_disp_idn
-    ADD CONSTRAINT med_disp_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67152,7 +67174,7 @@ ALTER TABLE ONLY med_disp_idn
 --
 
 ALTER TABLE ONLY med_disp_patient
-    ADD CONSTRAINT med_disp_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67160,7 +67182,7 @@ ALTER TABLE ONLY med_disp_patient
 --
 
 ALTER TABLE ONLY med_disp_patient
-    ADD CONSTRAINT med_disp_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67168,7 +67190,7 @@ ALTER TABLE ONLY med_disp_patient
 --
 
 ALTER TABLE ONLY med_disp_substitution
-    ADD CONSTRAINT med_disp_substitution_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_substitution_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67176,7 +67198,7 @@ ALTER TABLE ONLY med_disp_substitution
 --
 
 ALTER TABLE ONLY med_disp_substitution_reason_cd
-    ADD CONSTRAINT med_disp_substitution_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution_reason(id);
+    ADD CONSTRAINT med_disp_substitution_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution_reason(id) ON DELETE CASCADE;
 
 
 --
@@ -67184,7 +67206,7 @@ ALTER TABLE ONLY med_disp_substitution_reason_cd
 --
 
 ALTER TABLE ONLY med_disp_substitution_reason_cd
-    ADD CONSTRAINT med_disp_substitution_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_substitution_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67192,7 +67214,7 @@ ALTER TABLE ONLY med_disp_substitution_reason_cd
 --
 
 ALTER TABLE ONLY med_disp_substitution_reason_cd_vs
-    ADD CONSTRAINT med_disp_substitution_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution_reason_cd(id);
+    ADD CONSTRAINT med_disp_substitution_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution_reason_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -67200,7 +67222,7 @@ ALTER TABLE ONLY med_disp_substitution_reason_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_substitution_reason_cd_vs
-    ADD CONSTRAINT med_disp_substitution_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_substitution_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67208,7 +67230,7 @@ ALTER TABLE ONLY med_disp_substitution_reason_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_substitution_reason
-    ADD CONSTRAINT med_disp_substitution_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution(id);
+    ADD CONSTRAINT med_disp_substitution_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution(id) ON DELETE CASCADE;
 
 
 --
@@ -67216,7 +67238,7 @@ ALTER TABLE ONLY med_disp_substitution_reason
 --
 
 ALTER TABLE ONLY med_disp_substitution_reason
-    ADD CONSTRAINT med_disp_substitution_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_substitution_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67224,7 +67246,7 @@ ALTER TABLE ONLY med_disp_substitution_reason
 --
 
 ALTER TABLE ONLY med_disp_substitution
-    ADD CONSTRAINT med_disp_substitution_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_substitution_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67232,7 +67254,7 @@ ALTER TABLE ONLY med_disp_substitution
 --
 
 ALTER TABLE ONLY med_disp_substitution_responsible_party
-    ADD CONSTRAINT med_disp_substitution_responsible_party_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution(id);
+    ADD CONSTRAINT med_disp_substitution_responsible_party_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution(id) ON DELETE CASCADE;
 
 
 --
@@ -67240,7 +67262,7 @@ ALTER TABLE ONLY med_disp_substitution_responsible_party
 --
 
 ALTER TABLE ONLY med_disp_substitution_responsible_party
-    ADD CONSTRAINT med_disp_substitution_responsible_party_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_substitution_responsible_party_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67248,7 +67270,7 @@ ALTER TABLE ONLY med_disp_substitution_responsible_party
 --
 
 ALTER TABLE ONLY med_disp_substitution_type_cd
-    ADD CONSTRAINT med_disp_substitution_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution_type(id);
+    ADD CONSTRAINT med_disp_substitution_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution_type(id) ON DELETE CASCADE;
 
 
 --
@@ -67256,7 +67278,7 @@ ALTER TABLE ONLY med_disp_substitution_type_cd
 --
 
 ALTER TABLE ONLY med_disp_substitution_type_cd
-    ADD CONSTRAINT med_disp_substitution_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_substitution_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67264,7 +67286,7 @@ ALTER TABLE ONLY med_disp_substitution_type_cd
 --
 
 ALTER TABLE ONLY med_disp_substitution_type_cd_vs
-    ADD CONSTRAINT med_disp_substitution_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution_type_cd(id);
+    ADD CONSTRAINT med_disp_substitution_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -67272,7 +67294,7 @@ ALTER TABLE ONLY med_disp_substitution_type_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_substitution_type_cd_vs
-    ADD CONSTRAINT med_disp_substitution_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_substitution_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67280,7 +67302,7 @@ ALTER TABLE ONLY med_disp_substitution_type_cd_vs
 --
 
 ALTER TABLE ONLY med_disp_substitution_type
-    ADD CONSTRAINT med_disp_substitution_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution(id);
+    ADD CONSTRAINT med_disp_substitution_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution(id) ON DELETE CASCADE;
 
 
 --
@@ -67288,7 +67310,7 @@ ALTER TABLE ONLY med_disp_substitution_type
 --
 
 ALTER TABLE ONLY med_disp_substitution_type
-    ADD CONSTRAINT med_disp_substitution_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_substitution_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67296,7 +67318,7 @@ ALTER TABLE ONLY med_disp_substitution_type
 --
 
 ALTER TABLE ONLY med_disp_text
-    ADD CONSTRAINT med_disp_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67304,7 +67326,7 @@ ALTER TABLE ONLY med_disp_text
 --
 
 ALTER TABLE ONLY med_disp_text
-    ADD CONSTRAINT med_disp_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id);
+    ADD CONSTRAINT med_disp_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(id) ON DELETE CASCADE;
 
 
 --
@@ -67312,7 +67334,7 @@ ALTER TABLE ONLY med_disp_text
 --
 
 ALTER TABLE ONLY med_manufacturer
-    ADD CONSTRAINT med_manufacturer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med(id);
+    ADD CONSTRAINT med_manufacturer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67320,7 +67342,7 @@ ALTER TABLE ONLY med_manufacturer
 --
 
 ALTER TABLE ONLY med_manufacturer
-    ADD CONSTRAINT med_manufacturer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_manufacturer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67328,7 +67350,7 @@ ALTER TABLE ONLY med_manufacturer
 --
 
 ALTER TABLE ONLY med_package_container_cd
-    ADD CONSTRAINT med_package_container_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package_container(id);
+    ADD CONSTRAINT med_package_container_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package_container(id) ON DELETE CASCADE;
 
 
 --
@@ -67336,7 +67358,7 @@ ALTER TABLE ONLY med_package_container_cd
 --
 
 ALTER TABLE ONLY med_package_container_cd
-    ADD CONSTRAINT med_package_container_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_package_container_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67344,7 +67366,7 @@ ALTER TABLE ONLY med_package_container_cd
 --
 
 ALTER TABLE ONLY med_package_container_cd_vs
-    ADD CONSTRAINT med_package_container_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package_container_cd(id);
+    ADD CONSTRAINT med_package_container_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package_container_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -67352,7 +67374,7 @@ ALTER TABLE ONLY med_package_container_cd_vs
 --
 
 ALTER TABLE ONLY med_package_container_cd_vs
-    ADD CONSTRAINT med_package_container_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_package_container_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67360,7 +67382,7 @@ ALTER TABLE ONLY med_package_container_cd_vs
 --
 
 ALTER TABLE ONLY med_package_container
-    ADD CONSTRAINT med_package_container_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package(id);
+    ADD CONSTRAINT med_package_container_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package(id) ON DELETE CASCADE;
 
 
 --
@@ -67368,7 +67390,7 @@ ALTER TABLE ONLY med_package_container
 --
 
 ALTER TABLE ONLY med_package_container
-    ADD CONSTRAINT med_package_container_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_package_container_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67376,7 +67398,7 @@ ALTER TABLE ONLY med_package_container
 --
 
 ALTER TABLE ONLY med_package_content_amount
-    ADD CONSTRAINT med_package_content_amount_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package_content(id);
+    ADD CONSTRAINT med_package_content_amount_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package_content(id) ON DELETE CASCADE;
 
 
 --
@@ -67384,7 +67406,7 @@ ALTER TABLE ONLY med_package_content_amount
 --
 
 ALTER TABLE ONLY med_package_content_amount
-    ADD CONSTRAINT med_package_content_amount_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_package_content_amount_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67392,7 +67414,7 @@ ALTER TABLE ONLY med_package_content_amount
 --
 
 ALTER TABLE ONLY med_package_content_item
-    ADD CONSTRAINT med_package_content_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package_content(id);
+    ADD CONSTRAINT med_package_content_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package_content(id) ON DELETE CASCADE;
 
 
 --
@@ -67400,7 +67422,7 @@ ALTER TABLE ONLY med_package_content_item
 --
 
 ALTER TABLE ONLY med_package_content_item
-    ADD CONSTRAINT med_package_content_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_package_content_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67408,7 +67430,7 @@ ALTER TABLE ONLY med_package_content_item
 --
 
 ALTER TABLE ONLY med_package_content
-    ADD CONSTRAINT med_package_content_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package(id);
+    ADD CONSTRAINT med_package_content_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package(id) ON DELETE CASCADE;
 
 
 --
@@ -67416,7 +67438,7 @@ ALTER TABLE ONLY med_package_content
 --
 
 ALTER TABLE ONLY med_package_content
-    ADD CONSTRAINT med_package_content_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_package_content_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67424,7 +67446,7 @@ ALTER TABLE ONLY med_package_content
 --
 
 ALTER TABLE ONLY med_package
-    ADD CONSTRAINT med_package_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med(id);
+    ADD CONSTRAINT med_package_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67432,7 +67454,7 @@ ALTER TABLE ONLY med_package
 --
 
 ALTER TABLE ONLY med_package
-    ADD CONSTRAINT med_package_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_package_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67440,7 +67462,7 @@ ALTER TABLE ONLY med_package
 --
 
 ALTER TABLE ONLY med_product_form_cd
-    ADD CONSTRAINT med_product_form_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_form(id);
+    ADD CONSTRAINT med_product_form_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_form(id) ON DELETE CASCADE;
 
 
 --
@@ -67448,7 +67470,7 @@ ALTER TABLE ONLY med_product_form_cd
 --
 
 ALTER TABLE ONLY med_product_form_cd
-    ADD CONSTRAINT med_product_form_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_product_form_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67456,7 +67478,7 @@ ALTER TABLE ONLY med_product_form_cd
 --
 
 ALTER TABLE ONLY med_product_form_cd_vs
-    ADD CONSTRAINT med_product_form_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_form_cd(id);
+    ADD CONSTRAINT med_product_form_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_form_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -67464,7 +67486,7 @@ ALTER TABLE ONLY med_product_form_cd_vs
 --
 
 ALTER TABLE ONLY med_product_form_cd_vs
-    ADD CONSTRAINT med_product_form_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_product_form_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67472,7 +67494,7 @@ ALTER TABLE ONLY med_product_form_cd_vs
 --
 
 ALTER TABLE ONLY med_product_form
-    ADD CONSTRAINT med_product_form_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product(id);
+    ADD CONSTRAINT med_product_form_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product(id) ON DELETE CASCADE;
 
 
 --
@@ -67480,7 +67502,7 @@ ALTER TABLE ONLY med_product_form
 --
 
 ALTER TABLE ONLY med_product_form
-    ADD CONSTRAINT med_product_form_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_product_form_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67488,7 +67510,7 @@ ALTER TABLE ONLY med_product_form
 --
 
 ALTER TABLE ONLY med_product_ingredient_amount_denominator
-    ADD CONSTRAINT med_product_ingredient_amount_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_ingredient_amount(id);
+    ADD CONSTRAINT med_product_ingredient_amount_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_ingredient_amount(id) ON DELETE CASCADE;
 
 
 --
@@ -67496,7 +67518,7 @@ ALTER TABLE ONLY med_product_ingredient_amount_denominator
 --
 
 ALTER TABLE ONLY med_product_ingredient_amount_denominator
-    ADD CONSTRAINT med_product_ingredient_amount_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_product_ingredient_amount_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67504,7 +67526,7 @@ ALTER TABLE ONLY med_product_ingredient_amount_denominator
 --
 
 ALTER TABLE ONLY med_product_ingredient_amount_numerator
-    ADD CONSTRAINT med_product_ingredient_amount_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_ingredient_amount(id);
+    ADD CONSTRAINT med_product_ingredient_amount_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_ingredient_amount(id) ON DELETE CASCADE;
 
 
 --
@@ -67512,7 +67534,7 @@ ALTER TABLE ONLY med_product_ingredient_amount_numerator
 --
 
 ALTER TABLE ONLY med_product_ingredient_amount_numerator
-    ADD CONSTRAINT med_product_ingredient_amount_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_product_ingredient_amount_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67520,7 +67542,7 @@ ALTER TABLE ONLY med_product_ingredient_amount_numerator
 --
 
 ALTER TABLE ONLY med_product_ingredient_amount
-    ADD CONSTRAINT med_product_ingredient_amount_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_ingredient(id);
+    ADD CONSTRAINT med_product_ingredient_amount_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_ingredient(id) ON DELETE CASCADE;
 
 
 --
@@ -67528,7 +67550,7 @@ ALTER TABLE ONLY med_product_ingredient_amount
 --
 
 ALTER TABLE ONLY med_product_ingredient_amount
-    ADD CONSTRAINT med_product_ingredient_amount_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_product_ingredient_amount_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67536,7 +67558,7 @@ ALTER TABLE ONLY med_product_ingredient_amount
 --
 
 ALTER TABLE ONLY med_product_ingredient_item
-    ADD CONSTRAINT med_product_ingredient_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_ingredient(id);
+    ADD CONSTRAINT med_product_ingredient_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_ingredient(id) ON DELETE CASCADE;
 
 
 --
@@ -67544,7 +67566,7 @@ ALTER TABLE ONLY med_product_ingredient_item
 --
 
 ALTER TABLE ONLY med_product_ingredient_item
-    ADD CONSTRAINT med_product_ingredient_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_product_ingredient_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67552,7 +67574,7 @@ ALTER TABLE ONLY med_product_ingredient_item
 --
 
 ALTER TABLE ONLY med_product_ingredient
-    ADD CONSTRAINT med_product_ingredient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product(id);
+    ADD CONSTRAINT med_product_ingredient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product(id) ON DELETE CASCADE;
 
 
 --
@@ -67560,7 +67582,7 @@ ALTER TABLE ONLY med_product_ingredient
 --
 
 ALTER TABLE ONLY med_product_ingredient
-    ADD CONSTRAINT med_product_ingredient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_product_ingredient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67568,7 +67590,7 @@ ALTER TABLE ONLY med_product_ingredient
 --
 
 ALTER TABLE ONLY med_product
-    ADD CONSTRAINT med_product_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med(id);
+    ADD CONSTRAINT med_product_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67576,7 +67598,7 @@ ALTER TABLE ONLY med_product
 --
 
 ALTER TABLE ONLY med_product
-    ADD CONSTRAINT med_product_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_product_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -67584,7 +67606,7 @@ ALTER TABLE ONLY med_product
 --
 
 ALTER TABLE ONLY med_prs_dispense_med
-    ADD CONSTRAINT med_prs_dispense_med_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dispense(id);
+    ADD CONSTRAINT med_prs_dispense_med_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -67592,7 +67614,7 @@ ALTER TABLE ONLY med_prs_dispense_med
 --
 
 ALTER TABLE ONLY med_prs_dispense_med
-    ADD CONSTRAINT med_prs_dispense_med_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dispense_med_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67600,7 +67622,7 @@ ALTER TABLE ONLY med_prs_dispense_med
 --
 
 ALTER TABLE ONLY med_prs_dispense
-    ADD CONSTRAINT med_prs_dispense_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dispense_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67608,7 +67630,7 @@ ALTER TABLE ONLY med_prs_dispense
 --
 
 ALTER TABLE ONLY med_prs_dispense_quantity
-    ADD CONSTRAINT med_prs_dispense_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dispense(id);
+    ADD CONSTRAINT med_prs_dispense_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -67616,7 +67638,7 @@ ALTER TABLE ONLY med_prs_dispense_quantity
 --
 
 ALTER TABLE ONLY med_prs_dispense_quantity
-    ADD CONSTRAINT med_prs_dispense_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dispense_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67624,7 +67646,7 @@ ALTER TABLE ONLY med_prs_dispense_quantity
 --
 
 ALTER TABLE ONLY med_prs_dispense
-    ADD CONSTRAINT med_prs_dispense_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dispense_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67632,7 +67654,7 @@ ALTER TABLE ONLY med_prs_dispense
 --
 
 ALTER TABLE ONLY med_prs_dispense_validity_period
-    ADD CONSTRAINT med_prs_dispense_validity_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dispense(id);
+    ADD CONSTRAINT med_prs_dispense_validity_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -67640,7 +67662,7 @@ ALTER TABLE ONLY med_prs_dispense_validity_period
 --
 
 ALTER TABLE ONLY med_prs_dispense_validity_period
-    ADD CONSTRAINT med_prs_dispense_validity_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dispense_validity_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67648,7 +67670,7 @@ ALTER TABLE ONLY med_prs_dispense_validity_period
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd
-    ADD CONSTRAINT med_prs_dosage_instruction_additional_instruc_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_additional_instruc_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67656,7 +67678,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd_vs
-    ADD CONSTRAINT med_prs_dosage_instruction_additional_instruc_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_additional_instruc_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67664,7 +67686,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions
-    ADD CONSTRAINT med_prs_dosage_instruction_additional_instruct_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_additional_instruct_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67672,7 +67694,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd
-    ADD CONSTRAINT med_prs_dosage_instruction_additional_instructi_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_additional_instructions(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_additional_instructi_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_additional_instructions(id) ON DELETE CASCADE;
 
 
 --
@@ -67680,7 +67702,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd_vs
-    ADD CONSTRAINT med_prs_dosage_instruction_additional_instructi_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_additional_instructions_cd(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_additional_instructi_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_additional_instructions_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -67688,7 +67710,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions
-    ADD CONSTRAINT med_prs_dosage_instruction_additional_instructio_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_additional_instructio_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id) ON DELETE CASCADE;
 
 
 --
@@ -67696,7 +67718,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept
-    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67704,7 +67726,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd
-    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable_c_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_as_needed_codeable_concept(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable_c_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_as_needed_codeable_concept(id) ON DELETE CASCADE;
 
 
 --
@@ -67712,7 +67734,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd_vs
-    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable_c_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_as_needed_codeable_concept_cd(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable_c_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_as_needed_codeable_concept_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -67720,7 +67742,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept
-    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable_co_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable_co_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id) ON DELETE CASCADE;
 
 
 --
@@ -67728,7 +67750,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd
-    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67736,7 +67758,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd_vs
-    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67744,7 +67766,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_dose_quantity
-    ADD CONSTRAINT med_prs_dosage_instruction_dose_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_dose_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id) ON DELETE CASCADE;
 
 
 --
@@ -67752,7 +67774,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_dose_quantity
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_dose_quantity
-    ADD CONSTRAINT med_prs_dosage_instruction_dose_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_dose_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67760,7 +67782,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_dose_quantity
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_denominator
-    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_perio_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_perio_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67768,7 +67790,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_denominator
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_numerator
-    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_perio_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_perio_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67776,7 +67798,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_numerator
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_denominator
-    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_period_d_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_max_dose_per_period(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_period_d_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_max_dose_per_period(id) ON DELETE CASCADE;
 
 
 --
@@ -67784,7 +67806,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_denominator
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_numerator
-    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_period_n_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_max_dose_per_period(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_period_n_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_max_dose_per_period(id) ON DELETE CASCADE;
 
 
 --
@@ -67792,7 +67814,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_numerator
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period
-    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id) ON DELETE CASCADE;
 
 
 --
@@ -67800,7 +67822,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period
-    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67808,7 +67830,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_method_cd
-    ADD CONSTRAINT med_prs_dosage_instruction_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_method(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_method(id) ON DELETE CASCADE;
 
 
 --
@@ -67816,7 +67838,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_method_cd
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_method_cd
-    ADD CONSTRAINT med_prs_dosage_instruction_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67824,7 +67846,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_method_cd
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_method_cd_vs
-    ADD CONSTRAINT med_prs_dosage_instruction_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_method_cd(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_method_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -67832,7 +67854,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_method_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_method_cd_vs
-    ADD CONSTRAINT med_prs_dosage_instruction_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67840,7 +67862,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_method_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_method
-    ADD CONSTRAINT med_prs_dosage_instruction_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id) ON DELETE CASCADE;
 
 
 --
@@ -67848,7 +67870,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_method
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_method
-    ADD CONSTRAINT med_prs_dosage_instruction_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67856,7 +67878,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_method
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction
-    ADD CONSTRAINT med_prs_dosage_instruction_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67864,7 +67886,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_rate_denominator
-    ADD CONSTRAINT med_prs_dosage_instruction_rate_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_rate(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_rate_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_rate(id) ON DELETE CASCADE;
 
 
 --
@@ -67872,7 +67894,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_rate_denominator
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_rate_denominator
-    ADD CONSTRAINT med_prs_dosage_instruction_rate_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_rate_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67880,7 +67902,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_rate_denominator
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_rate_numerator
-    ADD CONSTRAINT med_prs_dosage_instruction_rate_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_rate(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_rate_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_rate(id) ON DELETE CASCADE;
 
 
 --
@@ -67888,7 +67910,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_rate_numerator
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_rate_numerator
-    ADD CONSTRAINT med_prs_dosage_instruction_rate_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_rate_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67896,7 +67918,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_rate_numerator
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_rate
-    ADD CONSTRAINT med_prs_dosage_instruction_rate_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_rate_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id) ON DELETE CASCADE;
 
 
 --
@@ -67904,7 +67926,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_rate
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_rate
-    ADD CONSTRAINT med_prs_dosage_instruction_rate_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_rate_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67912,7 +67934,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_rate
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction
-    ADD CONSTRAINT med_prs_dosage_instruction_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67920,7 +67942,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_route_cd
-    ADD CONSTRAINT med_prs_dosage_instruction_route_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_route(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_route_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_route(id) ON DELETE CASCADE;
 
 
 --
@@ -67928,7 +67950,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_route_cd
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_route_cd
-    ADD CONSTRAINT med_prs_dosage_instruction_route_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_route_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67936,7 +67958,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_route_cd
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_route_cd_vs
-    ADD CONSTRAINT med_prs_dosage_instruction_route_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_route_cd(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_route_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_route_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -67944,7 +67966,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_route_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_route_cd_vs
-    ADD CONSTRAINT med_prs_dosage_instruction_route_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_route_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67952,7 +67974,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_route_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_route
-    ADD CONSTRAINT med_prs_dosage_instruction_route_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_route_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id) ON DELETE CASCADE;
 
 
 --
@@ -67960,7 +67982,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_route
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_route
-    ADD CONSTRAINT med_prs_dosage_instruction_route_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_route_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67968,7 +67990,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_route
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_site_cd
-    ADD CONSTRAINT med_prs_dosage_instruction_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_site(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_site(id) ON DELETE CASCADE;
 
 
 --
@@ -67976,7 +67998,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_site_cd
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_site_cd
-    ADD CONSTRAINT med_prs_dosage_instruction_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -67984,7 +68006,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_site_cd
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_site_cd_vs
-    ADD CONSTRAINT med_prs_dosage_instruction_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_site_cd(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_site_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -67992,7 +68014,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_site_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_site_cd_vs
-    ADD CONSTRAINT med_prs_dosage_instruction_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68000,7 +68022,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_site_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_site
-    ADD CONSTRAINT med_prs_dosage_instruction_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id) ON DELETE CASCADE;
 
 
 --
@@ -68008,7 +68030,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_site
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_site
-    ADD CONSTRAINT med_prs_dosage_instruction_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68016,7 +68038,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_site
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_timing_period
-    ADD CONSTRAINT med_prs_dosage_instruction_timing_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id) ON DELETE CASCADE;
 
 
 --
@@ -68024,7 +68046,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_timing_period
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_timing_period
-    ADD CONSTRAINT med_prs_dosage_instruction_timing_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68032,7 +68054,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_timing_period
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_event
-    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_eve_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_eve_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68040,7 +68062,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_event
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_event
-    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_timing_schedule(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_timing_schedule(id) ON DELETE CASCADE;
 
 
 --
@@ -68048,7 +68070,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_event
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule
-    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(id) ON DELETE CASCADE;
 
 
 --
@@ -68056,7 +68078,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_repeat
-    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_rep_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_rep_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68064,7 +68086,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_repeat
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_repeat
-    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_repea_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_timing_schedule(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_repea_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_timing_schedule(id) ON DELETE CASCADE;
 
 
 --
@@ -68072,7 +68094,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_repeat
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule
-    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68080,7 +68102,7 @@ ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule
 --
 
 ALTER TABLE ONLY med_prs_encounter
-    ADD CONSTRAINT med_prs_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68088,7 +68110,7 @@ ALTER TABLE ONLY med_prs_encounter
 --
 
 ALTER TABLE ONLY med_prs_encounter
-    ADD CONSTRAINT med_prs_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68096,7 +68118,7 @@ ALTER TABLE ONLY med_prs_encounter
 --
 
 ALTER TABLE ONLY med_prs_idn_assigner
-    ADD CONSTRAINT med_prs_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_idn(id);
+    ADD CONSTRAINT med_prs_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -68104,7 +68126,7 @@ ALTER TABLE ONLY med_prs_idn_assigner
 --
 
 ALTER TABLE ONLY med_prs_idn_assigner
-    ADD CONSTRAINT med_prs_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68112,7 +68134,7 @@ ALTER TABLE ONLY med_prs_idn_assigner
 --
 
 ALTER TABLE ONLY med_prs_idn
-    ADD CONSTRAINT med_prs_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68120,7 +68142,7 @@ ALTER TABLE ONLY med_prs_idn
 --
 
 ALTER TABLE ONLY med_prs_idn_period
-    ADD CONSTRAINT med_prs_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_idn(id);
+    ADD CONSTRAINT med_prs_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -68128,7 +68150,7 @@ ALTER TABLE ONLY med_prs_idn_period
 --
 
 ALTER TABLE ONLY med_prs_idn_period
-    ADD CONSTRAINT med_prs_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68136,7 +68158,7 @@ ALTER TABLE ONLY med_prs_idn_period
 --
 
 ALTER TABLE ONLY med_prs_idn
-    ADD CONSTRAINT med_prs_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68144,7 +68166,7 @@ ALTER TABLE ONLY med_prs_idn
 --
 
 ALTER TABLE ONLY med_prs_med
-    ADD CONSTRAINT med_prs_med_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_med_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68152,7 +68174,7 @@ ALTER TABLE ONLY med_prs_med
 --
 
 ALTER TABLE ONLY med_prs_med
-    ADD CONSTRAINT med_prs_med_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_med_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68160,7 +68182,7 @@ ALTER TABLE ONLY med_prs_med
 --
 
 ALTER TABLE ONLY med_prs_patient
-    ADD CONSTRAINT med_prs_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68168,7 +68190,7 @@ ALTER TABLE ONLY med_prs_patient
 --
 
 ALTER TABLE ONLY med_prs_patient
-    ADD CONSTRAINT med_prs_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68176,7 +68198,7 @@ ALTER TABLE ONLY med_prs_patient
 --
 
 ALTER TABLE ONLY med_prs_prescriber
-    ADD CONSTRAINT med_prs_prescriber_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_prescriber_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68184,7 +68206,7 @@ ALTER TABLE ONLY med_prs_prescriber
 --
 
 ALTER TABLE ONLY med_prs_prescriber
-    ADD CONSTRAINT med_prs_prescriber_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_prescriber_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68192,7 +68214,7 @@ ALTER TABLE ONLY med_prs_prescriber
 --
 
 ALTER TABLE ONLY med_prs_reason_codeable_concept_cd
-    ADD CONSTRAINT med_prs_reason_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_reason_codeable_concept(id);
+    ADD CONSTRAINT med_prs_reason_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_reason_codeable_concept(id) ON DELETE CASCADE;
 
 
 --
@@ -68200,7 +68222,7 @@ ALTER TABLE ONLY med_prs_reason_codeable_concept_cd
 --
 
 ALTER TABLE ONLY med_prs_reason_codeable_concept_cd
-    ADD CONSTRAINT med_prs_reason_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_reason_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68208,7 +68230,7 @@ ALTER TABLE ONLY med_prs_reason_codeable_concept_cd
 --
 
 ALTER TABLE ONLY med_prs_reason_codeable_concept_cd_vs
-    ADD CONSTRAINT med_prs_reason_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_reason_codeable_concept_cd(id);
+    ADD CONSTRAINT med_prs_reason_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_reason_codeable_concept_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -68216,7 +68238,7 @@ ALTER TABLE ONLY med_prs_reason_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_reason_codeable_concept_cd_vs
-    ADD CONSTRAINT med_prs_reason_codeable_concept_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_reason_codeable_concept_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68224,7 +68246,7 @@ ALTER TABLE ONLY med_prs_reason_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_reason_codeable_concept
-    ADD CONSTRAINT med_prs_reason_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_reason_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68232,7 +68254,7 @@ ALTER TABLE ONLY med_prs_reason_codeable_concept
 --
 
 ALTER TABLE ONLY med_prs_reason_codeable_concept
-    ADD CONSTRAINT med_prs_reason_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_reason_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68240,7 +68262,7 @@ ALTER TABLE ONLY med_prs_reason_codeable_concept
 --
 
 ALTER TABLE ONLY med_prs_reason_resource_reference
-    ADD CONSTRAINT med_prs_reason_resource_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_reason_resource_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68248,7 +68270,7 @@ ALTER TABLE ONLY med_prs_reason_resource_reference
 --
 
 ALTER TABLE ONLY med_prs_reason_resource_reference
-    ADD CONSTRAINT med_prs_reason_resource_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_reason_resource_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68256,7 +68278,7 @@ ALTER TABLE ONLY med_prs_reason_resource_reference
 --
 
 ALTER TABLE ONLY med_prs_substitution
-    ADD CONSTRAINT med_prs_substitution_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_substitution_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68264,7 +68286,7 @@ ALTER TABLE ONLY med_prs_substitution
 --
 
 ALTER TABLE ONLY med_prs_substitution_reason_cd
-    ADD CONSTRAINT med_prs_substitution_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution_reason(id);
+    ADD CONSTRAINT med_prs_substitution_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution_reason(id) ON DELETE CASCADE;
 
 
 --
@@ -68272,7 +68294,7 @@ ALTER TABLE ONLY med_prs_substitution_reason_cd
 --
 
 ALTER TABLE ONLY med_prs_substitution_reason_cd
-    ADD CONSTRAINT med_prs_substitution_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_substitution_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68280,7 +68302,7 @@ ALTER TABLE ONLY med_prs_substitution_reason_cd
 --
 
 ALTER TABLE ONLY med_prs_substitution_reason_cd_vs
-    ADD CONSTRAINT med_prs_substitution_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution_reason_cd(id);
+    ADD CONSTRAINT med_prs_substitution_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution_reason_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -68288,7 +68310,7 @@ ALTER TABLE ONLY med_prs_substitution_reason_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_substitution_reason_cd_vs
-    ADD CONSTRAINT med_prs_substitution_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_substitution_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68296,7 +68318,7 @@ ALTER TABLE ONLY med_prs_substitution_reason_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_substitution_reason
-    ADD CONSTRAINT med_prs_substitution_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution(id);
+    ADD CONSTRAINT med_prs_substitution_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution(id) ON DELETE CASCADE;
 
 
 --
@@ -68304,7 +68326,7 @@ ALTER TABLE ONLY med_prs_substitution_reason
 --
 
 ALTER TABLE ONLY med_prs_substitution_reason
-    ADD CONSTRAINT med_prs_substitution_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_substitution_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68312,7 +68334,7 @@ ALTER TABLE ONLY med_prs_substitution_reason
 --
 
 ALTER TABLE ONLY med_prs_substitution
-    ADD CONSTRAINT med_prs_substitution_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_substitution_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68320,7 +68342,7 @@ ALTER TABLE ONLY med_prs_substitution
 --
 
 ALTER TABLE ONLY med_prs_substitution_type_cd
-    ADD CONSTRAINT med_prs_substitution_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution_type(id);
+    ADD CONSTRAINT med_prs_substitution_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution_type(id) ON DELETE CASCADE;
 
 
 --
@@ -68328,7 +68350,7 @@ ALTER TABLE ONLY med_prs_substitution_type_cd
 --
 
 ALTER TABLE ONLY med_prs_substitution_type_cd
-    ADD CONSTRAINT med_prs_substitution_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_substitution_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68336,7 +68358,7 @@ ALTER TABLE ONLY med_prs_substitution_type_cd
 --
 
 ALTER TABLE ONLY med_prs_substitution_type_cd_vs
-    ADD CONSTRAINT med_prs_substitution_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution_type_cd(id);
+    ADD CONSTRAINT med_prs_substitution_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -68344,7 +68366,7 @@ ALTER TABLE ONLY med_prs_substitution_type_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_substitution_type_cd_vs
-    ADD CONSTRAINT med_prs_substitution_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_substitution_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68352,7 +68374,7 @@ ALTER TABLE ONLY med_prs_substitution_type_cd_vs
 --
 
 ALTER TABLE ONLY med_prs_substitution_type
-    ADD CONSTRAINT med_prs_substitution_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution(id);
+    ADD CONSTRAINT med_prs_substitution_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution(id) ON DELETE CASCADE;
 
 
 --
@@ -68360,7 +68382,7 @@ ALTER TABLE ONLY med_prs_substitution_type
 --
 
 ALTER TABLE ONLY med_prs_substitution_type
-    ADD CONSTRAINT med_prs_substitution_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_substitution_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68368,7 +68390,7 @@ ALTER TABLE ONLY med_prs_substitution_type
 --
 
 ALTER TABLE ONLY med_prs_text
-    ADD CONSTRAINT med_prs_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68376,7 +68398,7 @@ ALTER TABLE ONLY med_prs_text
 --
 
 ALTER TABLE ONLY med_prs_text
-    ADD CONSTRAINT med_prs_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id);
+    ADD CONSTRAINT med_prs_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(id) ON DELETE CASCADE;
 
 
 --
@@ -68384,7 +68406,7 @@ ALTER TABLE ONLY med_prs_text
 --
 
 ALTER TABLE ONLY med_st_device
-    ADD CONSTRAINT med_st_device_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_device_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68392,7 +68414,7 @@ ALTER TABLE ONLY med_st_device
 --
 
 ALTER TABLE ONLY med_st_device
-    ADD CONSTRAINT med_st_device_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_device_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68400,7 +68422,7 @@ ALTER TABLE ONLY med_st_device
 --
 
 ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd
-    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_as_needed_codeable_concept(id);
+    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_as_needed_codeable_concept(id) ON DELETE CASCADE;
 
 
 --
@@ -68408,7 +68430,7 @@ ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd
 --
 
 ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd
-    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68416,7 +68438,7 @@ ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd
 --
 
 ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd_vs
-    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_as_needed_codeable_concept_cd(id);
+    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_as_needed_codeable_concept_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -68424,7 +68446,7 @@ ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd_vs
-    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68432,7 +68454,7 @@ ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept
-    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id);
+    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -68440,7 +68462,7 @@ ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept
 --
 
 ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept
-    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68448,7 +68470,7 @@ ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept
 --
 
 ALTER TABLE ONLY med_st_dosage_max_dose_per_period_denominator
-    ADD CONSTRAINT med_st_dosage_max_dose_per_period_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_max_dose_per_period(id);
+    ADD CONSTRAINT med_st_dosage_max_dose_per_period_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_max_dose_per_period(id) ON DELETE CASCADE;
 
 
 --
@@ -68456,7 +68478,7 @@ ALTER TABLE ONLY med_st_dosage_max_dose_per_period_denominator
 --
 
 ALTER TABLE ONLY med_st_dosage_max_dose_per_period_denominator
-    ADD CONSTRAINT med_st_dosage_max_dose_per_period_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_max_dose_per_period_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68464,7 +68486,7 @@ ALTER TABLE ONLY med_st_dosage_max_dose_per_period_denominator
 --
 
 ALTER TABLE ONLY med_st_dosage_max_dose_per_period_numerator
-    ADD CONSTRAINT med_st_dosage_max_dose_per_period_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_max_dose_per_period(id);
+    ADD CONSTRAINT med_st_dosage_max_dose_per_period_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_max_dose_per_period(id) ON DELETE CASCADE;
 
 
 --
@@ -68472,7 +68494,7 @@ ALTER TABLE ONLY med_st_dosage_max_dose_per_period_numerator
 --
 
 ALTER TABLE ONLY med_st_dosage_max_dose_per_period_numerator
-    ADD CONSTRAINT med_st_dosage_max_dose_per_period_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_max_dose_per_period_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68480,7 +68502,7 @@ ALTER TABLE ONLY med_st_dosage_max_dose_per_period_numerator
 --
 
 ALTER TABLE ONLY med_st_dosage_max_dose_per_period
-    ADD CONSTRAINT med_st_dosage_max_dose_per_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id);
+    ADD CONSTRAINT med_st_dosage_max_dose_per_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -68488,7 +68510,7 @@ ALTER TABLE ONLY med_st_dosage_max_dose_per_period
 --
 
 ALTER TABLE ONLY med_st_dosage_max_dose_per_period
-    ADD CONSTRAINT med_st_dosage_max_dose_per_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_max_dose_per_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68496,7 +68518,7 @@ ALTER TABLE ONLY med_st_dosage_max_dose_per_period
 --
 
 ALTER TABLE ONLY med_st_dosage_method_cd
-    ADD CONSTRAINT med_st_dosage_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_method(id);
+    ADD CONSTRAINT med_st_dosage_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_method(id) ON DELETE CASCADE;
 
 
 --
@@ -68504,7 +68526,7 @@ ALTER TABLE ONLY med_st_dosage_method_cd
 --
 
 ALTER TABLE ONLY med_st_dosage_method_cd
-    ADD CONSTRAINT med_st_dosage_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68512,7 +68534,7 @@ ALTER TABLE ONLY med_st_dosage_method_cd
 --
 
 ALTER TABLE ONLY med_st_dosage_method_cd_vs
-    ADD CONSTRAINT med_st_dosage_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_method_cd(id);
+    ADD CONSTRAINT med_st_dosage_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_method_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -68520,7 +68542,7 @@ ALTER TABLE ONLY med_st_dosage_method_cd_vs
 --
 
 ALTER TABLE ONLY med_st_dosage_method_cd_vs
-    ADD CONSTRAINT med_st_dosage_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68528,7 +68550,7 @@ ALTER TABLE ONLY med_st_dosage_method_cd_vs
 --
 
 ALTER TABLE ONLY med_st_dosage_method
-    ADD CONSTRAINT med_st_dosage_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id);
+    ADD CONSTRAINT med_st_dosage_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -68536,7 +68558,7 @@ ALTER TABLE ONLY med_st_dosage_method
 --
 
 ALTER TABLE ONLY med_st_dosage_method
-    ADD CONSTRAINT med_st_dosage_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68544,7 +68566,7 @@ ALTER TABLE ONLY med_st_dosage_method
 --
 
 ALTER TABLE ONLY med_st_dosage
-    ADD CONSTRAINT med_st_dosage_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68552,7 +68574,7 @@ ALTER TABLE ONLY med_st_dosage
 --
 
 ALTER TABLE ONLY med_st_dosage_quantity
-    ADD CONSTRAINT med_st_dosage_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id);
+    ADD CONSTRAINT med_st_dosage_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -68560,7 +68582,7 @@ ALTER TABLE ONLY med_st_dosage_quantity
 --
 
 ALTER TABLE ONLY med_st_dosage_quantity
-    ADD CONSTRAINT med_st_dosage_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68568,7 +68590,7 @@ ALTER TABLE ONLY med_st_dosage_quantity
 --
 
 ALTER TABLE ONLY med_st_dosage_rate_denominator
-    ADD CONSTRAINT med_st_dosage_rate_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_rate(id);
+    ADD CONSTRAINT med_st_dosage_rate_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_rate(id) ON DELETE CASCADE;
 
 
 --
@@ -68576,7 +68598,7 @@ ALTER TABLE ONLY med_st_dosage_rate_denominator
 --
 
 ALTER TABLE ONLY med_st_dosage_rate_denominator
-    ADD CONSTRAINT med_st_dosage_rate_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_rate_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68584,7 +68606,7 @@ ALTER TABLE ONLY med_st_dosage_rate_denominator
 --
 
 ALTER TABLE ONLY med_st_dosage_rate_numerator
-    ADD CONSTRAINT med_st_dosage_rate_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_rate(id);
+    ADD CONSTRAINT med_st_dosage_rate_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_rate(id) ON DELETE CASCADE;
 
 
 --
@@ -68592,7 +68614,7 @@ ALTER TABLE ONLY med_st_dosage_rate_numerator
 --
 
 ALTER TABLE ONLY med_st_dosage_rate_numerator
-    ADD CONSTRAINT med_st_dosage_rate_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_rate_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68600,7 +68622,7 @@ ALTER TABLE ONLY med_st_dosage_rate_numerator
 --
 
 ALTER TABLE ONLY med_st_dosage_rate
-    ADD CONSTRAINT med_st_dosage_rate_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id);
+    ADD CONSTRAINT med_st_dosage_rate_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -68608,7 +68630,7 @@ ALTER TABLE ONLY med_st_dosage_rate
 --
 
 ALTER TABLE ONLY med_st_dosage_rate
-    ADD CONSTRAINT med_st_dosage_rate_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_rate_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68616,7 +68638,7 @@ ALTER TABLE ONLY med_st_dosage_rate
 --
 
 ALTER TABLE ONLY med_st_dosage
-    ADD CONSTRAINT med_st_dosage_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68624,7 +68646,7 @@ ALTER TABLE ONLY med_st_dosage
 --
 
 ALTER TABLE ONLY med_st_dosage_route_cd
-    ADD CONSTRAINT med_st_dosage_route_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_route(id);
+    ADD CONSTRAINT med_st_dosage_route_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_route(id) ON DELETE CASCADE;
 
 
 --
@@ -68632,7 +68654,7 @@ ALTER TABLE ONLY med_st_dosage_route_cd
 --
 
 ALTER TABLE ONLY med_st_dosage_route_cd
-    ADD CONSTRAINT med_st_dosage_route_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_route_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68640,7 +68662,7 @@ ALTER TABLE ONLY med_st_dosage_route_cd
 --
 
 ALTER TABLE ONLY med_st_dosage_route_cd_vs
-    ADD CONSTRAINT med_st_dosage_route_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_route_cd(id);
+    ADD CONSTRAINT med_st_dosage_route_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_route_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -68648,7 +68670,7 @@ ALTER TABLE ONLY med_st_dosage_route_cd_vs
 --
 
 ALTER TABLE ONLY med_st_dosage_route_cd_vs
-    ADD CONSTRAINT med_st_dosage_route_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_route_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68656,7 +68678,7 @@ ALTER TABLE ONLY med_st_dosage_route_cd_vs
 --
 
 ALTER TABLE ONLY med_st_dosage_route
-    ADD CONSTRAINT med_st_dosage_route_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id);
+    ADD CONSTRAINT med_st_dosage_route_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -68664,7 +68686,7 @@ ALTER TABLE ONLY med_st_dosage_route
 --
 
 ALTER TABLE ONLY med_st_dosage_route
-    ADD CONSTRAINT med_st_dosage_route_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_route_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68672,7 +68694,7 @@ ALTER TABLE ONLY med_st_dosage_route
 --
 
 ALTER TABLE ONLY med_st_dosage_site_cd
-    ADD CONSTRAINT med_st_dosage_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_site(id);
+    ADD CONSTRAINT med_st_dosage_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_site(id) ON DELETE CASCADE;
 
 
 --
@@ -68680,7 +68702,7 @@ ALTER TABLE ONLY med_st_dosage_site_cd
 --
 
 ALTER TABLE ONLY med_st_dosage_site_cd
-    ADD CONSTRAINT med_st_dosage_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68688,7 +68710,7 @@ ALTER TABLE ONLY med_st_dosage_site_cd
 --
 
 ALTER TABLE ONLY med_st_dosage_site_cd_vs
-    ADD CONSTRAINT med_st_dosage_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_site_cd(id);
+    ADD CONSTRAINT med_st_dosage_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_site_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -68696,7 +68718,7 @@ ALTER TABLE ONLY med_st_dosage_site_cd_vs
 --
 
 ALTER TABLE ONLY med_st_dosage_site_cd_vs
-    ADD CONSTRAINT med_st_dosage_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68704,7 +68726,7 @@ ALTER TABLE ONLY med_st_dosage_site_cd_vs
 --
 
 ALTER TABLE ONLY med_st_dosage_site
-    ADD CONSTRAINT med_st_dosage_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id);
+    ADD CONSTRAINT med_st_dosage_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -68712,7 +68734,7 @@ ALTER TABLE ONLY med_st_dosage_site
 --
 
 ALTER TABLE ONLY med_st_dosage_site
-    ADD CONSTRAINT med_st_dosage_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68720,7 +68742,7 @@ ALTER TABLE ONLY med_st_dosage_site
 --
 
 ALTER TABLE ONLY med_st_dosage_timing_event
-    ADD CONSTRAINT med_st_dosage_timing_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_timing(id);
+    ADD CONSTRAINT med_st_dosage_timing_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_timing(id) ON DELETE CASCADE;
 
 
 --
@@ -68728,7 +68750,7 @@ ALTER TABLE ONLY med_st_dosage_timing_event
 --
 
 ALTER TABLE ONLY med_st_dosage_timing_event
-    ADD CONSTRAINT med_st_dosage_timing_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_timing_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68736,7 +68758,7 @@ ALTER TABLE ONLY med_st_dosage_timing_event
 --
 
 ALTER TABLE ONLY med_st_dosage_timing
-    ADD CONSTRAINT med_st_dosage_timing_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id);
+    ADD CONSTRAINT med_st_dosage_timing_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(id) ON DELETE CASCADE;
 
 
 --
@@ -68744,7 +68766,7 @@ ALTER TABLE ONLY med_st_dosage_timing
 --
 
 ALTER TABLE ONLY med_st_dosage_timing_repeat
-    ADD CONSTRAINT med_st_dosage_timing_repeat_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_timing(id);
+    ADD CONSTRAINT med_st_dosage_timing_repeat_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_timing(id) ON DELETE CASCADE;
 
 
 --
@@ -68752,7 +68774,7 @@ ALTER TABLE ONLY med_st_dosage_timing_repeat
 --
 
 ALTER TABLE ONLY med_st_dosage_timing_repeat
-    ADD CONSTRAINT med_st_dosage_timing_repeat_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_timing_repeat_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68760,7 +68782,7 @@ ALTER TABLE ONLY med_st_dosage_timing_repeat
 --
 
 ALTER TABLE ONLY med_st_dosage_timing
-    ADD CONSTRAINT med_st_dosage_timing_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_dosage_timing_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68768,7 +68790,7 @@ ALTER TABLE ONLY med_st_dosage_timing
 --
 
 ALTER TABLE ONLY med_st_idn_assigner
-    ADD CONSTRAINT med_st_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_idn(id);
+    ADD CONSTRAINT med_st_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -68776,7 +68798,7 @@ ALTER TABLE ONLY med_st_idn_assigner
 --
 
 ALTER TABLE ONLY med_st_idn_assigner
-    ADD CONSTRAINT med_st_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68784,7 +68806,7 @@ ALTER TABLE ONLY med_st_idn_assigner
 --
 
 ALTER TABLE ONLY med_st_idn
-    ADD CONSTRAINT med_st_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68792,7 +68814,7 @@ ALTER TABLE ONLY med_st_idn
 --
 
 ALTER TABLE ONLY med_st_idn_period
-    ADD CONSTRAINT med_st_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_idn(id);
+    ADD CONSTRAINT med_st_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -68800,7 +68822,7 @@ ALTER TABLE ONLY med_st_idn_period
 --
 
 ALTER TABLE ONLY med_st_idn_period
-    ADD CONSTRAINT med_st_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68808,7 +68830,7 @@ ALTER TABLE ONLY med_st_idn_period
 --
 
 ALTER TABLE ONLY med_st_idn
-    ADD CONSTRAINT med_st_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68816,7 +68838,7 @@ ALTER TABLE ONLY med_st_idn
 --
 
 ALTER TABLE ONLY med_st_med
-    ADD CONSTRAINT med_st_med_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_med_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68824,7 +68846,7 @@ ALTER TABLE ONLY med_st_med
 --
 
 ALTER TABLE ONLY med_st_med
-    ADD CONSTRAINT med_st_med_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_med_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68832,7 +68854,7 @@ ALTER TABLE ONLY med_st_med
 --
 
 ALTER TABLE ONLY med_st_patient
-    ADD CONSTRAINT med_st_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68840,7 +68862,7 @@ ALTER TABLE ONLY med_st_patient
 --
 
 ALTER TABLE ONLY med_st_patient
-    ADD CONSTRAINT med_st_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68848,7 +68870,7 @@ ALTER TABLE ONLY med_st_patient
 --
 
 ALTER TABLE ONLY med_st_reason_not_given_cd
-    ADD CONSTRAINT med_st_reason_not_given_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_reason_not_given(id);
+    ADD CONSTRAINT med_st_reason_not_given_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_reason_not_given(id) ON DELETE CASCADE;
 
 
 --
@@ -68856,7 +68878,7 @@ ALTER TABLE ONLY med_st_reason_not_given_cd
 --
 
 ALTER TABLE ONLY med_st_reason_not_given_cd
-    ADD CONSTRAINT med_st_reason_not_given_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_reason_not_given_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68864,7 +68886,7 @@ ALTER TABLE ONLY med_st_reason_not_given_cd
 --
 
 ALTER TABLE ONLY med_st_reason_not_given_cd_vs
-    ADD CONSTRAINT med_st_reason_not_given_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_reason_not_given_cd(id);
+    ADD CONSTRAINT med_st_reason_not_given_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_reason_not_given_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -68872,7 +68894,7 @@ ALTER TABLE ONLY med_st_reason_not_given_cd_vs
 --
 
 ALTER TABLE ONLY med_st_reason_not_given_cd_vs
-    ADD CONSTRAINT med_st_reason_not_given_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_reason_not_given_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68880,7 +68902,7 @@ ALTER TABLE ONLY med_st_reason_not_given_cd_vs
 --
 
 ALTER TABLE ONLY med_st_reason_not_given
-    ADD CONSTRAINT med_st_reason_not_given_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_reason_not_given_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68888,7 +68910,7 @@ ALTER TABLE ONLY med_st_reason_not_given
 --
 
 ALTER TABLE ONLY med_st_reason_not_given
-    ADD CONSTRAINT med_st_reason_not_given_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_reason_not_given_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68896,7 +68918,7 @@ ALTER TABLE ONLY med_st_reason_not_given
 --
 
 ALTER TABLE ONLY med_st_text
-    ADD CONSTRAINT med_st_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68904,7 +68926,7 @@ ALTER TABLE ONLY med_st_text
 --
 
 ALTER TABLE ONLY med_st_text
-    ADD CONSTRAINT med_st_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68912,7 +68934,7 @@ ALTER TABLE ONLY med_st_text
 --
 
 ALTER TABLE ONLY med_st_when_given
-    ADD CONSTRAINT med_st_when_given_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_when_given_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68920,7 +68942,7 @@ ALTER TABLE ONLY med_st_when_given
 --
 
 ALTER TABLE ONLY med_st_when_given
-    ADD CONSTRAINT med_st_when_given_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id);
+    ADD CONSTRAINT med_st_when_given_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(id) ON DELETE CASCADE;
 
 
 --
@@ -68928,7 +68950,7 @@ ALTER TABLE ONLY med_st_when_given
 --
 
 ALTER TABLE ONLY med_text
-    ADD CONSTRAINT med_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med(id);
+    ADD CONSTRAINT med_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -68936,7 +68958,7 @@ ALTER TABLE ONLY med_text
 --
 
 ALTER TABLE ONLY med_text
-    ADD CONSTRAINT med_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id);
+    ADD CONSTRAINT med_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(id) ON DELETE CASCADE;
 
 
 --
@@ -68944,7 +68966,7 @@ ALTER TABLE ONLY med_text
 --
 
 ALTER TABLE ONLY media_content
-    ADD CONSTRAINT media_content_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(id);
+    ADD CONSTRAINT media_content_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -68952,7 +68974,7 @@ ALTER TABLE ONLY media_content
 --
 
 ALTER TABLE ONLY media_content
-    ADD CONSTRAINT media_content_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id);
+    ADD CONSTRAINT media_content_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -68960,7 +68982,7 @@ ALTER TABLE ONLY media_content
 --
 
 ALTER TABLE ONLY media_idn_assigner
-    ADD CONSTRAINT media_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_idn(id);
+    ADD CONSTRAINT media_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -68968,7 +68990,7 @@ ALTER TABLE ONLY media_idn_assigner
 --
 
 ALTER TABLE ONLY media_idn_assigner
-    ADD CONSTRAINT media_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id);
+    ADD CONSTRAINT media_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -68976,7 +68998,7 @@ ALTER TABLE ONLY media_idn_assigner
 --
 
 ALTER TABLE ONLY media_idn
-    ADD CONSTRAINT media_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(id);
+    ADD CONSTRAINT media_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -68984,7 +69006,7 @@ ALTER TABLE ONLY media_idn
 --
 
 ALTER TABLE ONLY media_idn_period
-    ADD CONSTRAINT media_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_idn(id);
+    ADD CONSTRAINT media_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -68992,7 +69014,7 @@ ALTER TABLE ONLY media_idn_period
 --
 
 ALTER TABLE ONLY media_idn_period
-    ADD CONSTRAINT media_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id);
+    ADD CONSTRAINT media_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69000,7 +69022,7 @@ ALTER TABLE ONLY media_idn_period
 --
 
 ALTER TABLE ONLY media_idn
-    ADD CONSTRAINT media_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id);
+    ADD CONSTRAINT media_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69008,7 +69030,7 @@ ALTER TABLE ONLY media_idn
 --
 
 ALTER TABLE ONLY media_operator
-    ADD CONSTRAINT media_operator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(id);
+    ADD CONSTRAINT media_operator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69016,7 +69038,7 @@ ALTER TABLE ONLY media_operator
 --
 
 ALTER TABLE ONLY media_operator
-    ADD CONSTRAINT media_operator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id);
+    ADD CONSTRAINT media_operator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69024,7 +69046,7 @@ ALTER TABLE ONLY media_operator
 --
 
 ALTER TABLE ONLY media_subject
-    ADD CONSTRAINT media_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(id);
+    ADD CONSTRAINT media_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69032,7 +69054,7 @@ ALTER TABLE ONLY media_subject
 --
 
 ALTER TABLE ONLY media_subject
-    ADD CONSTRAINT media_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id);
+    ADD CONSTRAINT media_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69040,7 +69062,7 @@ ALTER TABLE ONLY media_subject
 --
 
 ALTER TABLE ONLY media_subtype_cd
-    ADD CONSTRAINT media_subtype_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_subtype(id);
+    ADD CONSTRAINT media_subtype_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_subtype(id) ON DELETE CASCADE;
 
 
 --
@@ -69048,7 +69070,7 @@ ALTER TABLE ONLY media_subtype_cd
 --
 
 ALTER TABLE ONLY media_subtype_cd
-    ADD CONSTRAINT media_subtype_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id);
+    ADD CONSTRAINT media_subtype_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69056,7 +69078,7 @@ ALTER TABLE ONLY media_subtype_cd
 --
 
 ALTER TABLE ONLY media_subtype_cd_vs
-    ADD CONSTRAINT media_subtype_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_subtype_cd(id);
+    ADD CONSTRAINT media_subtype_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_subtype_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -69064,7 +69086,7 @@ ALTER TABLE ONLY media_subtype_cd_vs
 --
 
 ALTER TABLE ONLY media_subtype_cd_vs
-    ADD CONSTRAINT media_subtype_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id);
+    ADD CONSTRAINT media_subtype_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69072,7 +69094,7 @@ ALTER TABLE ONLY media_subtype_cd_vs
 --
 
 ALTER TABLE ONLY media_subtype
-    ADD CONSTRAINT media_subtype_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(id);
+    ADD CONSTRAINT media_subtype_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69080,7 +69102,7 @@ ALTER TABLE ONLY media_subtype
 --
 
 ALTER TABLE ONLY media_subtype
-    ADD CONSTRAINT media_subtype_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id);
+    ADD CONSTRAINT media_subtype_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69088,7 +69110,7 @@ ALTER TABLE ONLY media_subtype
 --
 
 ALTER TABLE ONLY media_text
-    ADD CONSTRAINT media_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(id);
+    ADD CONSTRAINT media_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69096,7 +69118,7 @@ ALTER TABLE ONLY media_text
 --
 
 ALTER TABLE ONLY media_text
-    ADD CONSTRAINT media_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id);
+    ADD CONSTRAINT media_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69104,7 +69126,7 @@ ALTER TABLE ONLY media_text
 --
 
 ALTER TABLE ONLY media_view_cd
-    ADD CONSTRAINT media_view_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_view(id);
+    ADD CONSTRAINT media_view_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_view(id) ON DELETE CASCADE;
 
 
 --
@@ -69112,7 +69134,7 @@ ALTER TABLE ONLY media_view_cd
 --
 
 ALTER TABLE ONLY media_view_cd
-    ADD CONSTRAINT media_view_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id);
+    ADD CONSTRAINT media_view_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69120,7 +69142,7 @@ ALTER TABLE ONLY media_view_cd
 --
 
 ALTER TABLE ONLY media_view_cd_vs
-    ADD CONSTRAINT media_view_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_view_cd(id);
+    ADD CONSTRAINT media_view_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_view_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -69128,7 +69150,7 @@ ALTER TABLE ONLY media_view_cd_vs
 --
 
 ALTER TABLE ONLY media_view_cd_vs
-    ADD CONSTRAINT media_view_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id);
+    ADD CONSTRAINT media_view_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69136,7 +69158,7 @@ ALTER TABLE ONLY media_view_cd_vs
 --
 
 ALTER TABLE ONLY media_view
-    ADD CONSTRAINT media_view_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(id);
+    ADD CONSTRAINT media_view_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69144,7 +69166,7 @@ ALTER TABLE ONLY media_view
 --
 
 ALTER TABLE ONLY media_view
-    ADD CONSTRAINT media_view_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id);
+    ADD CONSTRAINT media_view_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(id) ON DELETE CASCADE;
 
 
 --
@@ -69152,7 +69174,7 @@ ALTER TABLE ONLY media_view
 --
 
 ALTER TABLE ONLY message_header_author
-    ADD CONSTRAINT message_header_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69160,7 +69182,7 @@ ALTER TABLE ONLY message_header_author
 --
 
 ALTER TABLE ONLY message_header_author
-    ADD CONSTRAINT message_header_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69168,7 +69190,7 @@ ALTER TABLE ONLY message_header_author
 --
 
 ALTER TABLE ONLY message_header_data
-    ADD CONSTRAINT message_header_data_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_data_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69176,7 +69198,7 @@ ALTER TABLE ONLY message_header_data
 --
 
 ALTER TABLE ONLY message_header_data
-    ADD CONSTRAINT message_header_data_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_data_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69184,7 +69206,7 @@ ALTER TABLE ONLY message_header_data
 --
 
 ALTER TABLE ONLY message_header_destination
-    ADD CONSTRAINT message_header_destination_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_destination_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69192,7 +69214,7 @@ ALTER TABLE ONLY message_header_destination
 --
 
 ALTER TABLE ONLY message_header_destination
-    ADD CONSTRAINT message_header_destination_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_destination_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69200,7 +69222,7 @@ ALTER TABLE ONLY message_header_destination
 --
 
 ALTER TABLE ONLY message_header_destination_target
-    ADD CONSTRAINT message_header_destination_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_destination(id);
+    ADD CONSTRAINT message_header_destination_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_destination(id) ON DELETE CASCADE;
 
 
 --
@@ -69208,7 +69230,7 @@ ALTER TABLE ONLY message_header_destination_target
 --
 
 ALTER TABLE ONLY message_header_destination_target
-    ADD CONSTRAINT message_header_destination_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_destination_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69216,7 +69238,7 @@ ALTER TABLE ONLY message_header_destination_target
 --
 
 ALTER TABLE ONLY message_header_enterer
-    ADD CONSTRAINT message_header_enterer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_enterer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69224,7 +69246,7 @@ ALTER TABLE ONLY message_header_enterer
 --
 
 ALTER TABLE ONLY message_header_enterer
-    ADD CONSTRAINT message_header_enterer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_enterer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69232,7 +69254,7 @@ ALTER TABLE ONLY message_header_enterer
 --
 
 ALTER TABLE ONLY message_header_event
-    ADD CONSTRAINT message_header_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69240,7 +69262,7 @@ ALTER TABLE ONLY message_header_event
 --
 
 ALTER TABLE ONLY message_header_event
-    ADD CONSTRAINT message_header_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69248,7 +69270,7 @@ ALTER TABLE ONLY message_header_event
 --
 
 ALTER TABLE ONLY message_header_event_vs
-    ADD CONSTRAINT message_header_event_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_event(id);
+    ADD CONSTRAINT message_header_event_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_event(id) ON DELETE CASCADE;
 
 
 --
@@ -69256,7 +69278,7 @@ ALTER TABLE ONLY message_header_event_vs
 --
 
 ALTER TABLE ONLY message_header_event_vs
-    ADD CONSTRAINT message_header_event_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_event_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69264,7 +69286,7 @@ ALTER TABLE ONLY message_header_event_vs
 --
 
 ALTER TABLE ONLY message_header_reason_cd
-    ADD CONSTRAINT message_header_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_reason(id);
+    ADD CONSTRAINT message_header_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_reason(id) ON DELETE CASCADE;
 
 
 --
@@ -69272,7 +69294,7 @@ ALTER TABLE ONLY message_header_reason_cd
 --
 
 ALTER TABLE ONLY message_header_reason_cd
-    ADD CONSTRAINT message_header_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69280,7 +69302,7 @@ ALTER TABLE ONLY message_header_reason_cd
 --
 
 ALTER TABLE ONLY message_header_reason_cd_vs
-    ADD CONSTRAINT message_header_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_reason_cd(id);
+    ADD CONSTRAINT message_header_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_reason_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -69288,7 +69310,7 @@ ALTER TABLE ONLY message_header_reason_cd_vs
 --
 
 ALTER TABLE ONLY message_header_reason_cd_vs
-    ADD CONSTRAINT message_header_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69296,7 +69318,7 @@ ALTER TABLE ONLY message_header_reason_cd_vs
 --
 
 ALTER TABLE ONLY message_header_reason
-    ADD CONSTRAINT message_header_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69304,7 +69326,7 @@ ALTER TABLE ONLY message_header_reason
 --
 
 ALTER TABLE ONLY message_header_reason
-    ADD CONSTRAINT message_header_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69312,7 +69334,7 @@ ALTER TABLE ONLY message_header_reason
 --
 
 ALTER TABLE ONLY message_header_receiver
-    ADD CONSTRAINT message_header_receiver_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_receiver_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69320,7 +69342,7 @@ ALTER TABLE ONLY message_header_receiver
 --
 
 ALTER TABLE ONLY message_header_receiver
-    ADD CONSTRAINT message_header_receiver_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_receiver_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69328,7 +69350,7 @@ ALTER TABLE ONLY message_header_receiver
 --
 
 ALTER TABLE ONLY message_header_response_details
-    ADD CONSTRAINT message_header_response_details_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_response(id);
+    ADD CONSTRAINT message_header_response_details_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_response(id) ON DELETE CASCADE;
 
 
 --
@@ -69336,7 +69358,7 @@ ALTER TABLE ONLY message_header_response_details
 --
 
 ALTER TABLE ONLY message_header_response_details
-    ADD CONSTRAINT message_header_response_details_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_response_details_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69344,7 +69366,7 @@ ALTER TABLE ONLY message_header_response_details
 --
 
 ALTER TABLE ONLY message_header_response
-    ADD CONSTRAINT message_header_response_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_response_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69352,7 +69374,7 @@ ALTER TABLE ONLY message_header_response
 --
 
 ALTER TABLE ONLY message_header_response
-    ADD CONSTRAINT message_header_response_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_response_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69360,7 +69382,7 @@ ALTER TABLE ONLY message_header_response
 --
 
 ALTER TABLE ONLY message_header_responsible
-    ADD CONSTRAINT message_header_responsible_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_responsible_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69368,7 +69390,7 @@ ALTER TABLE ONLY message_header_responsible
 --
 
 ALTER TABLE ONLY message_header_responsible
-    ADD CONSTRAINT message_header_responsible_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_responsible_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69376,7 +69398,7 @@ ALTER TABLE ONLY message_header_responsible
 --
 
 ALTER TABLE ONLY message_header_source_contact
-    ADD CONSTRAINT message_header_source_contact_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_source(id);
+    ADD CONSTRAINT message_header_source_contact_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_source(id) ON DELETE CASCADE;
 
 
 --
@@ -69384,7 +69406,7 @@ ALTER TABLE ONLY message_header_source_contact
 --
 
 ALTER TABLE ONLY message_header_source_contact_period
-    ADD CONSTRAINT message_header_source_contact_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_source_contact(id);
+    ADD CONSTRAINT message_header_source_contact_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_source_contact(id) ON DELETE CASCADE;
 
 
 --
@@ -69392,7 +69414,7 @@ ALTER TABLE ONLY message_header_source_contact_period
 --
 
 ALTER TABLE ONLY message_header_source_contact_period
-    ADD CONSTRAINT message_header_source_contact_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_source_contact_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69400,7 +69422,7 @@ ALTER TABLE ONLY message_header_source_contact_period
 --
 
 ALTER TABLE ONLY message_header_source_contact
-    ADD CONSTRAINT message_header_source_contact_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_source_contact_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69408,7 +69430,7 @@ ALTER TABLE ONLY message_header_source_contact
 --
 
 ALTER TABLE ONLY message_header_source
-    ADD CONSTRAINT message_header_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69416,7 +69438,7 @@ ALTER TABLE ONLY message_header_source
 --
 
 ALTER TABLE ONLY message_header_source
-    ADD CONSTRAINT message_header_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69424,7 +69446,7 @@ ALTER TABLE ONLY message_header_source
 --
 
 ALTER TABLE ONLY message_header_text
-    ADD CONSTRAINT message_header_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69432,7 +69454,7 @@ ALTER TABLE ONLY message_header_text
 --
 
 ALTER TABLE ONLY message_header_text
-    ADD CONSTRAINT message_header_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id);
+    ADD CONSTRAINT message_header_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(id) ON DELETE CASCADE;
 
 
 --
@@ -69440,7 +69462,7 @@ ALTER TABLE ONLY message_header_text
 --
 
 ALTER TABLE ONLY obs_applies_period
-    ADD CONSTRAINT obs_applies_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_applies_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69448,7 +69470,7 @@ ALTER TABLE ONLY obs_applies_period
 --
 
 ALTER TABLE ONLY obs_applies_period
-    ADD CONSTRAINT obs_applies_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_applies_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69456,7 +69478,7 @@ ALTER TABLE ONLY obs_applies_period
 --
 
 ALTER TABLE ONLY obs_body_site_cd
-    ADD CONSTRAINT obs_body_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_body_site(id);
+    ADD CONSTRAINT obs_body_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_body_site(id) ON DELETE CASCADE;
 
 
 --
@@ -69464,7 +69486,7 @@ ALTER TABLE ONLY obs_body_site_cd
 --
 
 ALTER TABLE ONLY obs_body_site_cd
-    ADD CONSTRAINT obs_body_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_body_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69472,7 +69494,7 @@ ALTER TABLE ONLY obs_body_site_cd
 --
 
 ALTER TABLE ONLY obs_body_site_cd_vs
-    ADD CONSTRAINT obs_body_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_body_site_cd(id);
+    ADD CONSTRAINT obs_body_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_body_site_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -69480,7 +69502,7 @@ ALTER TABLE ONLY obs_body_site_cd_vs
 --
 
 ALTER TABLE ONLY obs_body_site_cd_vs
-    ADD CONSTRAINT obs_body_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_body_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69488,7 +69510,7 @@ ALTER TABLE ONLY obs_body_site_cd_vs
 --
 
 ALTER TABLE ONLY obs_body_site
-    ADD CONSTRAINT obs_body_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_body_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69496,7 +69518,7 @@ ALTER TABLE ONLY obs_body_site
 --
 
 ALTER TABLE ONLY obs_body_site
-    ADD CONSTRAINT obs_body_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_body_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69504,7 +69526,7 @@ ALTER TABLE ONLY obs_body_site
 --
 
 ALTER TABLE ONLY obs_idn_assigner
-    ADD CONSTRAINT obs_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_idn(id);
+    ADD CONSTRAINT obs_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -69512,7 +69534,7 @@ ALTER TABLE ONLY obs_idn_assigner
 --
 
 ALTER TABLE ONLY obs_idn_assigner
-    ADD CONSTRAINT obs_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69520,7 +69542,7 @@ ALTER TABLE ONLY obs_idn_assigner
 --
 
 ALTER TABLE ONLY obs_idn
-    ADD CONSTRAINT obs_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69528,7 +69550,7 @@ ALTER TABLE ONLY obs_idn
 --
 
 ALTER TABLE ONLY obs_idn_period
-    ADD CONSTRAINT obs_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_idn(id);
+    ADD CONSTRAINT obs_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -69536,7 +69558,7 @@ ALTER TABLE ONLY obs_idn_period
 --
 
 ALTER TABLE ONLY obs_idn_period
-    ADD CONSTRAINT obs_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69544,7 +69566,7 @@ ALTER TABLE ONLY obs_idn_period
 --
 
 ALTER TABLE ONLY obs_idn
-    ADD CONSTRAINT obs_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69552,7 +69574,7 @@ ALTER TABLE ONLY obs_idn
 --
 
 ALTER TABLE ONLY obs_interpretation_cd
-    ADD CONSTRAINT obs_interpretation_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_interpretation(id);
+    ADD CONSTRAINT obs_interpretation_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_interpretation(id) ON DELETE CASCADE;
 
 
 --
@@ -69560,7 +69582,7 @@ ALTER TABLE ONLY obs_interpretation_cd
 --
 
 ALTER TABLE ONLY obs_interpretation_cd
-    ADD CONSTRAINT obs_interpretation_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_interpretation_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69568,7 +69590,7 @@ ALTER TABLE ONLY obs_interpretation_cd
 --
 
 ALTER TABLE ONLY obs_interpretation_cd_vs
-    ADD CONSTRAINT obs_interpretation_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_interpretation_cd(id);
+    ADD CONSTRAINT obs_interpretation_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_interpretation_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -69576,7 +69598,7 @@ ALTER TABLE ONLY obs_interpretation_cd_vs
 --
 
 ALTER TABLE ONLY obs_interpretation_cd_vs
-    ADD CONSTRAINT obs_interpretation_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_interpretation_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69584,7 +69606,7 @@ ALTER TABLE ONLY obs_interpretation_cd_vs
 --
 
 ALTER TABLE ONLY obs_interpretation
-    ADD CONSTRAINT obs_interpretation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_interpretation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69592,7 +69614,7 @@ ALTER TABLE ONLY obs_interpretation
 --
 
 ALTER TABLE ONLY obs_interpretation
-    ADD CONSTRAINT obs_interpretation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_interpretation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69600,7 +69622,7 @@ ALTER TABLE ONLY obs_interpretation
 --
 
 ALTER TABLE ONLY obs_method_cd
-    ADD CONSTRAINT obs_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_method(id);
+    ADD CONSTRAINT obs_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_method(id) ON DELETE CASCADE;
 
 
 --
@@ -69608,7 +69630,7 @@ ALTER TABLE ONLY obs_method_cd
 --
 
 ALTER TABLE ONLY obs_method_cd
-    ADD CONSTRAINT obs_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69616,7 +69638,7 @@ ALTER TABLE ONLY obs_method_cd
 --
 
 ALTER TABLE ONLY obs_method_cd_vs
-    ADD CONSTRAINT obs_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_method_cd(id);
+    ADD CONSTRAINT obs_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_method_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -69624,7 +69646,7 @@ ALTER TABLE ONLY obs_method_cd_vs
 --
 
 ALTER TABLE ONLY obs_method_cd_vs
-    ADD CONSTRAINT obs_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69632,7 +69654,7 @@ ALTER TABLE ONLY obs_method_cd_vs
 --
 
 ALTER TABLE ONLY obs_method
-    ADD CONSTRAINT obs_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69640,7 +69662,7 @@ ALTER TABLE ONLY obs_method
 --
 
 ALTER TABLE ONLY obs_method
-    ADD CONSTRAINT obs_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69648,7 +69670,7 @@ ALTER TABLE ONLY obs_method
 --
 
 ALTER TABLE ONLY obs_name_cd
-    ADD CONSTRAINT obs_name_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_name(id);
+    ADD CONSTRAINT obs_name_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_name(id) ON DELETE CASCADE;
 
 
 --
@@ -69656,7 +69678,7 @@ ALTER TABLE ONLY obs_name_cd
 --
 
 ALTER TABLE ONLY obs_name_cd
-    ADD CONSTRAINT obs_name_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_name_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69664,7 +69686,7 @@ ALTER TABLE ONLY obs_name_cd
 --
 
 ALTER TABLE ONLY obs_name_cd_vs
-    ADD CONSTRAINT obs_name_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_name_cd(id);
+    ADD CONSTRAINT obs_name_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_name_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -69672,7 +69694,7 @@ ALTER TABLE ONLY obs_name_cd_vs
 --
 
 ALTER TABLE ONLY obs_name_cd_vs
-    ADD CONSTRAINT obs_name_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_name_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69680,7 +69702,7 @@ ALTER TABLE ONLY obs_name_cd_vs
 --
 
 ALTER TABLE ONLY obs_name
-    ADD CONSTRAINT obs_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69688,7 +69710,7 @@ ALTER TABLE ONLY obs_name
 --
 
 ALTER TABLE ONLY obs_name
-    ADD CONSTRAINT obs_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69696,7 +69718,7 @@ ALTER TABLE ONLY obs_name
 --
 
 ALTER TABLE ONLY obs_performer
-    ADD CONSTRAINT obs_performer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_performer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69704,7 +69726,7 @@ ALTER TABLE ONLY obs_performer
 --
 
 ALTER TABLE ONLY obs_performer
-    ADD CONSTRAINT obs_performer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_performer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69712,7 +69734,7 @@ ALTER TABLE ONLY obs_performer
 --
 
 ALTER TABLE ONLY obs_reference_range_age_high
-    ADD CONSTRAINT obs_reference_range_age_high_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range_age(id);
+    ADD CONSTRAINT obs_reference_range_age_high_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range_age(id) ON DELETE CASCADE;
 
 
 --
@@ -69720,7 +69742,7 @@ ALTER TABLE ONLY obs_reference_range_age_high
 --
 
 ALTER TABLE ONLY obs_reference_range_age_high
-    ADD CONSTRAINT obs_reference_range_age_high_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_reference_range_age_high_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69728,7 +69750,7 @@ ALTER TABLE ONLY obs_reference_range_age_high
 --
 
 ALTER TABLE ONLY obs_reference_range_age_low
-    ADD CONSTRAINT obs_reference_range_age_low_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range_age(id);
+    ADD CONSTRAINT obs_reference_range_age_low_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range_age(id) ON DELETE CASCADE;
 
 
 --
@@ -69736,7 +69758,7 @@ ALTER TABLE ONLY obs_reference_range_age_low
 --
 
 ALTER TABLE ONLY obs_reference_range_age_low
-    ADD CONSTRAINT obs_reference_range_age_low_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_reference_range_age_low_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69744,7 +69766,7 @@ ALTER TABLE ONLY obs_reference_range_age_low
 --
 
 ALTER TABLE ONLY obs_reference_range_age
-    ADD CONSTRAINT obs_reference_range_age_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range(id);
+    ADD CONSTRAINT obs_reference_range_age_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range(id) ON DELETE CASCADE;
 
 
 --
@@ -69752,7 +69774,7 @@ ALTER TABLE ONLY obs_reference_range_age
 --
 
 ALTER TABLE ONLY obs_reference_range_age
-    ADD CONSTRAINT obs_reference_range_age_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_reference_range_age_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69760,7 +69782,7 @@ ALTER TABLE ONLY obs_reference_range_age
 --
 
 ALTER TABLE ONLY obs_reference_range_high
-    ADD CONSTRAINT obs_reference_range_high_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range(id);
+    ADD CONSTRAINT obs_reference_range_high_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range(id) ON DELETE CASCADE;
 
 
 --
@@ -69768,7 +69790,7 @@ ALTER TABLE ONLY obs_reference_range_high
 --
 
 ALTER TABLE ONLY obs_reference_range_high
-    ADD CONSTRAINT obs_reference_range_high_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_reference_range_high_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69776,7 +69798,7 @@ ALTER TABLE ONLY obs_reference_range_high
 --
 
 ALTER TABLE ONLY obs_reference_range_low
-    ADD CONSTRAINT obs_reference_range_low_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range(id);
+    ADD CONSTRAINT obs_reference_range_low_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range(id) ON DELETE CASCADE;
 
 
 --
@@ -69784,7 +69806,7 @@ ALTER TABLE ONLY obs_reference_range_low
 --
 
 ALTER TABLE ONLY obs_reference_range_low
-    ADD CONSTRAINT obs_reference_range_low_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_reference_range_low_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69792,7 +69814,7 @@ ALTER TABLE ONLY obs_reference_range_low
 --
 
 ALTER TABLE ONLY obs_reference_range_meaning_cd
-    ADD CONSTRAINT obs_reference_range_meaning_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range_meaning(id);
+    ADD CONSTRAINT obs_reference_range_meaning_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range_meaning(id) ON DELETE CASCADE;
 
 
 --
@@ -69800,7 +69822,7 @@ ALTER TABLE ONLY obs_reference_range_meaning_cd
 --
 
 ALTER TABLE ONLY obs_reference_range_meaning_cd
-    ADD CONSTRAINT obs_reference_range_meaning_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_reference_range_meaning_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69808,7 +69830,7 @@ ALTER TABLE ONLY obs_reference_range_meaning_cd
 --
 
 ALTER TABLE ONLY obs_reference_range_meaning_cd_vs
-    ADD CONSTRAINT obs_reference_range_meaning_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range_meaning_cd(id);
+    ADD CONSTRAINT obs_reference_range_meaning_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range_meaning_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -69816,7 +69838,7 @@ ALTER TABLE ONLY obs_reference_range_meaning_cd_vs
 --
 
 ALTER TABLE ONLY obs_reference_range_meaning_cd_vs
-    ADD CONSTRAINT obs_reference_range_meaning_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_reference_range_meaning_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69824,7 +69846,7 @@ ALTER TABLE ONLY obs_reference_range_meaning_cd_vs
 --
 
 ALTER TABLE ONLY obs_reference_range_meaning
-    ADD CONSTRAINT obs_reference_range_meaning_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range(id);
+    ADD CONSTRAINT obs_reference_range_meaning_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range(id) ON DELETE CASCADE;
 
 
 --
@@ -69832,7 +69854,7 @@ ALTER TABLE ONLY obs_reference_range_meaning
 --
 
 ALTER TABLE ONLY obs_reference_range_meaning
-    ADD CONSTRAINT obs_reference_range_meaning_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_reference_range_meaning_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69840,7 +69862,7 @@ ALTER TABLE ONLY obs_reference_range_meaning
 --
 
 ALTER TABLE ONLY obs_reference_range
-    ADD CONSTRAINT obs_reference_range_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_reference_range_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69848,7 +69870,7 @@ ALTER TABLE ONLY obs_reference_range
 --
 
 ALTER TABLE ONLY obs_reference_range
-    ADD CONSTRAINT obs_reference_range_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_reference_range_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69856,7 +69878,7 @@ ALTER TABLE ONLY obs_reference_range
 --
 
 ALTER TABLE ONLY obs_related
-    ADD CONSTRAINT obs_related_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_related_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69864,7 +69886,7 @@ ALTER TABLE ONLY obs_related
 --
 
 ALTER TABLE ONLY obs_related
-    ADD CONSTRAINT obs_related_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_related_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69872,7 +69894,7 @@ ALTER TABLE ONLY obs_related
 --
 
 ALTER TABLE ONLY obs_related_target
-    ADD CONSTRAINT obs_related_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_related(id);
+    ADD CONSTRAINT obs_related_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_related(id) ON DELETE CASCADE;
 
 
 --
@@ -69880,7 +69902,7 @@ ALTER TABLE ONLY obs_related_target
 --
 
 ALTER TABLE ONLY obs_related_target
-    ADD CONSTRAINT obs_related_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_related_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69888,7 +69910,7 @@ ALTER TABLE ONLY obs_related_target
 --
 
 ALTER TABLE ONLY obs_specimen
-    ADD CONSTRAINT obs_specimen_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_specimen_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69896,7 +69918,7 @@ ALTER TABLE ONLY obs_specimen
 --
 
 ALTER TABLE ONLY obs_specimen
-    ADD CONSTRAINT obs_specimen_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_specimen_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69904,7 +69926,7 @@ ALTER TABLE ONLY obs_specimen
 --
 
 ALTER TABLE ONLY obs_subject
-    ADD CONSTRAINT obs_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69912,7 +69934,7 @@ ALTER TABLE ONLY obs_subject
 --
 
 ALTER TABLE ONLY obs_subject
-    ADD CONSTRAINT obs_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69920,7 +69942,7 @@ ALTER TABLE ONLY obs_subject
 --
 
 ALTER TABLE ONLY obs_text
-    ADD CONSTRAINT obs_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69928,7 +69950,7 @@ ALTER TABLE ONLY obs_text
 --
 
 ALTER TABLE ONLY obs_text
-    ADD CONSTRAINT obs_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69936,7 +69958,7 @@ ALTER TABLE ONLY obs_text
 --
 
 ALTER TABLE ONLY obs_value_attachment
-    ADD CONSTRAINT obs_value_attachment_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_attachment_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69944,7 +69966,7 @@ ALTER TABLE ONLY obs_value_attachment
 --
 
 ALTER TABLE ONLY obs_value_attachment
-    ADD CONSTRAINT obs_value_attachment_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_attachment_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69952,7 +69974,7 @@ ALTER TABLE ONLY obs_value_attachment
 --
 
 ALTER TABLE ONLY obs_value_codeable_concept_cd
-    ADD CONSTRAINT obs_value_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_value_codeable_concept(id);
+    ADD CONSTRAINT obs_value_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_value_codeable_concept(id) ON DELETE CASCADE;
 
 
 --
@@ -69960,7 +69982,7 @@ ALTER TABLE ONLY obs_value_codeable_concept_cd
 --
 
 ALTER TABLE ONLY obs_value_codeable_concept_cd
-    ADD CONSTRAINT obs_value_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69968,7 +69990,7 @@ ALTER TABLE ONLY obs_value_codeable_concept_cd
 --
 
 ALTER TABLE ONLY obs_value_codeable_concept_cd_vs
-    ADD CONSTRAINT obs_value_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_value_codeable_concept_cd(id);
+    ADD CONSTRAINT obs_value_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_value_codeable_concept_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -69976,7 +69998,7 @@ ALTER TABLE ONLY obs_value_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY obs_value_codeable_concept_cd_vs
-    ADD CONSTRAINT obs_value_codeable_concept_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_codeable_concept_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69984,7 +70006,7 @@ ALTER TABLE ONLY obs_value_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY obs_value_codeable_concept
-    ADD CONSTRAINT obs_value_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -69992,7 +70014,7 @@ ALTER TABLE ONLY obs_value_codeable_concept
 --
 
 ALTER TABLE ONLY obs_value_codeable_concept
-    ADD CONSTRAINT obs_value_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -70000,7 +70022,7 @@ ALTER TABLE ONLY obs_value_codeable_concept
 --
 
 ALTER TABLE ONLY obs_value_period
-    ADD CONSTRAINT obs_value_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -70008,7 +70030,7 @@ ALTER TABLE ONLY obs_value_period
 --
 
 ALTER TABLE ONLY obs_value_period
-    ADD CONSTRAINT obs_value_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -70016,7 +70038,7 @@ ALTER TABLE ONLY obs_value_period
 --
 
 ALTER TABLE ONLY obs_value_quantity
-    ADD CONSTRAINT obs_value_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -70024,7 +70046,7 @@ ALTER TABLE ONLY obs_value_quantity
 --
 
 ALTER TABLE ONLY obs_value_quantity
-    ADD CONSTRAINT obs_value_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -70032,7 +70054,7 @@ ALTER TABLE ONLY obs_value_quantity
 --
 
 ALTER TABLE ONLY obs_value_ratio_denominator
-    ADD CONSTRAINT obs_value_ratio_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_value_ratio(id);
+    ADD CONSTRAINT obs_value_ratio_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_value_ratio(id) ON DELETE CASCADE;
 
 
 --
@@ -70040,7 +70062,7 @@ ALTER TABLE ONLY obs_value_ratio_denominator
 --
 
 ALTER TABLE ONLY obs_value_ratio_denominator
-    ADD CONSTRAINT obs_value_ratio_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_ratio_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -70048,7 +70070,7 @@ ALTER TABLE ONLY obs_value_ratio_denominator
 --
 
 ALTER TABLE ONLY obs_value_ratio_numerator
-    ADD CONSTRAINT obs_value_ratio_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_value_ratio(id);
+    ADD CONSTRAINT obs_value_ratio_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_value_ratio(id) ON DELETE CASCADE;
 
 
 --
@@ -70056,7 +70078,7 @@ ALTER TABLE ONLY obs_value_ratio_numerator
 --
 
 ALTER TABLE ONLY obs_value_ratio_numerator
-    ADD CONSTRAINT obs_value_ratio_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_ratio_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -70064,7 +70086,7 @@ ALTER TABLE ONLY obs_value_ratio_numerator
 --
 
 ALTER TABLE ONLY obs_value_ratio
-    ADD CONSTRAINT obs_value_ratio_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_ratio_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -70072,7 +70094,7 @@ ALTER TABLE ONLY obs_value_ratio
 --
 
 ALTER TABLE ONLY obs_value_ratio
-    ADD CONSTRAINT obs_value_ratio_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_ratio_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -70080,7 +70102,7 @@ ALTER TABLE ONLY obs_value_ratio
 --
 
 ALTER TABLE ONLY obs_value_sampled_data_origin
-    ADD CONSTRAINT obs_value_sampled_data_origin_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_value_sampled_data(id);
+    ADD CONSTRAINT obs_value_sampled_data_origin_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_value_sampled_data(id) ON DELETE CASCADE;
 
 
 --
@@ -70088,7 +70110,7 @@ ALTER TABLE ONLY obs_value_sampled_data_origin
 --
 
 ALTER TABLE ONLY obs_value_sampled_data_origin
-    ADD CONSTRAINT obs_value_sampled_data_origin_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_sampled_data_origin_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -70096,7 +70118,7 @@ ALTER TABLE ONLY obs_value_sampled_data_origin
 --
 
 ALTER TABLE ONLY obs_value_sampled_data
-    ADD CONSTRAINT obs_value_sampled_data_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_sampled_data_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -70104,7 +70126,7 @@ ALTER TABLE ONLY obs_value_sampled_data
 --
 
 ALTER TABLE ONLY obs_value_sampled_data
-    ADD CONSTRAINT obs_value_sampled_data_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id);
+    ADD CONSTRAINT obs_value_sampled_data_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(id) ON DELETE CASCADE;
 
 
 --
@@ -70112,7 +70134,7 @@ ALTER TABLE ONLY obs_value_sampled_data
 --
 
 ALTER TABLE ONLY operation_outcome_issue
-    ADD CONSTRAINT operation_outcome_issue_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES operation_outcome(id);
+    ADD CONSTRAINT operation_outcome_issue_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES operation_outcome(id) ON DELETE CASCADE;
 
 
 --
@@ -70120,7 +70142,7 @@ ALTER TABLE ONLY operation_outcome_issue
 --
 
 ALTER TABLE ONLY operation_outcome_issue
-    ADD CONSTRAINT operation_outcome_issue_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES operation_outcome(id);
+    ADD CONSTRAINT operation_outcome_issue_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES operation_outcome(id) ON DELETE CASCADE;
 
 
 --
@@ -70128,7 +70150,7 @@ ALTER TABLE ONLY operation_outcome_issue
 --
 
 ALTER TABLE ONLY operation_outcome_issue_type
-    ADD CONSTRAINT operation_outcome_issue_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES operation_outcome_issue(id);
+    ADD CONSTRAINT operation_outcome_issue_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES operation_outcome_issue(id) ON DELETE CASCADE;
 
 
 --
@@ -70136,7 +70158,7 @@ ALTER TABLE ONLY operation_outcome_issue_type
 --
 
 ALTER TABLE ONLY operation_outcome_issue_type
-    ADD CONSTRAINT operation_outcome_issue_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES operation_outcome(id);
+    ADD CONSTRAINT operation_outcome_issue_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES operation_outcome(id) ON DELETE CASCADE;
 
 
 --
@@ -70144,7 +70166,7 @@ ALTER TABLE ONLY operation_outcome_issue_type
 --
 
 ALTER TABLE ONLY operation_outcome_issue_type_vs
-    ADD CONSTRAINT operation_outcome_issue_type_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES operation_outcome_issue_type(id);
+    ADD CONSTRAINT operation_outcome_issue_type_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES operation_outcome_issue_type(id) ON DELETE CASCADE;
 
 
 --
@@ -70152,7 +70174,7 @@ ALTER TABLE ONLY operation_outcome_issue_type_vs
 --
 
 ALTER TABLE ONLY operation_outcome_issue_type_vs
-    ADD CONSTRAINT operation_outcome_issue_type_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES operation_outcome(id);
+    ADD CONSTRAINT operation_outcome_issue_type_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES operation_outcome(id) ON DELETE CASCADE;
 
 
 --
@@ -70160,7 +70182,7 @@ ALTER TABLE ONLY operation_outcome_issue_type_vs
 --
 
 ALTER TABLE ONLY operation_outcome_text
-    ADD CONSTRAINT operation_outcome_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES operation_outcome(id);
+    ADD CONSTRAINT operation_outcome_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES operation_outcome(id) ON DELETE CASCADE;
 
 
 --
@@ -70168,7 +70190,7 @@ ALTER TABLE ONLY operation_outcome_text
 --
 
 ALTER TABLE ONLY operation_outcome_text
-    ADD CONSTRAINT operation_outcome_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES operation_outcome(id);
+    ADD CONSTRAINT operation_outcome_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES operation_outcome(id) ON DELETE CASCADE;
 
 
 --
@@ -70176,7 +70198,7 @@ ALTER TABLE ONLY operation_outcome_text
 --
 
 ALTER TABLE ONLY order_authority
-    ADD CONSTRAINT order_authority_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_authority_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70184,7 +70206,7 @@ ALTER TABLE ONLY order_authority
 --
 
 ALTER TABLE ONLY order_authority
-    ADD CONSTRAINT order_authority_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_authority_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70192,7 +70214,7 @@ ALTER TABLE ONLY order_authority
 --
 
 ALTER TABLE ONLY order_detail
-    ADD CONSTRAINT order_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70200,7 +70222,7 @@ ALTER TABLE ONLY order_detail
 --
 
 ALTER TABLE ONLY order_detail
-    ADD CONSTRAINT order_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70208,7 +70230,7 @@ ALTER TABLE ONLY order_detail
 --
 
 ALTER TABLE ONLY order_idn_assigner
-    ADD CONSTRAINT order_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_idn(id);
+    ADD CONSTRAINT order_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -70216,7 +70238,7 @@ ALTER TABLE ONLY order_idn_assigner
 --
 
 ALTER TABLE ONLY order_idn_assigner
-    ADD CONSTRAINT order_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70224,7 +70246,7 @@ ALTER TABLE ONLY order_idn_assigner
 --
 
 ALTER TABLE ONLY order_idn
-    ADD CONSTRAINT order_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70232,7 +70254,7 @@ ALTER TABLE ONLY order_idn
 --
 
 ALTER TABLE ONLY order_idn_period
-    ADD CONSTRAINT order_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_idn(id);
+    ADD CONSTRAINT order_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -70240,7 +70262,7 @@ ALTER TABLE ONLY order_idn_period
 --
 
 ALTER TABLE ONLY order_idn_period
-    ADD CONSTRAINT order_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70248,7 +70270,7 @@ ALTER TABLE ONLY order_idn_period
 --
 
 ALTER TABLE ONLY order_idn
-    ADD CONSTRAINT order_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70256,7 +70278,7 @@ ALTER TABLE ONLY order_idn
 --
 
 ALTER TABLE ONLY order_reason_codeable_concept_cd
-    ADD CONSTRAINT order_reason_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_reason_codeable_concept(id);
+    ADD CONSTRAINT order_reason_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_reason_codeable_concept(id) ON DELETE CASCADE;
 
 
 --
@@ -70264,7 +70286,7 @@ ALTER TABLE ONLY order_reason_codeable_concept_cd
 --
 
 ALTER TABLE ONLY order_reason_codeable_concept_cd
-    ADD CONSTRAINT order_reason_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_reason_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70272,7 +70294,7 @@ ALTER TABLE ONLY order_reason_codeable_concept_cd
 --
 
 ALTER TABLE ONLY order_reason_codeable_concept_cd_vs
-    ADD CONSTRAINT order_reason_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_reason_codeable_concept_cd(id);
+    ADD CONSTRAINT order_reason_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_reason_codeable_concept_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -70280,7 +70302,7 @@ ALTER TABLE ONLY order_reason_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY order_reason_codeable_concept_cd_vs
-    ADD CONSTRAINT order_reason_codeable_concept_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_reason_codeable_concept_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70288,7 +70310,7 @@ ALTER TABLE ONLY order_reason_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY order_reason_codeable_concept
-    ADD CONSTRAINT order_reason_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_reason_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70296,7 +70318,7 @@ ALTER TABLE ONLY order_reason_codeable_concept
 --
 
 ALTER TABLE ONLY order_reason_codeable_concept
-    ADD CONSTRAINT order_reason_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_reason_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70304,7 +70326,7 @@ ALTER TABLE ONLY order_reason_codeable_concept
 --
 
 ALTER TABLE ONLY order_reason_resource_reference
-    ADD CONSTRAINT order_reason_resource_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_reason_resource_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70312,7 +70334,7 @@ ALTER TABLE ONLY order_reason_resource_reference
 --
 
 ALTER TABLE ONLY order_reason_resource_reference
-    ADD CONSTRAINT order_reason_resource_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_reason_resource_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70320,7 +70342,7 @@ ALTER TABLE ONLY order_reason_resource_reference
 --
 
 ALTER TABLE ONLY order_response_authority_codeable_concept_cd
-    ADD CONSTRAINT order_response_authority_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response_authority_codeable_concept(id);
+    ADD CONSTRAINT order_response_authority_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response_authority_codeable_concept(id) ON DELETE CASCADE;
 
 
 --
@@ -70328,7 +70350,7 @@ ALTER TABLE ONLY order_response_authority_codeable_concept_cd
 --
 
 ALTER TABLE ONLY order_response_authority_codeable_concept_cd
-    ADD CONSTRAINT order_response_authority_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_authority_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70336,7 +70358,7 @@ ALTER TABLE ONLY order_response_authority_codeable_concept_cd
 --
 
 ALTER TABLE ONLY order_response_authority_codeable_concept_cd_vs
-    ADD CONSTRAINT order_response_authority_codeable_concept_cd_v_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_authority_codeable_concept_cd_v_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70344,7 +70366,7 @@ ALTER TABLE ONLY order_response_authority_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY order_response_authority_codeable_concept_cd_vs
-    ADD CONSTRAINT order_response_authority_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response_authority_codeable_concept_cd(id);
+    ADD CONSTRAINT order_response_authority_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response_authority_codeable_concept_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -70352,7 +70374,7 @@ ALTER TABLE ONLY order_response_authority_codeable_concept_cd_vs
 --
 
 ALTER TABLE ONLY order_response_authority_codeable_concept
-    ADD CONSTRAINT order_response_authority_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_authority_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70360,7 +70382,7 @@ ALTER TABLE ONLY order_response_authority_codeable_concept
 --
 
 ALTER TABLE ONLY order_response_authority_codeable_concept
-    ADD CONSTRAINT order_response_authority_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_authority_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70368,7 +70390,7 @@ ALTER TABLE ONLY order_response_authority_codeable_concept
 --
 
 ALTER TABLE ONLY order_response_authority_resource_reference
-    ADD CONSTRAINT order_response_authority_resource_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_authority_resource_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70376,7 +70398,7 @@ ALTER TABLE ONLY order_response_authority_resource_reference
 --
 
 ALTER TABLE ONLY order_response_authority_resource_reference
-    ADD CONSTRAINT order_response_authority_resource_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_authority_resource_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70384,7 +70406,7 @@ ALTER TABLE ONLY order_response_authority_resource_reference
 --
 
 ALTER TABLE ONLY order_response_fulfillment
-    ADD CONSTRAINT order_response_fulfillment_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_fulfillment_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70392,7 +70414,7 @@ ALTER TABLE ONLY order_response_fulfillment
 --
 
 ALTER TABLE ONLY order_response_fulfillment
-    ADD CONSTRAINT order_response_fulfillment_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_fulfillment_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70400,7 +70422,7 @@ ALTER TABLE ONLY order_response_fulfillment
 --
 
 ALTER TABLE ONLY order_response_idn_assigner
-    ADD CONSTRAINT order_response_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response_idn(id);
+    ADD CONSTRAINT order_response_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -70408,7 +70430,7 @@ ALTER TABLE ONLY order_response_idn_assigner
 --
 
 ALTER TABLE ONLY order_response_idn_assigner
-    ADD CONSTRAINT order_response_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70416,7 +70438,7 @@ ALTER TABLE ONLY order_response_idn_assigner
 --
 
 ALTER TABLE ONLY order_response_idn
-    ADD CONSTRAINT order_response_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70424,7 +70446,7 @@ ALTER TABLE ONLY order_response_idn
 --
 
 ALTER TABLE ONLY order_response_idn_period
-    ADD CONSTRAINT order_response_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response_idn(id);
+    ADD CONSTRAINT order_response_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -70432,7 +70454,7 @@ ALTER TABLE ONLY order_response_idn_period
 --
 
 ALTER TABLE ONLY order_response_idn_period
-    ADD CONSTRAINT order_response_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70440,7 +70462,7 @@ ALTER TABLE ONLY order_response_idn_period
 --
 
 ALTER TABLE ONLY order_response_idn
-    ADD CONSTRAINT order_response_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70448,7 +70470,7 @@ ALTER TABLE ONLY order_response_idn
 --
 
 ALTER TABLE ONLY order_response_request
-    ADD CONSTRAINT order_response_request_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_request_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70456,7 +70478,7 @@ ALTER TABLE ONLY order_response_request
 --
 
 ALTER TABLE ONLY order_response_request
-    ADD CONSTRAINT order_response_request_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_request_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70464,7 +70486,7 @@ ALTER TABLE ONLY order_response_request
 --
 
 ALTER TABLE ONLY order_response_text
-    ADD CONSTRAINT order_response_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70472,7 +70494,7 @@ ALTER TABLE ONLY order_response_text
 --
 
 ALTER TABLE ONLY order_response_text
-    ADD CONSTRAINT order_response_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70480,7 +70502,7 @@ ALTER TABLE ONLY order_response_text
 --
 
 ALTER TABLE ONLY order_response_who
-    ADD CONSTRAINT order_response_who_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_who_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70488,7 +70510,7 @@ ALTER TABLE ONLY order_response_who
 --
 
 ALTER TABLE ONLY order_response_who
-    ADD CONSTRAINT order_response_who_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id);
+    ADD CONSTRAINT order_response_who_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(id) ON DELETE CASCADE;
 
 
 --
@@ -70496,7 +70518,7 @@ ALTER TABLE ONLY order_response_who
 --
 
 ALTER TABLE ONLY order_source
-    ADD CONSTRAINT order_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70504,7 +70526,7 @@ ALTER TABLE ONLY order_source
 --
 
 ALTER TABLE ONLY order_source
-    ADD CONSTRAINT order_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70512,7 +70534,7 @@ ALTER TABLE ONLY order_source
 --
 
 ALTER TABLE ONLY order_subject
-    ADD CONSTRAINT order_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70520,7 +70542,7 @@ ALTER TABLE ONLY order_subject
 --
 
 ALTER TABLE ONLY order_subject
-    ADD CONSTRAINT order_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70528,7 +70550,7 @@ ALTER TABLE ONLY order_subject
 --
 
 ALTER TABLE ONLY order_target
-    ADD CONSTRAINT order_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70536,7 +70558,7 @@ ALTER TABLE ONLY order_target
 --
 
 ALTER TABLE ONLY order_target
-    ADD CONSTRAINT order_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70544,7 +70566,7 @@ ALTER TABLE ONLY order_target
 --
 
 ALTER TABLE ONLY order_text
-    ADD CONSTRAINT order_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70552,7 +70574,7 @@ ALTER TABLE ONLY order_text
 --
 
 ALTER TABLE ONLY order_text
-    ADD CONSTRAINT order_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70560,7 +70582,7 @@ ALTER TABLE ONLY order_text
 --
 
 ALTER TABLE ONLY order_when_code_cd
-    ADD CONSTRAINT order_when_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when_code(id);
+    ADD CONSTRAINT order_when_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when_code(id) ON DELETE CASCADE;
 
 
 --
@@ -70568,7 +70590,7 @@ ALTER TABLE ONLY order_when_code_cd
 --
 
 ALTER TABLE ONLY order_when_code_cd
-    ADD CONSTRAINT order_when_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_when_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70576,7 +70598,7 @@ ALTER TABLE ONLY order_when_code_cd
 --
 
 ALTER TABLE ONLY order_when_code_cd_vs
-    ADD CONSTRAINT order_when_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when_code_cd(id);
+    ADD CONSTRAINT order_when_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -70584,7 +70606,7 @@ ALTER TABLE ONLY order_when_code_cd_vs
 --
 
 ALTER TABLE ONLY order_when_code_cd_vs
-    ADD CONSTRAINT order_when_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_when_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70592,7 +70614,7 @@ ALTER TABLE ONLY order_when_code_cd_vs
 --
 
 ALTER TABLE ONLY order_when_code
-    ADD CONSTRAINT order_when_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when(id);
+    ADD CONSTRAINT order_when_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when(id) ON DELETE CASCADE;
 
 
 --
@@ -70600,7 +70622,7 @@ ALTER TABLE ONLY order_when_code
 --
 
 ALTER TABLE ONLY order_when_code
-    ADD CONSTRAINT order_when_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_when_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70608,7 +70630,7 @@ ALTER TABLE ONLY order_when_code
 --
 
 ALTER TABLE ONLY order_when
-    ADD CONSTRAINT order_when_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_when_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70616,7 +70638,7 @@ ALTER TABLE ONLY order_when
 --
 
 ALTER TABLE ONLY order_when
-    ADD CONSTRAINT order_when_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_when_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70624,7 +70646,7 @@ ALTER TABLE ONLY order_when
 --
 
 ALTER TABLE ONLY order_when_schedule_event
-    ADD CONSTRAINT order_when_schedule_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when_schedule(id);
+    ADD CONSTRAINT order_when_schedule_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when_schedule(id) ON DELETE CASCADE;
 
 
 --
@@ -70632,7 +70654,7 @@ ALTER TABLE ONLY order_when_schedule_event
 --
 
 ALTER TABLE ONLY order_when_schedule_event
-    ADD CONSTRAINT order_when_schedule_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_when_schedule_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70640,7 +70662,7 @@ ALTER TABLE ONLY order_when_schedule_event
 --
 
 ALTER TABLE ONLY order_when_schedule
-    ADD CONSTRAINT order_when_schedule_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when(id);
+    ADD CONSTRAINT order_when_schedule_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when(id) ON DELETE CASCADE;
 
 
 --
@@ -70648,7 +70670,7 @@ ALTER TABLE ONLY order_when_schedule
 --
 
 ALTER TABLE ONLY order_when_schedule_repeat
-    ADD CONSTRAINT order_when_schedule_repeat_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when_schedule(id);
+    ADD CONSTRAINT order_when_schedule_repeat_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when_schedule(id) ON DELETE CASCADE;
 
 
 --
@@ -70656,7 +70678,7 @@ ALTER TABLE ONLY order_when_schedule_repeat
 --
 
 ALTER TABLE ONLY order_when_schedule_repeat
-    ADD CONSTRAINT order_when_schedule_repeat_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_when_schedule_repeat_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70664,7 +70686,7 @@ ALTER TABLE ONLY order_when_schedule_repeat
 --
 
 ALTER TABLE ONLY order_when_schedule
-    ADD CONSTRAINT order_when_schedule_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id);
+    ADD CONSTRAINT order_when_schedule_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(id) ON DELETE CASCADE;
 
 
 --
@@ -70672,7 +70694,7 @@ ALTER TABLE ONLY order_when_schedule
 --
 
 ALTER TABLE ONLY organization_address
-    ADD CONSTRAINT organization_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70680,7 +70702,7 @@ ALTER TABLE ONLY organization_address
 --
 
 ALTER TABLE ONLY organization_address_period
-    ADD CONSTRAINT organization_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_address(id);
+    ADD CONSTRAINT organization_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_address(id) ON DELETE CASCADE;
 
 
 --
@@ -70688,7 +70710,7 @@ ALTER TABLE ONLY organization_address_period
 --
 
 ALTER TABLE ONLY organization_address_period
-    ADD CONSTRAINT organization_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70696,7 +70718,7 @@ ALTER TABLE ONLY organization_address_period
 --
 
 ALTER TABLE ONLY organization_address
-    ADD CONSTRAINT organization_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70704,7 +70726,7 @@ ALTER TABLE ONLY organization_address
 --
 
 ALTER TABLE ONLY organization_contact_address
-    ADD CONSTRAINT organization_contact_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact(id);
+    ADD CONSTRAINT organization_contact_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact(id) ON DELETE CASCADE;
 
 
 --
@@ -70712,7 +70734,7 @@ ALTER TABLE ONLY organization_contact_address
 --
 
 ALTER TABLE ONLY organization_contact_address_period
-    ADD CONSTRAINT organization_contact_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_address(id);
+    ADD CONSTRAINT organization_contact_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_address(id) ON DELETE CASCADE;
 
 
 --
@@ -70720,7 +70742,7 @@ ALTER TABLE ONLY organization_contact_address_period
 --
 
 ALTER TABLE ONLY organization_contact_address_period
-    ADD CONSTRAINT organization_contact_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_contact_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70728,7 +70750,7 @@ ALTER TABLE ONLY organization_contact_address_period
 --
 
 ALTER TABLE ONLY organization_contact_address
-    ADD CONSTRAINT organization_contact_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_contact_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70736,7 +70758,7 @@ ALTER TABLE ONLY organization_contact_address
 --
 
 ALTER TABLE ONLY organization_contact_gender_cd
-    ADD CONSTRAINT organization_contact_gender_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_gender(id);
+    ADD CONSTRAINT organization_contact_gender_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_gender(id) ON DELETE CASCADE;
 
 
 --
@@ -70744,7 +70766,7 @@ ALTER TABLE ONLY organization_contact_gender_cd
 --
 
 ALTER TABLE ONLY organization_contact_gender_cd
-    ADD CONSTRAINT organization_contact_gender_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_contact_gender_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70752,7 +70774,7 @@ ALTER TABLE ONLY organization_contact_gender_cd
 --
 
 ALTER TABLE ONLY organization_contact_gender_cd_vs
-    ADD CONSTRAINT organization_contact_gender_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_gender_cd(id);
+    ADD CONSTRAINT organization_contact_gender_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_gender_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -70760,7 +70782,7 @@ ALTER TABLE ONLY organization_contact_gender_cd_vs
 --
 
 ALTER TABLE ONLY organization_contact_gender_cd_vs
-    ADD CONSTRAINT organization_contact_gender_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_contact_gender_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70768,7 +70790,7 @@ ALTER TABLE ONLY organization_contact_gender_cd_vs
 --
 
 ALTER TABLE ONLY organization_contact_gender
-    ADD CONSTRAINT organization_contact_gender_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact(id);
+    ADD CONSTRAINT organization_contact_gender_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact(id) ON DELETE CASCADE;
 
 
 --
@@ -70776,7 +70798,7 @@ ALTER TABLE ONLY organization_contact_gender
 --
 
 ALTER TABLE ONLY organization_contact_gender
-    ADD CONSTRAINT organization_contact_gender_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_contact_gender_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70784,7 +70806,7 @@ ALTER TABLE ONLY organization_contact_gender
 --
 
 ALTER TABLE ONLY organization_contact_name
-    ADD CONSTRAINT organization_contact_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact(id);
+    ADD CONSTRAINT organization_contact_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact(id) ON DELETE CASCADE;
 
 
 --
@@ -70792,7 +70814,7 @@ ALTER TABLE ONLY organization_contact_name
 --
 
 ALTER TABLE ONLY organization_contact_name_period
-    ADD CONSTRAINT organization_contact_name_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_name(id);
+    ADD CONSTRAINT organization_contact_name_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_name(id) ON DELETE CASCADE;
 
 
 --
@@ -70800,7 +70822,7 @@ ALTER TABLE ONLY organization_contact_name_period
 --
 
 ALTER TABLE ONLY organization_contact_name_period
-    ADD CONSTRAINT organization_contact_name_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_contact_name_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70808,7 +70830,7 @@ ALTER TABLE ONLY organization_contact_name_period
 --
 
 ALTER TABLE ONLY organization_contact_name
-    ADD CONSTRAINT organization_contact_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_contact_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70816,7 +70838,7 @@ ALTER TABLE ONLY organization_contact_name
 --
 
 ALTER TABLE ONLY organization_contact
-    ADD CONSTRAINT organization_contact_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_contact_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70824,7 +70846,7 @@ ALTER TABLE ONLY organization_contact
 --
 
 ALTER TABLE ONLY organization_contact_purpose_cd
-    ADD CONSTRAINT organization_contact_purpose_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_purpose(id);
+    ADD CONSTRAINT organization_contact_purpose_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_purpose(id) ON DELETE CASCADE;
 
 
 --
@@ -70832,7 +70854,7 @@ ALTER TABLE ONLY organization_contact_purpose_cd
 --
 
 ALTER TABLE ONLY organization_contact_purpose_cd
-    ADD CONSTRAINT organization_contact_purpose_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_contact_purpose_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70840,7 +70862,7 @@ ALTER TABLE ONLY organization_contact_purpose_cd
 --
 
 ALTER TABLE ONLY organization_contact_purpose_cd_vs
-    ADD CONSTRAINT organization_contact_purpose_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_purpose_cd(id);
+    ADD CONSTRAINT organization_contact_purpose_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_purpose_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -70848,7 +70870,7 @@ ALTER TABLE ONLY organization_contact_purpose_cd_vs
 --
 
 ALTER TABLE ONLY organization_contact_purpose_cd_vs
-    ADD CONSTRAINT organization_contact_purpose_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_contact_purpose_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70856,7 +70878,7 @@ ALTER TABLE ONLY organization_contact_purpose_cd_vs
 --
 
 ALTER TABLE ONLY organization_contact_purpose
-    ADD CONSTRAINT organization_contact_purpose_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact(id);
+    ADD CONSTRAINT organization_contact_purpose_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact(id) ON DELETE CASCADE;
 
 
 --
@@ -70864,7 +70886,7 @@ ALTER TABLE ONLY organization_contact_purpose
 --
 
 ALTER TABLE ONLY organization_contact_purpose
-    ADD CONSTRAINT organization_contact_purpose_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_contact_purpose_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70872,7 +70894,7 @@ ALTER TABLE ONLY organization_contact_purpose
 --
 
 ALTER TABLE ONLY organization_contact
-    ADD CONSTRAINT organization_contact_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_contact_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70880,7 +70902,7 @@ ALTER TABLE ONLY organization_contact
 --
 
 ALTER TABLE ONLY organization_contact_telecom
-    ADD CONSTRAINT organization_contact_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact(id);
+    ADD CONSTRAINT organization_contact_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact(id) ON DELETE CASCADE;
 
 
 --
@@ -70888,7 +70910,7 @@ ALTER TABLE ONLY organization_contact_telecom
 --
 
 ALTER TABLE ONLY organization_contact_telecom_period
-    ADD CONSTRAINT organization_contact_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_telecom(id);
+    ADD CONSTRAINT organization_contact_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_telecom(id) ON DELETE CASCADE;
 
 
 --
@@ -70896,7 +70918,7 @@ ALTER TABLE ONLY organization_contact_telecom_period
 --
 
 ALTER TABLE ONLY organization_contact_telecom_period
-    ADD CONSTRAINT organization_contact_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_contact_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70904,7 +70926,7 @@ ALTER TABLE ONLY organization_contact_telecom_period
 --
 
 ALTER TABLE ONLY organization_contact_telecom
-    ADD CONSTRAINT organization_contact_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_contact_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70912,7 +70934,7 @@ ALTER TABLE ONLY organization_contact_telecom
 --
 
 ALTER TABLE ONLY organization_idn_assigner
-    ADD CONSTRAINT organization_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_idn(id);
+    ADD CONSTRAINT organization_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -70920,7 +70942,7 @@ ALTER TABLE ONLY organization_idn_assigner
 --
 
 ALTER TABLE ONLY organization_idn_assigner
-    ADD CONSTRAINT organization_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70928,7 +70950,7 @@ ALTER TABLE ONLY organization_idn_assigner
 --
 
 ALTER TABLE ONLY organization_idn
-    ADD CONSTRAINT organization_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70936,7 +70958,7 @@ ALTER TABLE ONLY organization_idn
 --
 
 ALTER TABLE ONLY organization_idn_period
-    ADD CONSTRAINT organization_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_idn(id);
+    ADD CONSTRAINT organization_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -70944,7 +70966,7 @@ ALTER TABLE ONLY organization_idn_period
 --
 
 ALTER TABLE ONLY organization_idn_period
-    ADD CONSTRAINT organization_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70952,7 +70974,7 @@ ALTER TABLE ONLY organization_idn_period
 --
 
 ALTER TABLE ONLY organization_idn
-    ADD CONSTRAINT organization_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70960,7 +70982,7 @@ ALTER TABLE ONLY organization_idn
 --
 
 ALTER TABLE ONLY organization_loc
-    ADD CONSTRAINT organization_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70968,7 +70990,7 @@ ALTER TABLE ONLY organization_loc
 --
 
 ALTER TABLE ONLY organization_loc
-    ADD CONSTRAINT organization_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70976,7 +70998,7 @@ ALTER TABLE ONLY organization_loc
 --
 
 ALTER TABLE ONLY organization_part_of
-    ADD CONSTRAINT organization_part_of_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_part_of_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70984,7 +71006,7 @@ ALTER TABLE ONLY organization_part_of
 --
 
 ALTER TABLE ONLY organization_part_of
-    ADD CONSTRAINT organization_part_of_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_part_of_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -70992,7 +71014,7 @@ ALTER TABLE ONLY organization_part_of
 --
 
 ALTER TABLE ONLY organization_telecom
-    ADD CONSTRAINT organization_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -71000,7 +71022,7 @@ ALTER TABLE ONLY organization_telecom
 --
 
 ALTER TABLE ONLY organization_telecom_period
-    ADD CONSTRAINT organization_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_telecom(id);
+    ADD CONSTRAINT organization_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_telecom(id) ON DELETE CASCADE;
 
 
 --
@@ -71008,7 +71030,7 @@ ALTER TABLE ONLY organization_telecom_period
 --
 
 ALTER TABLE ONLY organization_telecom_period
-    ADD CONSTRAINT organization_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -71016,7 +71038,7 @@ ALTER TABLE ONLY organization_telecom_period
 --
 
 ALTER TABLE ONLY organization_telecom
-    ADD CONSTRAINT organization_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -71024,7 +71046,7 @@ ALTER TABLE ONLY organization_telecom
 --
 
 ALTER TABLE ONLY organization_text
-    ADD CONSTRAINT organization_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -71032,7 +71054,7 @@ ALTER TABLE ONLY organization_text
 --
 
 ALTER TABLE ONLY organization_text
-    ADD CONSTRAINT organization_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -71040,7 +71062,7 @@ ALTER TABLE ONLY organization_text
 --
 
 ALTER TABLE ONLY organization_type_cd
-    ADD CONSTRAINT organization_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_type(id);
+    ADD CONSTRAINT organization_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_type(id) ON DELETE CASCADE;
 
 
 --
@@ -71048,7 +71070,7 @@ ALTER TABLE ONLY organization_type_cd
 --
 
 ALTER TABLE ONLY organization_type_cd
-    ADD CONSTRAINT organization_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -71056,7 +71078,7 @@ ALTER TABLE ONLY organization_type_cd
 --
 
 ALTER TABLE ONLY organization_type_cd_vs
-    ADD CONSTRAINT organization_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_type_cd(id);
+    ADD CONSTRAINT organization_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -71064,7 +71086,7 @@ ALTER TABLE ONLY organization_type_cd_vs
 --
 
 ALTER TABLE ONLY organization_type_cd_vs
-    ADD CONSTRAINT organization_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -71072,7 +71094,7 @@ ALTER TABLE ONLY organization_type_cd_vs
 --
 
 ALTER TABLE ONLY organization_type
-    ADD CONSTRAINT organization_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -71080,7 +71102,7 @@ ALTER TABLE ONLY organization_type
 --
 
 ALTER TABLE ONLY organization_type
-    ADD CONSTRAINT organization_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id);
+    ADD CONSTRAINT organization_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(id) ON DELETE CASCADE;
 
 
 --
@@ -71088,7 +71110,7 @@ ALTER TABLE ONLY organization_type
 --
 
 ALTER TABLE ONLY other_author
-    ADD CONSTRAINT other_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other(id);
+    ADD CONSTRAINT other_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other(id) ON DELETE CASCADE;
 
 
 --
@@ -71096,7 +71118,7 @@ ALTER TABLE ONLY other_author
 --
 
 ALTER TABLE ONLY other_author
-    ADD CONSTRAINT other_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id);
+    ADD CONSTRAINT other_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id) ON DELETE CASCADE;
 
 
 --
@@ -71104,7 +71126,7 @@ ALTER TABLE ONLY other_author
 --
 
 ALTER TABLE ONLY other_code_cd
-    ADD CONSTRAINT other_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other_code(id);
+    ADD CONSTRAINT other_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other_code(id) ON DELETE CASCADE;
 
 
 --
@@ -71112,7 +71134,7 @@ ALTER TABLE ONLY other_code_cd
 --
 
 ALTER TABLE ONLY other_code_cd
-    ADD CONSTRAINT other_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id);
+    ADD CONSTRAINT other_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id) ON DELETE CASCADE;
 
 
 --
@@ -71120,7 +71142,7 @@ ALTER TABLE ONLY other_code_cd
 --
 
 ALTER TABLE ONLY other_code_cd_vs
-    ADD CONSTRAINT other_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other_code_cd(id);
+    ADD CONSTRAINT other_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -71128,7 +71150,7 @@ ALTER TABLE ONLY other_code_cd_vs
 --
 
 ALTER TABLE ONLY other_code_cd_vs
-    ADD CONSTRAINT other_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id);
+    ADD CONSTRAINT other_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id) ON DELETE CASCADE;
 
 
 --
@@ -71136,7 +71158,7 @@ ALTER TABLE ONLY other_code_cd_vs
 --
 
 ALTER TABLE ONLY other_code
-    ADD CONSTRAINT other_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other(id);
+    ADD CONSTRAINT other_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other(id) ON DELETE CASCADE;
 
 
 --
@@ -71144,7 +71166,7 @@ ALTER TABLE ONLY other_code
 --
 
 ALTER TABLE ONLY other_code
-    ADD CONSTRAINT other_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id);
+    ADD CONSTRAINT other_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id) ON DELETE CASCADE;
 
 
 --
@@ -71152,7 +71174,7 @@ ALTER TABLE ONLY other_code
 --
 
 ALTER TABLE ONLY other_idn_assigner
-    ADD CONSTRAINT other_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other_idn(id);
+    ADD CONSTRAINT other_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -71160,7 +71182,7 @@ ALTER TABLE ONLY other_idn_assigner
 --
 
 ALTER TABLE ONLY other_idn_assigner
-    ADD CONSTRAINT other_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id);
+    ADD CONSTRAINT other_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id) ON DELETE CASCADE;
 
 
 --
@@ -71168,7 +71190,7 @@ ALTER TABLE ONLY other_idn_assigner
 --
 
 ALTER TABLE ONLY other_idn
-    ADD CONSTRAINT other_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other(id);
+    ADD CONSTRAINT other_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other(id) ON DELETE CASCADE;
 
 
 --
@@ -71176,7 +71198,7 @@ ALTER TABLE ONLY other_idn
 --
 
 ALTER TABLE ONLY other_idn_period
-    ADD CONSTRAINT other_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other_idn(id);
+    ADD CONSTRAINT other_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -71184,7 +71206,7 @@ ALTER TABLE ONLY other_idn_period
 --
 
 ALTER TABLE ONLY other_idn_period
-    ADD CONSTRAINT other_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id);
+    ADD CONSTRAINT other_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id) ON DELETE CASCADE;
 
 
 --
@@ -71192,7 +71214,7 @@ ALTER TABLE ONLY other_idn_period
 --
 
 ALTER TABLE ONLY other_idn
-    ADD CONSTRAINT other_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id);
+    ADD CONSTRAINT other_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id) ON DELETE CASCADE;
 
 
 --
@@ -71200,7 +71222,7 @@ ALTER TABLE ONLY other_idn
 --
 
 ALTER TABLE ONLY other_subject
-    ADD CONSTRAINT other_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other(id);
+    ADD CONSTRAINT other_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other(id) ON DELETE CASCADE;
 
 
 --
@@ -71208,7 +71230,7 @@ ALTER TABLE ONLY other_subject
 --
 
 ALTER TABLE ONLY other_subject
-    ADD CONSTRAINT other_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id);
+    ADD CONSTRAINT other_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id) ON DELETE CASCADE;
 
 
 --
@@ -71216,7 +71238,7 @@ ALTER TABLE ONLY other_subject
 --
 
 ALTER TABLE ONLY other_text
-    ADD CONSTRAINT other_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other(id);
+    ADD CONSTRAINT other_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other(id) ON DELETE CASCADE;
 
 
 --
@@ -71224,7 +71246,7 @@ ALTER TABLE ONLY other_text
 --
 
 ALTER TABLE ONLY other_text
-    ADD CONSTRAINT other_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id);
+    ADD CONSTRAINT other_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(id) ON DELETE CASCADE;
 
 
 --
@@ -71232,7 +71254,7 @@ ALTER TABLE ONLY other_text
 --
 
 ALTER TABLE ONLY patient_address
-    ADD CONSTRAINT patient_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71240,7 +71262,7 @@ ALTER TABLE ONLY patient_address
 --
 
 ALTER TABLE ONLY patient_address_period
-    ADD CONSTRAINT patient_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_address(id);
+    ADD CONSTRAINT patient_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_address(id) ON DELETE CASCADE;
 
 
 --
@@ -71248,7 +71270,7 @@ ALTER TABLE ONLY patient_address_period
 --
 
 ALTER TABLE ONLY patient_address_period
-    ADD CONSTRAINT patient_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71256,7 +71278,7 @@ ALTER TABLE ONLY patient_address_period
 --
 
 ALTER TABLE ONLY patient_address
-    ADD CONSTRAINT patient_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71264,7 +71286,7 @@ ALTER TABLE ONLY patient_address
 --
 
 ALTER TABLE ONLY patient_animal_breed_cd
-    ADD CONSTRAINT patient_animal_breed_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_breed(id);
+    ADD CONSTRAINT patient_animal_breed_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_breed(id) ON DELETE CASCADE;
 
 
 --
@@ -71272,7 +71294,7 @@ ALTER TABLE ONLY patient_animal_breed_cd
 --
 
 ALTER TABLE ONLY patient_animal_breed_cd
-    ADD CONSTRAINT patient_animal_breed_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_animal_breed_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71280,7 +71302,7 @@ ALTER TABLE ONLY patient_animal_breed_cd
 --
 
 ALTER TABLE ONLY patient_animal_breed_cd_vs
-    ADD CONSTRAINT patient_animal_breed_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_breed_cd(id);
+    ADD CONSTRAINT patient_animal_breed_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_breed_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -71288,7 +71310,7 @@ ALTER TABLE ONLY patient_animal_breed_cd_vs
 --
 
 ALTER TABLE ONLY patient_animal_breed_cd_vs
-    ADD CONSTRAINT patient_animal_breed_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_animal_breed_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71296,7 +71318,7 @@ ALTER TABLE ONLY patient_animal_breed_cd_vs
 --
 
 ALTER TABLE ONLY patient_animal_breed
-    ADD CONSTRAINT patient_animal_breed_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal(id);
+    ADD CONSTRAINT patient_animal_breed_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal(id) ON DELETE CASCADE;
 
 
 --
@@ -71304,7 +71326,7 @@ ALTER TABLE ONLY patient_animal_breed
 --
 
 ALTER TABLE ONLY patient_animal_breed
-    ADD CONSTRAINT patient_animal_breed_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_animal_breed_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71312,7 +71334,7 @@ ALTER TABLE ONLY patient_animal_breed
 --
 
 ALTER TABLE ONLY patient_animal_gender_status_cd
-    ADD CONSTRAINT patient_animal_gender_status_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_gender_status(id);
+    ADD CONSTRAINT patient_animal_gender_status_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_gender_status(id) ON DELETE CASCADE;
 
 
 --
@@ -71320,7 +71342,7 @@ ALTER TABLE ONLY patient_animal_gender_status_cd
 --
 
 ALTER TABLE ONLY patient_animal_gender_status_cd
-    ADD CONSTRAINT patient_animal_gender_status_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_animal_gender_status_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71328,7 +71350,7 @@ ALTER TABLE ONLY patient_animal_gender_status_cd
 --
 
 ALTER TABLE ONLY patient_animal_gender_status_cd_vs
-    ADD CONSTRAINT patient_animal_gender_status_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_gender_status_cd(id);
+    ADD CONSTRAINT patient_animal_gender_status_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_gender_status_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -71336,7 +71358,7 @@ ALTER TABLE ONLY patient_animal_gender_status_cd_vs
 --
 
 ALTER TABLE ONLY patient_animal_gender_status_cd_vs
-    ADD CONSTRAINT patient_animal_gender_status_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_animal_gender_status_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71344,7 +71366,7 @@ ALTER TABLE ONLY patient_animal_gender_status_cd_vs
 --
 
 ALTER TABLE ONLY patient_animal_gender_status
-    ADD CONSTRAINT patient_animal_gender_status_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal(id);
+    ADD CONSTRAINT patient_animal_gender_status_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal(id) ON DELETE CASCADE;
 
 
 --
@@ -71352,7 +71374,7 @@ ALTER TABLE ONLY patient_animal_gender_status
 --
 
 ALTER TABLE ONLY patient_animal_gender_status
-    ADD CONSTRAINT patient_animal_gender_status_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_animal_gender_status_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71360,7 +71382,7 @@ ALTER TABLE ONLY patient_animal_gender_status
 --
 
 ALTER TABLE ONLY patient_animal
-    ADD CONSTRAINT patient_animal_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_animal_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71368,7 +71390,7 @@ ALTER TABLE ONLY patient_animal
 --
 
 ALTER TABLE ONLY patient_animal
-    ADD CONSTRAINT patient_animal_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_animal_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71376,7 +71398,7 @@ ALTER TABLE ONLY patient_animal
 --
 
 ALTER TABLE ONLY patient_animal_species_cd
-    ADD CONSTRAINT patient_animal_species_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_species(id);
+    ADD CONSTRAINT patient_animal_species_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_species(id) ON DELETE CASCADE;
 
 
 --
@@ -71384,7 +71406,7 @@ ALTER TABLE ONLY patient_animal_species_cd
 --
 
 ALTER TABLE ONLY patient_animal_species_cd
-    ADD CONSTRAINT patient_animal_species_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_animal_species_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71392,7 +71414,7 @@ ALTER TABLE ONLY patient_animal_species_cd
 --
 
 ALTER TABLE ONLY patient_animal_species_cd_vs
-    ADD CONSTRAINT patient_animal_species_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_species_cd(id);
+    ADD CONSTRAINT patient_animal_species_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_species_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -71400,7 +71422,7 @@ ALTER TABLE ONLY patient_animal_species_cd_vs
 --
 
 ALTER TABLE ONLY patient_animal_species_cd_vs
-    ADD CONSTRAINT patient_animal_species_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_animal_species_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71408,7 +71430,7 @@ ALTER TABLE ONLY patient_animal_species_cd_vs
 --
 
 ALTER TABLE ONLY patient_animal_species
-    ADD CONSTRAINT patient_animal_species_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal(id);
+    ADD CONSTRAINT patient_animal_species_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal(id) ON DELETE CASCADE;
 
 
 --
@@ -71416,7 +71438,7 @@ ALTER TABLE ONLY patient_animal_species
 --
 
 ALTER TABLE ONLY patient_animal_species
-    ADD CONSTRAINT patient_animal_species_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_animal_species_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71424,7 +71446,7 @@ ALTER TABLE ONLY patient_animal_species
 --
 
 ALTER TABLE ONLY patient_care_provider
-    ADD CONSTRAINT patient_care_provider_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_care_provider_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71432,7 +71454,7 @@ ALTER TABLE ONLY patient_care_provider
 --
 
 ALTER TABLE ONLY patient_care_provider
-    ADD CONSTRAINT patient_care_provider_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_care_provider_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71440,7 +71462,7 @@ ALTER TABLE ONLY patient_care_provider
 --
 
 ALTER TABLE ONLY patient_communication_cd
-    ADD CONSTRAINT patient_communication_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_communication(id);
+    ADD CONSTRAINT patient_communication_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_communication(id) ON DELETE CASCADE;
 
 
 --
@@ -71448,7 +71470,7 @@ ALTER TABLE ONLY patient_communication_cd
 --
 
 ALTER TABLE ONLY patient_communication_cd
-    ADD CONSTRAINT patient_communication_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_communication_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71456,7 +71478,7 @@ ALTER TABLE ONLY patient_communication_cd
 --
 
 ALTER TABLE ONLY patient_communication_cd_vs
-    ADD CONSTRAINT patient_communication_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_communication_cd(id);
+    ADD CONSTRAINT patient_communication_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_communication_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -71464,7 +71486,7 @@ ALTER TABLE ONLY patient_communication_cd_vs
 --
 
 ALTER TABLE ONLY patient_communication_cd_vs
-    ADD CONSTRAINT patient_communication_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_communication_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71472,7 +71494,7 @@ ALTER TABLE ONLY patient_communication_cd_vs
 --
 
 ALTER TABLE ONLY patient_communication
-    ADD CONSTRAINT patient_communication_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_communication_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71480,7 +71502,7 @@ ALTER TABLE ONLY patient_communication
 --
 
 ALTER TABLE ONLY patient_communication
-    ADD CONSTRAINT patient_communication_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_communication_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71488,7 +71510,7 @@ ALTER TABLE ONLY patient_communication
 --
 
 ALTER TABLE ONLY patient_contact_address
-    ADD CONSTRAINT patient_contact_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(id);
+    ADD CONSTRAINT patient_contact_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(id) ON DELETE CASCADE;
 
 
 --
@@ -71496,7 +71518,7 @@ ALTER TABLE ONLY patient_contact_address
 --
 
 ALTER TABLE ONLY patient_contact_address_period
-    ADD CONSTRAINT patient_contact_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_address(id);
+    ADD CONSTRAINT patient_contact_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_address(id) ON DELETE CASCADE;
 
 
 --
@@ -71504,7 +71526,7 @@ ALTER TABLE ONLY patient_contact_address_period
 --
 
 ALTER TABLE ONLY patient_contact_address_period
-    ADD CONSTRAINT patient_contact_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_contact_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71512,7 +71534,7 @@ ALTER TABLE ONLY patient_contact_address_period
 --
 
 ALTER TABLE ONLY patient_contact_address
-    ADD CONSTRAINT patient_contact_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_contact_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71520,7 +71542,7 @@ ALTER TABLE ONLY patient_contact_address
 --
 
 ALTER TABLE ONLY patient_contact_gender_cd
-    ADD CONSTRAINT patient_contact_gender_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_gender(id);
+    ADD CONSTRAINT patient_contact_gender_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_gender(id) ON DELETE CASCADE;
 
 
 --
@@ -71528,7 +71550,7 @@ ALTER TABLE ONLY patient_contact_gender_cd
 --
 
 ALTER TABLE ONLY patient_contact_gender_cd
-    ADD CONSTRAINT patient_contact_gender_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_contact_gender_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71536,7 +71558,7 @@ ALTER TABLE ONLY patient_contact_gender_cd
 --
 
 ALTER TABLE ONLY patient_contact_gender_cd_vs
-    ADD CONSTRAINT patient_contact_gender_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_gender_cd(id);
+    ADD CONSTRAINT patient_contact_gender_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_gender_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -71544,7 +71566,7 @@ ALTER TABLE ONLY patient_contact_gender_cd_vs
 --
 
 ALTER TABLE ONLY patient_contact_gender_cd_vs
-    ADD CONSTRAINT patient_contact_gender_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_contact_gender_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71552,7 +71574,7 @@ ALTER TABLE ONLY patient_contact_gender_cd_vs
 --
 
 ALTER TABLE ONLY patient_contact_gender
-    ADD CONSTRAINT patient_contact_gender_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(id);
+    ADD CONSTRAINT patient_contact_gender_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(id) ON DELETE CASCADE;
 
 
 --
@@ -71560,7 +71582,7 @@ ALTER TABLE ONLY patient_contact_gender
 --
 
 ALTER TABLE ONLY patient_contact_gender
-    ADD CONSTRAINT patient_contact_gender_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_contact_gender_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71568,7 +71590,7 @@ ALTER TABLE ONLY patient_contact_gender
 --
 
 ALTER TABLE ONLY patient_contact_name
-    ADD CONSTRAINT patient_contact_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(id);
+    ADD CONSTRAINT patient_contact_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(id) ON DELETE CASCADE;
 
 
 --
@@ -71576,7 +71598,7 @@ ALTER TABLE ONLY patient_contact_name
 --
 
 ALTER TABLE ONLY patient_contact_name_period
-    ADD CONSTRAINT patient_contact_name_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_name(id);
+    ADD CONSTRAINT patient_contact_name_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_name(id) ON DELETE CASCADE;
 
 
 --
@@ -71584,7 +71606,7 @@ ALTER TABLE ONLY patient_contact_name_period
 --
 
 ALTER TABLE ONLY patient_contact_name_period
-    ADD CONSTRAINT patient_contact_name_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_contact_name_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71592,7 +71614,7 @@ ALTER TABLE ONLY patient_contact_name_period
 --
 
 ALTER TABLE ONLY patient_contact_name
-    ADD CONSTRAINT patient_contact_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_contact_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71600,7 +71622,7 @@ ALTER TABLE ONLY patient_contact_name
 --
 
 ALTER TABLE ONLY patient_contact_organization
-    ADD CONSTRAINT patient_contact_organization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(id);
+    ADD CONSTRAINT patient_contact_organization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(id) ON DELETE CASCADE;
 
 
 --
@@ -71608,7 +71630,7 @@ ALTER TABLE ONLY patient_contact_organization
 --
 
 ALTER TABLE ONLY patient_contact_organization
-    ADD CONSTRAINT patient_contact_organization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_contact_organization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71616,7 +71638,7 @@ ALTER TABLE ONLY patient_contact_organization
 --
 
 ALTER TABLE ONLY patient_contact
-    ADD CONSTRAINT patient_contact_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_contact_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71624,7 +71646,7 @@ ALTER TABLE ONLY patient_contact
 --
 
 ALTER TABLE ONLY patient_contact_relationship_cd
-    ADD CONSTRAINT patient_contact_relationship_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_relationship(id);
+    ADD CONSTRAINT patient_contact_relationship_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_relationship(id) ON DELETE CASCADE;
 
 
 --
@@ -71632,7 +71654,7 @@ ALTER TABLE ONLY patient_contact_relationship_cd
 --
 
 ALTER TABLE ONLY patient_contact_relationship_cd
-    ADD CONSTRAINT patient_contact_relationship_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_contact_relationship_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71640,7 +71662,7 @@ ALTER TABLE ONLY patient_contact_relationship_cd
 --
 
 ALTER TABLE ONLY patient_contact_relationship_cd_vs
-    ADD CONSTRAINT patient_contact_relationship_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_relationship_cd(id);
+    ADD CONSTRAINT patient_contact_relationship_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_relationship_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -71648,7 +71670,7 @@ ALTER TABLE ONLY patient_contact_relationship_cd_vs
 --
 
 ALTER TABLE ONLY patient_contact_relationship_cd_vs
-    ADD CONSTRAINT patient_contact_relationship_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_contact_relationship_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71656,7 +71678,7 @@ ALTER TABLE ONLY patient_contact_relationship_cd_vs
 --
 
 ALTER TABLE ONLY patient_contact_relationship
-    ADD CONSTRAINT patient_contact_relationship_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(id);
+    ADD CONSTRAINT patient_contact_relationship_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(id) ON DELETE CASCADE;
 
 
 --
@@ -71664,7 +71686,7 @@ ALTER TABLE ONLY patient_contact_relationship
 --
 
 ALTER TABLE ONLY patient_contact_relationship
-    ADD CONSTRAINT patient_contact_relationship_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_contact_relationship_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71672,7 +71694,7 @@ ALTER TABLE ONLY patient_contact_relationship
 --
 
 ALTER TABLE ONLY patient_contact
-    ADD CONSTRAINT patient_contact_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_contact_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71680,7 +71702,7 @@ ALTER TABLE ONLY patient_contact
 --
 
 ALTER TABLE ONLY patient_contact_telecom
-    ADD CONSTRAINT patient_contact_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(id);
+    ADD CONSTRAINT patient_contact_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(id) ON DELETE CASCADE;
 
 
 --
@@ -71688,7 +71710,7 @@ ALTER TABLE ONLY patient_contact_telecom
 --
 
 ALTER TABLE ONLY patient_contact_telecom_period
-    ADD CONSTRAINT patient_contact_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_telecom(id);
+    ADD CONSTRAINT patient_contact_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_telecom(id) ON DELETE CASCADE;
 
 
 --
@@ -71696,7 +71718,7 @@ ALTER TABLE ONLY patient_contact_telecom_period
 --
 
 ALTER TABLE ONLY patient_contact_telecom_period
-    ADD CONSTRAINT patient_contact_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_contact_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71704,7 +71726,7 @@ ALTER TABLE ONLY patient_contact_telecom_period
 --
 
 ALTER TABLE ONLY patient_contact_telecom
-    ADD CONSTRAINT patient_contact_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_contact_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71712,7 +71734,7 @@ ALTER TABLE ONLY patient_contact_telecom
 --
 
 ALTER TABLE ONLY patient_gender_cd
-    ADD CONSTRAINT patient_gender_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_gender(id);
+    ADD CONSTRAINT patient_gender_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_gender(id) ON DELETE CASCADE;
 
 
 --
@@ -71720,7 +71742,7 @@ ALTER TABLE ONLY patient_gender_cd
 --
 
 ALTER TABLE ONLY patient_gender_cd
-    ADD CONSTRAINT patient_gender_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_gender_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71728,7 +71750,7 @@ ALTER TABLE ONLY patient_gender_cd
 --
 
 ALTER TABLE ONLY patient_gender_cd_vs
-    ADD CONSTRAINT patient_gender_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_gender_cd(id);
+    ADD CONSTRAINT patient_gender_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_gender_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -71736,7 +71758,7 @@ ALTER TABLE ONLY patient_gender_cd_vs
 --
 
 ALTER TABLE ONLY patient_gender_cd_vs
-    ADD CONSTRAINT patient_gender_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_gender_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71744,7 +71766,7 @@ ALTER TABLE ONLY patient_gender_cd_vs
 --
 
 ALTER TABLE ONLY patient_gender
-    ADD CONSTRAINT patient_gender_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_gender_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71752,7 +71774,7 @@ ALTER TABLE ONLY patient_gender
 --
 
 ALTER TABLE ONLY patient_gender
-    ADD CONSTRAINT patient_gender_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_gender_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71760,7 +71782,7 @@ ALTER TABLE ONLY patient_gender
 --
 
 ALTER TABLE ONLY patient_idn_assigner
-    ADD CONSTRAINT patient_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_idn(id);
+    ADD CONSTRAINT patient_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -71768,7 +71790,7 @@ ALTER TABLE ONLY patient_idn_assigner
 --
 
 ALTER TABLE ONLY patient_idn_assigner
-    ADD CONSTRAINT patient_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71776,7 +71798,7 @@ ALTER TABLE ONLY patient_idn_assigner
 --
 
 ALTER TABLE ONLY patient_idn
-    ADD CONSTRAINT patient_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71784,7 +71806,7 @@ ALTER TABLE ONLY patient_idn
 --
 
 ALTER TABLE ONLY patient_idn_period
-    ADD CONSTRAINT patient_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_idn(id);
+    ADD CONSTRAINT patient_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -71792,7 +71814,7 @@ ALTER TABLE ONLY patient_idn_period
 --
 
 ALTER TABLE ONLY patient_idn_period
-    ADD CONSTRAINT patient_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71800,7 +71822,7 @@ ALTER TABLE ONLY patient_idn_period
 --
 
 ALTER TABLE ONLY patient_idn
-    ADD CONSTRAINT patient_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71808,7 +71830,7 @@ ALTER TABLE ONLY patient_idn
 --
 
 ALTER TABLE ONLY patient_link_other
-    ADD CONSTRAINT patient_link_other_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_link(id);
+    ADD CONSTRAINT patient_link_other_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_link(id) ON DELETE CASCADE;
 
 
 --
@@ -71816,7 +71838,7 @@ ALTER TABLE ONLY patient_link_other
 --
 
 ALTER TABLE ONLY patient_link_other
-    ADD CONSTRAINT patient_link_other_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_link_other_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71824,7 +71846,7 @@ ALTER TABLE ONLY patient_link_other
 --
 
 ALTER TABLE ONLY patient_link
-    ADD CONSTRAINT patient_link_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_link_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71832,7 +71854,7 @@ ALTER TABLE ONLY patient_link
 --
 
 ALTER TABLE ONLY patient_link
-    ADD CONSTRAINT patient_link_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_link_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71840,7 +71862,7 @@ ALTER TABLE ONLY patient_link
 --
 
 ALTER TABLE ONLY patient_managing_organization
-    ADD CONSTRAINT patient_managing_organization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_managing_organization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71848,7 +71870,7 @@ ALTER TABLE ONLY patient_managing_organization
 --
 
 ALTER TABLE ONLY patient_managing_organization
-    ADD CONSTRAINT patient_managing_organization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_managing_organization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71856,7 +71878,7 @@ ALTER TABLE ONLY patient_managing_organization
 --
 
 ALTER TABLE ONLY patient_marital_status_cd
-    ADD CONSTRAINT patient_marital_status_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_marital_status(id);
+    ADD CONSTRAINT patient_marital_status_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_marital_status(id) ON DELETE CASCADE;
 
 
 --
@@ -71864,7 +71886,7 @@ ALTER TABLE ONLY patient_marital_status_cd
 --
 
 ALTER TABLE ONLY patient_marital_status_cd
-    ADD CONSTRAINT patient_marital_status_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_marital_status_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71872,7 +71894,7 @@ ALTER TABLE ONLY patient_marital_status_cd
 --
 
 ALTER TABLE ONLY patient_marital_status_cd_vs
-    ADD CONSTRAINT patient_marital_status_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_marital_status_cd(id);
+    ADD CONSTRAINT patient_marital_status_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_marital_status_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -71880,7 +71902,7 @@ ALTER TABLE ONLY patient_marital_status_cd_vs
 --
 
 ALTER TABLE ONLY patient_marital_status_cd_vs
-    ADD CONSTRAINT patient_marital_status_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_marital_status_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71888,7 +71910,7 @@ ALTER TABLE ONLY patient_marital_status_cd_vs
 --
 
 ALTER TABLE ONLY patient_marital_status
-    ADD CONSTRAINT patient_marital_status_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_marital_status_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71896,7 +71918,7 @@ ALTER TABLE ONLY patient_marital_status
 --
 
 ALTER TABLE ONLY patient_marital_status
-    ADD CONSTRAINT patient_marital_status_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_marital_status_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71904,7 +71926,7 @@ ALTER TABLE ONLY patient_marital_status
 --
 
 ALTER TABLE ONLY patient_name
-    ADD CONSTRAINT patient_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71912,7 +71934,7 @@ ALTER TABLE ONLY patient_name
 --
 
 ALTER TABLE ONLY patient_name_period
-    ADD CONSTRAINT patient_name_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_name(id);
+    ADD CONSTRAINT patient_name_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_name(id) ON DELETE CASCADE;
 
 
 --
@@ -71920,7 +71942,7 @@ ALTER TABLE ONLY patient_name_period
 --
 
 ALTER TABLE ONLY patient_name_period
-    ADD CONSTRAINT patient_name_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_name_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71928,7 +71950,7 @@ ALTER TABLE ONLY patient_name_period
 --
 
 ALTER TABLE ONLY patient_name
-    ADD CONSTRAINT patient_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71936,7 +71958,7 @@ ALTER TABLE ONLY patient_name
 --
 
 ALTER TABLE ONLY patient_photo
-    ADD CONSTRAINT patient_photo_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_photo_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71944,7 +71966,7 @@ ALTER TABLE ONLY patient_photo
 --
 
 ALTER TABLE ONLY patient_photo
-    ADD CONSTRAINT patient_photo_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_photo_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71952,7 +71974,7 @@ ALTER TABLE ONLY patient_photo
 --
 
 ALTER TABLE ONLY patient_telecom
-    ADD CONSTRAINT patient_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71960,7 +71982,7 @@ ALTER TABLE ONLY patient_telecom
 --
 
 ALTER TABLE ONLY patient_telecom_period
-    ADD CONSTRAINT patient_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_telecom(id);
+    ADD CONSTRAINT patient_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_telecom(id) ON DELETE CASCADE;
 
 
 --
@@ -71968,7 +71990,7 @@ ALTER TABLE ONLY patient_telecom_period
 --
 
 ALTER TABLE ONLY patient_telecom_period
-    ADD CONSTRAINT patient_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71976,7 +71998,7 @@ ALTER TABLE ONLY patient_telecom_period
 --
 
 ALTER TABLE ONLY patient_telecom
-    ADD CONSTRAINT patient_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71984,7 +72006,7 @@ ALTER TABLE ONLY patient_telecom
 --
 
 ALTER TABLE ONLY patient_text
-    ADD CONSTRAINT patient_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -71992,7 +72014,7 @@ ALTER TABLE ONLY patient_text
 --
 
 ALTER TABLE ONLY patient_text
-    ADD CONSTRAINT patient_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id);
+    ADD CONSTRAINT patient_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(id) ON DELETE CASCADE;
 
 
 --
@@ -72000,7 +72022,7 @@ ALTER TABLE ONLY patient_text
 --
 
 ALTER TABLE ONLY practitioner_address
-    ADD CONSTRAINT practitioner_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72008,7 +72030,7 @@ ALTER TABLE ONLY practitioner_address
 --
 
 ALTER TABLE ONLY practitioner_address_period
-    ADD CONSTRAINT practitioner_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_address(id);
+    ADD CONSTRAINT practitioner_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_address(id) ON DELETE CASCADE;
 
 
 --
@@ -72016,7 +72038,7 @@ ALTER TABLE ONLY practitioner_address_period
 --
 
 ALTER TABLE ONLY practitioner_address_period
-    ADD CONSTRAINT practitioner_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72024,7 +72046,7 @@ ALTER TABLE ONLY practitioner_address_period
 --
 
 ALTER TABLE ONLY practitioner_address
-    ADD CONSTRAINT practitioner_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72032,7 +72054,7 @@ ALTER TABLE ONLY practitioner_address
 --
 
 ALTER TABLE ONLY practitioner_communication_cd
-    ADD CONSTRAINT practitioner_communication_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_communication(id);
+    ADD CONSTRAINT practitioner_communication_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_communication(id) ON DELETE CASCADE;
 
 
 --
@@ -72040,7 +72062,7 @@ ALTER TABLE ONLY practitioner_communication_cd
 --
 
 ALTER TABLE ONLY practitioner_communication_cd
-    ADD CONSTRAINT practitioner_communication_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_communication_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72048,7 +72070,7 @@ ALTER TABLE ONLY practitioner_communication_cd
 --
 
 ALTER TABLE ONLY practitioner_communication_cd_vs
-    ADD CONSTRAINT practitioner_communication_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_communication_cd(id);
+    ADD CONSTRAINT practitioner_communication_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_communication_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -72056,7 +72078,7 @@ ALTER TABLE ONLY practitioner_communication_cd_vs
 --
 
 ALTER TABLE ONLY practitioner_communication_cd_vs
-    ADD CONSTRAINT practitioner_communication_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_communication_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72064,7 +72086,7 @@ ALTER TABLE ONLY practitioner_communication_cd_vs
 --
 
 ALTER TABLE ONLY practitioner_communication
-    ADD CONSTRAINT practitioner_communication_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_communication_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72072,7 +72094,7 @@ ALTER TABLE ONLY practitioner_communication
 --
 
 ALTER TABLE ONLY practitioner_communication
-    ADD CONSTRAINT practitioner_communication_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_communication_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72080,7 +72102,7 @@ ALTER TABLE ONLY practitioner_communication
 --
 
 ALTER TABLE ONLY practitioner_gender_cd
-    ADD CONSTRAINT practitioner_gender_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_gender(id);
+    ADD CONSTRAINT practitioner_gender_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_gender(id) ON DELETE CASCADE;
 
 
 --
@@ -72088,7 +72110,7 @@ ALTER TABLE ONLY practitioner_gender_cd
 --
 
 ALTER TABLE ONLY practitioner_gender_cd
-    ADD CONSTRAINT practitioner_gender_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_gender_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72096,7 +72118,7 @@ ALTER TABLE ONLY practitioner_gender_cd
 --
 
 ALTER TABLE ONLY practitioner_gender_cd_vs
-    ADD CONSTRAINT practitioner_gender_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_gender_cd(id);
+    ADD CONSTRAINT practitioner_gender_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_gender_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -72104,7 +72126,7 @@ ALTER TABLE ONLY practitioner_gender_cd_vs
 --
 
 ALTER TABLE ONLY practitioner_gender_cd_vs
-    ADD CONSTRAINT practitioner_gender_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_gender_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72112,7 +72134,7 @@ ALTER TABLE ONLY practitioner_gender_cd_vs
 --
 
 ALTER TABLE ONLY practitioner_gender
-    ADD CONSTRAINT practitioner_gender_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_gender_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72120,7 +72142,7 @@ ALTER TABLE ONLY practitioner_gender
 --
 
 ALTER TABLE ONLY practitioner_gender
-    ADD CONSTRAINT practitioner_gender_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_gender_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72128,7 +72150,7 @@ ALTER TABLE ONLY practitioner_gender
 --
 
 ALTER TABLE ONLY practitioner_idn_assigner
-    ADD CONSTRAINT practitioner_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_idn(id);
+    ADD CONSTRAINT practitioner_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -72136,7 +72158,7 @@ ALTER TABLE ONLY practitioner_idn_assigner
 --
 
 ALTER TABLE ONLY practitioner_idn_assigner
-    ADD CONSTRAINT practitioner_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72144,7 +72166,7 @@ ALTER TABLE ONLY practitioner_idn_assigner
 --
 
 ALTER TABLE ONLY practitioner_idn
-    ADD CONSTRAINT practitioner_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72152,7 +72174,7 @@ ALTER TABLE ONLY practitioner_idn
 --
 
 ALTER TABLE ONLY practitioner_idn_period
-    ADD CONSTRAINT practitioner_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_idn(id);
+    ADD CONSTRAINT practitioner_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -72160,7 +72182,7 @@ ALTER TABLE ONLY practitioner_idn_period
 --
 
 ALTER TABLE ONLY practitioner_idn_period
-    ADD CONSTRAINT practitioner_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72168,7 +72190,7 @@ ALTER TABLE ONLY practitioner_idn_period
 --
 
 ALTER TABLE ONLY practitioner_idn
-    ADD CONSTRAINT practitioner_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72176,7 +72198,7 @@ ALTER TABLE ONLY practitioner_idn
 --
 
 ALTER TABLE ONLY practitioner_loc
-    ADD CONSTRAINT practitioner_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72184,7 +72206,7 @@ ALTER TABLE ONLY practitioner_loc
 --
 
 ALTER TABLE ONLY practitioner_loc
-    ADD CONSTRAINT practitioner_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72192,7 +72214,7 @@ ALTER TABLE ONLY practitioner_loc
 --
 
 ALTER TABLE ONLY practitioner_name
-    ADD CONSTRAINT practitioner_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72200,7 +72222,7 @@ ALTER TABLE ONLY practitioner_name
 --
 
 ALTER TABLE ONLY practitioner_name_period
-    ADD CONSTRAINT practitioner_name_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_name(id);
+    ADD CONSTRAINT practitioner_name_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_name(id) ON DELETE CASCADE;
 
 
 --
@@ -72208,7 +72230,7 @@ ALTER TABLE ONLY practitioner_name_period
 --
 
 ALTER TABLE ONLY practitioner_name_period
-    ADD CONSTRAINT practitioner_name_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_name_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72216,7 +72238,7 @@ ALTER TABLE ONLY practitioner_name_period
 --
 
 ALTER TABLE ONLY practitioner_name
-    ADD CONSTRAINT practitioner_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72224,7 +72246,7 @@ ALTER TABLE ONLY practitioner_name
 --
 
 ALTER TABLE ONLY practitioner_organization
-    ADD CONSTRAINT practitioner_organization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_organization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72232,7 +72254,7 @@ ALTER TABLE ONLY practitioner_organization
 --
 
 ALTER TABLE ONLY practitioner_organization
-    ADD CONSTRAINT practitioner_organization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_organization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72240,7 +72262,7 @@ ALTER TABLE ONLY practitioner_organization
 --
 
 ALTER TABLE ONLY practitioner_period
-    ADD CONSTRAINT practitioner_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72248,7 +72270,7 @@ ALTER TABLE ONLY practitioner_period
 --
 
 ALTER TABLE ONLY practitioner_period
-    ADD CONSTRAINT practitioner_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72256,7 +72278,7 @@ ALTER TABLE ONLY practitioner_period
 --
 
 ALTER TABLE ONLY practitioner_photo
-    ADD CONSTRAINT practitioner_photo_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_photo_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72264,7 +72286,7 @@ ALTER TABLE ONLY practitioner_photo
 --
 
 ALTER TABLE ONLY practitioner_photo
-    ADD CONSTRAINT practitioner_photo_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_photo_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72272,7 +72294,7 @@ ALTER TABLE ONLY practitioner_photo
 --
 
 ALTER TABLE ONLY practitioner_qualification_code_cd
-    ADD CONSTRAINT practitioner_qualification_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_qualification_code(id);
+    ADD CONSTRAINT practitioner_qualification_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_qualification_code(id) ON DELETE CASCADE;
 
 
 --
@@ -72280,7 +72302,7 @@ ALTER TABLE ONLY practitioner_qualification_code_cd
 --
 
 ALTER TABLE ONLY practitioner_qualification_code_cd
-    ADD CONSTRAINT practitioner_qualification_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_qualification_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72288,7 +72310,7 @@ ALTER TABLE ONLY practitioner_qualification_code_cd
 --
 
 ALTER TABLE ONLY practitioner_qualification_code_cd_vs
-    ADD CONSTRAINT practitioner_qualification_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_qualification_code_cd(id);
+    ADD CONSTRAINT practitioner_qualification_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_qualification_code_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -72296,7 +72318,7 @@ ALTER TABLE ONLY practitioner_qualification_code_cd_vs
 --
 
 ALTER TABLE ONLY practitioner_qualification_code_cd_vs
-    ADD CONSTRAINT practitioner_qualification_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_qualification_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72304,7 +72326,7 @@ ALTER TABLE ONLY practitioner_qualification_code_cd_vs
 --
 
 ALTER TABLE ONLY practitioner_qualification_code
-    ADD CONSTRAINT practitioner_qualification_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_qualification(id);
+    ADD CONSTRAINT practitioner_qualification_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_qualification(id) ON DELETE CASCADE;
 
 
 --
@@ -72312,7 +72334,7 @@ ALTER TABLE ONLY practitioner_qualification_code
 --
 
 ALTER TABLE ONLY practitioner_qualification_code
-    ADD CONSTRAINT practitioner_qualification_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_qualification_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72320,7 +72342,7 @@ ALTER TABLE ONLY practitioner_qualification_code
 --
 
 ALTER TABLE ONLY practitioner_qualification_issuer
-    ADD CONSTRAINT practitioner_qualification_issuer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_qualification(id);
+    ADD CONSTRAINT practitioner_qualification_issuer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_qualification(id) ON DELETE CASCADE;
 
 
 --
@@ -72328,7 +72350,7 @@ ALTER TABLE ONLY practitioner_qualification_issuer
 --
 
 ALTER TABLE ONLY practitioner_qualification_issuer
-    ADD CONSTRAINT practitioner_qualification_issuer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_qualification_issuer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72336,7 +72358,7 @@ ALTER TABLE ONLY practitioner_qualification_issuer
 --
 
 ALTER TABLE ONLY practitioner_qualification
-    ADD CONSTRAINT practitioner_qualification_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_qualification_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72344,7 +72366,7 @@ ALTER TABLE ONLY practitioner_qualification
 --
 
 ALTER TABLE ONLY practitioner_qualification_period
-    ADD CONSTRAINT practitioner_qualification_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_qualification(id);
+    ADD CONSTRAINT practitioner_qualification_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_qualification(id) ON DELETE CASCADE;
 
 
 --
@@ -72352,7 +72374,7 @@ ALTER TABLE ONLY practitioner_qualification_period
 --
 
 ALTER TABLE ONLY practitioner_qualification_period
-    ADD CONSTRAINT practitioner_qualification_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_qualification_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72360,7 +72382,7 @@ ALTER TABLE ONLY practitioner_qualification_period
 --
 
 ALTER TABLE ONLY practitioner_qualification
-    ADD CONSTRAINT practitioner_qualification_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_qualification_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72368,7 +72390,7 @@ ALTER TABLE ONLY practitioner_qualification
 --
 
 ALTER TABLE ONLY practitioner_role_cd
-    ADD CONSTRAINT practitioner_role_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_role(id);
+    ADD CONSTRAINT practitioner_role_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_role(id) ON DELETE CASCADE;
 
 
 --
@@ -72376,7 +72398,7 @@ ALTER TABLE ONLY practitioner_role_cd
 --
 
 ALTER TABLE ONLY practitioner_role_cd
-    ADD CONSTRAINT practitioner_role_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_role_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72384,7 +72406,7 @@ ALTER TABLE ONLY practitioner_role_cd
 --
 
 ALTER TABLE ONLY practitioner_role_cd_vs
-    ADD CONSTRAINT practitioner_role_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_role_cd(id);
+    ADD CONSTRAINT practitioner_role_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_role_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -72392,7 +72414,7 @@ ALTER TABLE ONLY practitioner_role_cd_vs
 --
 
 ALTER TABLE ONLY practitioner_role_cd_vs
-    ADD CONSTRAINT practitioner_role_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_role_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72400,7 +72422,7 @@ ALTER TABLE ONLY practitioner_role_cd_vs
 --
 
 ALTER TABLE ONLY practitioner_role
-    ADD CONSTRAINT practitioner_role_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_role_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72408,7 +72430,7 @@ ALTER TABLE ONLY practitioner_role
 --
 
 ALTER TABLE ONLY practitioner_role
-    ADD CONSTRAINT practitioner_role_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_role_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72416,7 +72438,7 @@ ALTER TABLE ONLY practitioner_role
 --
 
 ALTER TABLE ONLY practitioner_specialty_cd
-    ADD CONSTRAINT practitioner_specialty_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_specialty(id);
+    ADD CONSTRAINT practitioner_specialty_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_specialty(id) ON DELETE CASCADE;
 
 
 --
@@ -72424,7 +72446,7 @@ ALTER TABLE ONLY practitioner_specialty_cd
 --
 
 ALTER TABLE ONLY practitioner_specialty_cd
-    ADD CONSTRAINT practitioner_specialty_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_specialty_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72432,7 +72454,7 @@ ALTER TABLE ONLY practitioner_specialty_cd
 --
 
 ALTER TABLE ONLY practitioner_specialty_cd_vs
-    ADD CONSTRAINT practitioner_specialty_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_specialty_cd(id);
+    ADD CONSTRAINT practitioner_specialty_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_specialty_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -72440,7 +72462,7 @@ ALTER TABLE ONLY practitioner_specialty_cd_vs
 --
 
 ALTER TABLE ONLY practitioner_specialty_cd_vs
-    ADD CONSTRAINT practitioner_specialty_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_specialty_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72448,7 +72470,7 @@ ALTER TABLE ONLY practitioner_specialty_cd_vs
 --
 
 ALTER TABLE ONLY practitioner_specialty
-    ADD CONSTRAINT practitioner_specialty_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_specialty_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72456,7 +72478,7 @@ ALTER TABLE ONLY practitioner_specialty
 --
 
 ALTER TABLE ONLY practitioner_specialty
-    ADD CONSTRAINT practitioner_specialty_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_specialty_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72464,7 +72486,7 @@ ALTER TABLE ONLY practitioner_specialty
 --
 
 ALTER TABLE ONLY practitioner_telecom
-    ADD CONSTRAINT practitioner_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72472,7 +72494,7 @@ ALTER TABLE ONLY practitioner_telecom
 --
 
 ALTER TABLE ONLY practitioner_telecom_period
-    ADD CONSTRAINT practitioner_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_telecom(id);
+    ADD CONSTRAINT practitioner_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_telecom(id) ON DELETE CASCADE;
 
 
 --
@@ -72480,7 +72502,7 @@ ALTER TABLE ONLY practitioner_telecom_period
 --
 
 ALTER TABLE ONLY practitioner_telecom_period
-    ADD CONSTRAINT practitioner_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72488,7 +72510,7 @@ ALTER TABLE ONLY practitioner_telecom_period
 --
 
 ALTER TABLE ONLY practitioner_telecom
-    ADD CONSTRAINT practitioner_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72496,7 +72518,7 @@ ALTER TABLE ONLY practitioner_telecom
 --
 
 ALTER TABLE ONLY practitioner_text
-    ADD CONSTRAINT practitioner_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72504,7 +72526,7 @@ ALTER TABLE ONLY practitioner_text
 --
 
 ALTER TABLE ONLY practitioner_text
-    ADD CONSTRAINT practitioner_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id);
+    ADD CONSTRAINT practitioner_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(id) ON DELETE CASCADE;
 
 
 --
@@ -72512,7 +72534,7 @@ ALTER TABLE ONLY practitioner_text
 --
 
 ALTER TABLE ONLY procedure_body_site_cd
-    ADD CONSTRAINT procedure_body_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_body_site(id);
+    ADD CONSTRAINT procedure_body_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_body_site(id) ON DELETE CASCADE;
 
 
 --
@@ -72520,7 +72542,7 @@ ALTER TABLE ONLY procedure_body_site_cd
 --
 
 ALTER TABLE ONLY procedure_body_site_cd
-    ADD CONSTRAINT procedure_body_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_body_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72528,7 +72550,7 @@ ALTER TABLE ONLY procedure_body_site_cd
 --
 
 ALTER TABLE ONLY procedure_body_site_cd_vs
-    ADD CONSTRAINT procedure_body_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_body_site_cd(id);
+    ADD CONSTRAINT procedure_body_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_body_site_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -72536,7 +72558,7 @@ ALTER TABLE ONLY procedure_body_site_cd_vs
 --
 
 ALTER TABLE ONLY procedure_body_site_cd_vs
-    ADD CONSTRAINT procedure_body_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_body_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72544,7 +72566,7 @@ ALTER TABLE ONLY procedure_body_site_cd_vs
 --
 
 ALTER TABLE ONLY procedure_body_site
-    ADD CONSTRAINT procedure_body_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_body_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72552,7 +72574,7 @@ ALTER TABLE ONLY procedure_body_site
 --
 
 ALTER TABLE ONLY procedure_body_site
-    ADD CONSTRAINT procedure_body_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_body_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72560,7 +72582,7 @@ ALTER TABLE ONLY procedure_body_site
 --
 
 ALTER TABLE ONLY procedure_complication_cd
-    ADD CONSTRAINT procedure_complication_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_complication(id);
+    ADD CONSTRAINT procedure_complication_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_complication(id) ON DELETE CASCADE;
 
 
 --
@@ -72568,7 +72590,7 @@ ALTER TABLE ONLY procedure_complication_cd
 --
 
 ALTER TABLE ONLY procedure_complication_cd
-    ADD CONSTRAINT procedure_complication_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_complication_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72576,7 +72598,7 @@ ALTER TABLE ONLY procedure_complication_cd
 --
 
 ALTER TABLE ONLY procedure_complication_cd_vs
-    ADD CONSTRAINT procedure_complication_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_complication_cd(id);
+    ADD CONSTRAINT procedure_complication_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_complication_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -72584,7 +72606,7 @@ ALTER TABLE ONLY procedure_complication_cd_vs
 --
 
 ALTER TABLE ONLY procedure_complication_cd_vs
-    ADD CONSTRAINT procedure_complication_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_complication_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72592,7 +72614,7 @@ ALTER TABLE ONLY procedure_complication_cd_vs
 --
 
 ALTER TABLE ONLY procedure_complication
-    ADD CONSTRAINT procedure_complication_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_complication_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72600,7 +72622,7 @@ ALTER TABLE ONLY procedure_complication
 --
 
 ALTER TABLE ONLY procedure_complication
-    ADD CONSTRAINT procedure_complication_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_complication_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72608,7 +72630,7 @@ ALTER TABLE ONLY procedure_complication
 --
 
 ALTER TABLE ONLY procedure_date
-    ADD CONSTRAINT procedure_date_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_date_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72616,7 +72638,7 @@ ALTER TABLE ONLY procedure_date
 --
 
 ALTER TABLE ONLY procedure_date
-    ADD CONSTRAINT procedure_date_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_date_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72624,7 +72646,7 @@ ALTER TABLE ONLY procedure_date
 --
 
 ALTER TABLE ONLY procedure_encounter
-    ADD CONSTRAINT procedure_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72632,7 +72654,7 @@ ALTER TABLE ONLY procedure_encounter
 --
 
 ALTER TABLE ONLY procedure_encounter
-    ADD CONSTRAINT procedure_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72640,7 +72662,7 @@ ALTER TABLE ONLY procedure_encounter
 --
 
 ALTER TABLE ONLY procedure_idn_assigner
-    ADD CONSTRAINT procedure_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_idn(id);
+    ADD CONSTRAINT procedure_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -72648,7 +72670,7 @@ ALTER TABLE ONLY procedure_idn_assigner
 --
 
 ALTER TABLE ONLY procedure_idn_assigner
-    ADD CONSTRAINT procedure_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72656,7 +72678,7 @@ ALTER TABLE ONLY procedure_idn_assigner
 --
 
 ALTER TABLE ONLY procedure_idn
-    ADD CONSTRAINT procedure_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72664,7 +72686,7 @@ ALTER TABLE ONLY procedure_idn
 --
 
 ALTER TABLE ONLY procedure_idn_period
-    ADD CONSTRAINT procedure_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_idn(id);
+    ADD CONSTRAINT procedure_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -72672,7 +72694,7 @@ ALTER TABLE ONLY procedure_idn_period
 --
 
 ALTER TABLE ONLY procedure_idn_period
-    ADD CONSTRAINT procedure_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72680,7 +72702,7 @@ ALTER TABLE ONLY procedure_idn_period
 --
 
 ALTER TABLE ONLY procedure_idn
-    ADD CONSTRAINT procedure_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72688,7 +72710,7 @@ ALTER TABLE ONLY procedure_idn
 --
 
 ALTER TABLE ONLY procedure_indication_cd
-    ADD CONSTRAINT procedure_indication_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_indication(id);
+    ADD CONSTRAINT procedure_indication_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_indication(id) ON DELETE CASCADE;
 
 
 --
@@ -72696,7 +72718,7 @@ ALTER TABLE ONLY procedure_indication_cd
 --
 
 ALTER TABLE ONLY procedure_indication_cd
-    ADD CONSTRAINT procedure_indication_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_indication_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72704,7 +72726,7 @@ ALTER TABLE ONLY procedure_indication_cd
 --
 
 ALTER TABLE ONLY procedure_indication_cd_vs
-    ADD CONSTRAINT procedure_indication_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_indication_cd(id);
+    ADD CONSTRAINT procedure_indication_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_indication_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -72712,7 +72734,7 @@ ALTER TABLE ONLY procedure_indication_cd_vs
 --
 
 ALTER TABLE ONLY procedure_indication_cd_vs
-    ADD CONSTRAINT procedure_indication_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_indication_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72720,7 +72742,7 @@ ALTER TABLE ONLY procedure_indication_cd_vs
 --
 
 ALTER TABLE ONLY procedure_indication
-    ADD CONSTRAINT procedure_indication_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_indication_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72728,7 +72750,7 @@ ALTER TABLE ONLY procedure_indication
 --
 
 ALTER TABLE ONLY procedure_indication
-    ADD CONSTRAINT procedure_indication_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_indication_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72736,7 +72758,7 @@ ALTER TABLE ONLY procedure_indication
 --
 
 ALTER TABLE ONLY procedure_performer
-    ADD CONSTRAINT procedure_performer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_performer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72744,7 +72766,7 @@ ALTER TABLE ONLY procedure_performer
 --
 
 ALTER TABLE ONLY procedure_performer_person
-    ADD CONSTRAINT procedure_performer_person_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_performer(id);
+    ADD CONSTRAINT procedure_performer_person_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_performer(id) ON DELETE CASCADE;
 
 
 --
@@ -72752,7 +72774,7 @@ ALTER TABLE ONLY procedure_performer_person
 --
 
 ALTER TABLE ONLY procedure_performer_person
-    ADD CONSTRAINT procedure_performer_person_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_performer_person_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72760,7 +72782,7 @@ ALTER TABLE ONLY procedure_performer_person
 --
 
 ALTER TABLE ONLY procedure_performer
-    ADD CONSTRAINT procedure_performer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_performer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72768,7 +72790,7 @@ ALTER TABLE ONLY procedure_performer
 --
 
 ALTER TABLE ONLY procedure_performer_role_cd
-    ADD CONSTRAINT procedure_performer_role_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_performer_role(id);
+    ADD CONSTRAINT procedure_performer_role_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_performer_role(id) ON DELETE CASCADE;
 
 
 --
@@ -72776,7 +72798,7 @@ ALTER TABLE ONLY procedure_performer_role_cd
 --
 
 ALTER TABLE ONLY procedure_performer_role_cd
-    ADD CONSTRAINT procedure_performer_role_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_performer_role_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72784,7 +72806,7 @@ ALTER TABLE ONLY procedure_performer_role_cd
 --
 
 ALTER TABLE ONLY procedure_performer_role_cd_vs
-    ADD CONSTRAINT procedure_performer_role_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_performer_role_cd(id);
+    ADD CONSTRAINT procedure_performer_role_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_performer_role_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -72792,7 +72814,7 @@ ALTER TABLE ONLY procedure_performer_role_cd_vs
 --
 
 ALTER TABLE ONLY procedure_performer_role_cd_vs
-    ADD CONSTRAINT procedure_performer_role_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_performer_role_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72800,7 +72822,7 @@ ALTER TABLE ONLY procedure_performer_role_cd_vs
 --
 
 ALTER TABLE ONLY procedure_performer_role
-    ADD CONSTRAINT procedure_performer_role_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_performer(id);
+    ADD CONSTRAINT procedure_performer_role_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_performer(id) ON DELETE CASCADE;
 
 
 --
@@ -72808,7 +72830,7 @@ ALTER TABLE ONLY procedure_performer_role
 --
 
 ALTER TABLE ONLY procedure_performer_role
-    ADD CONSTRAINT procedure_performer_role_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_performer_role_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72816,7 +72838,7 @@ ALTER TABLE ONLY procedure_performer_role
 --
 
 ALTER TABLE ONLY procedure_related_item
-    ADD CONSTRAINT procedure_related_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_related_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72824,7 +72846,7 @@ ALTER TABLE ONLY procedure_related_item
 --
 
 ALTER TABLE ONLY procedure_related_item
-    ADD CONSTRAINT procedure_related_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_related_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72832,7 +72854,7 @@ ALTER TABLE ONLY procedure_related_item
 --
 
 ALTER TABLE ONLY procedure_related_item_target
-    ADD CONSTRAINT procedure_related_item_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_related_item(id);
+    ADD CONSTRAINT procedure_related_item_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_related_item(id) ON DELETE CASCADE;
 
 
 --
@@ -72840,7 +72862,7 @@ ALTER TABLE ONLY procedure_related_item_target
 --
 
 ALTER TABLE ONLY procedure_related_item_target
-    ADD CONSTRAINT procedure_related_item_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_related_item_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72848,7 +72870,7 @@ ALTER TABLE ONLY procedure_related_item_target
 --
 
 ALTER TABLE ONLY procedure_report
-    ADD CONSTRAINT procedure_report_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_report_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72856,7 +72878,7 @@ ALTER TABLE ONLY procedure_report
 --
 
 ALTER TABLE ONLY procedure_report
-    ADD CONSTRAINT procedure_report_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_report_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72864,7 +72886,7 @@ ALTER TABLE ONLY procedure_report
 --
 
 ALTER TABLE ONLY procedure_subject
-    ADD CONSTRAINT procedure_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72872,7 +72894,7 @@ ALTER TABLE ONLY procedure_subject
 --
 
 ALTER TABLE ONLY procedure_subject
-    ADD CONSTRAINT procedure_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72880,7 +72902,7 @@ ALTER TABLE ONLY procedure_subject
 --
 
 ALTER TABLE ONLY procedure_text
-    ADD CONSTRAINT procedure_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72888,7 +72910,7 @@ ALTER TABLE ONLY procedure_text
 --
 
 ALTER TABLE ONLY procedure_text
-    ADD CONSTRAINT procedure_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72896,7 +72918,7 @@ ALTER TABLE ONLY procedure_text
 --
 
 ALTER TABLE ONLY procedure_type_cd
-    ADD CONSTRAINT procedure_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_type(id);
+    ADD CONSTRAINT procedure_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_type(id) ON DELETE CASCADE;
 
 
 --
@@ -72904,7 +72926,7 @@ ALTER TABLE ONLY procedure_type_cd
 --
 
 ALTER TABLE ONLY procedure_type_cd
-    ADD CONSTRAINT procedure_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72912,7 +72934,7 @@ ALTER TABLE ONLY procedure_type_cd
 --
 
 ALTER TABLE ONLY procedure_type_cd_vs
-    ADD CONSTRAINT procedure_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_type_cd(id);
+    ADD CONSTRAINT procedure_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -72920,7 +72942,7 @@ ALTER TABLE ONLY procedure_type_cd_vs
 --
 
 ALTER TABLE ONLY procedure_type_cd_vs
-    ADD CONSTRAINT procedure_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72928,7 +72950,7 @@ ALTER TABLE ONLY procedure_type_cd_vs
 --
 
 ALTER TABLE ONLY procedure_type
-    ADD CONSTRAINT procedure_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72936,7 +72958,7 @@ ALTER TABLE ONLY procedure_type
 --
 
 ALTER TABLE ONLY procedure_type
-    ADD CONSTRAINT procedure_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id);
+    ADD CONSTRAINT procedure_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -72944,7 +72966,7 @@ ALTER TABLE ONLY procedure_type
 --
 
 ALTER TABLE ONLY provenance_agent
-    ADD CONSTRAINT provenance_agent_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_agent_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -72952,7 +72974,7 @@ ALTER TABLE ONLY provenance_agent
 --
 
 ALTER TABLE ONLY provenance_agent
-    ADD CONSTRAINT provenance_agent_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_agent_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -72960,7 +72982,7 @@ ALTER TABLE ONLY provenance_agent
 --
 
 ALTER TABLE ONLY provenance_agent_role
-    ADD CONSTRAINT provenance_agent_role_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_agent(id);
+    ADD CONSTRAINT provenance_agent_role_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_agent(id) ON DELETE CASCADE;
 
 
 --
@@ -72968,7 +72990,7 @@ ALTER TABLE ONLY provenance_agent_role
 --
 
 ALTER TABLE ONLY provenance_agent_role
-    ADD CONSTRAINT provenance_agent_role_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_agent_role_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -72976,7 +72998,7 @@ ALTER TABLE ONLY provenance_agent_role
 --
 
 ALTER TABLE ONLY provenance_agent_role_vs
-    ADD CONSTRAINT provenance_agent_role_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_agent_role(id);
+    ADD CONSTRAINT provenance_agent_role_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_agent_role(id) ON DELETE CASCADE;
 
 
 --
@@ -72984,7 +73006,7 @@ ALTER TABLE ONLY provenance_agent_role_vs
 --
 
 ALTER TABLE ONLY provenance_agent_role_vs
-    ADD CONSTRAINT provenance_agent_role_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_agent_role_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -72992,7 +73014,7 @@ ALTER TABLE ONLY provenance_agent_role_vs
 --
 
 ALTER TABLE ONLY provenance_agent_type
-    ADD CONSTRAINT provenance_agent_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_agent(id);
+    ADD CONSTRAINT provenance_agent_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_agent(id) ON DELETE CASCADE;
 
 
 --
@@ -73000,7 +73022,7 @@ ALTER TABLE ONLY provenance_agent_type
 --
 
 ALTER TABLE ONLY provenance_agent_type
-    ADD CONSTRAINT provenance_agent_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_agent_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73008,7 +73030,7 @@ ALTER TABLE ONLY provenance_agent_type
 --
 
 ALTER TABLE ONLY provenance_agent_type_vs
-    ADD CONSTRAINT provenance_agent_type_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_agent_type(id);
+    ADD CONSTRAINT provenance_agent_type_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_agent_type(id) ON DELETE CASCADE;
 
 
 --
@@ -73016,7 +73038,7 @@ ALTER TABLE ONLY provenance_agent_type_vs
 --
 
 ALTER TABLE ONLY provenance_agent_type_vs
-    ADD CONSTRAINT provenance_agent_type_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_agent_type_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73024,7 +73046,7 @@ ALTER TABLE ONLY provenance_agent_type_vs
 --
 
 ALTER TABLE ONLY provenance_entity
-    ADD CONSTRAINT provenance_entity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_entity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73032,7 +73054,7 @@ ALTER TABLE ONLY provenance_entity
 --
 
 ALTER TABLE ONLY provenance_entity
-    ADD CONSTRAINT provenance_entity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_entity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73040,7 +73062,7 @@ ALTER TABLE ONLY provenance_entity
 --
 
 ALTER TABLE ONLY provenance_entity_type
-    ADD CONSTRAINT provenance_entity_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_entity(id);
+    ADD CONSTRAINT provenance_entity_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_entity(id) ON DELETE CASCADE;
 
 
 --
@@ -73048,7 +73070,7 @@ ALTER TABLE ONLY provenance_entity_type
 --
 
 ALTER TABLE ONLY provenance_entity_type
-    ADD CONSTRAINT provenance_entity_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_entity_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73056,7 +73078,7 @@ ALTER TABLE ONLY provenance_entity_type
 --
 
 ALTER TABLE ONLY provenance_entity_type_vs
-    ADD CONSTRAINT provenance_entity_type_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_entity_type(id);
+    ADD CONSTRAINT provenance_entity_type_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_entity_type(id) ON DELETE CASCADE;
 
 
 --
@@ -73064,7 +73086,7 @@ ALTER TABLE ONLY provenance_entity_type_vs
 --
 
 ALTER TABLE ONLY provenance_entity_type_vs
-    ADD CONSTRAINT provenance_entity_type_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_entity_type_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73072,7 +73094,7 @@ ALTER TABLE ONLY provenance_entity_type_vs
 --
 
 ALTER TABLE ONLY provenance_loc
-    ADD CONSTRAINT provenance_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73080,7 +73102,7 @@ ALTER TABLE ONLY provenance_loc
 --
 
 ALTER TABLE ONLY provenance_loc
-    ADD CONSTRAINT provenance_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73088,7 +73110,7 @@ ALTER TABLE ONLY provenance_loc
 --
 
 ALTER TABLE ONLY provenance_period
-    ADD CONSTRAINT provenance_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73096,7 +73118,7 @@ ALTER TABLE ONLY provenance_period
 --
 
 ALTER TABLE ONLY provenance_period
-    ADD CONSTRAINT provenance_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73104,7 +73126,7 @@ ALTER TABLE ONLY provenance_period
 --
 
 ALTER TABLE ONLY provenance_reason_cd
-    ADD CONSTRAINT provenance_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_reason(id);
+    ADD CONSTRAINT provenance_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_reason(id) ON DELETE CASCADE;
 
 
 --
@@ -73112,7 +73134,7 @@ ALTER TABLE ONLY provenance_reason_cd
 --
 
 ALTER TABLE ONLY provenance_reason_cd
-    ADD CONSTRAINT provenance_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73120,7 +73142,7 @@ ALTER TABLE ONLY provenance_reason_cd
 --
 
 ALTER TABLE ONLY provenance_reason_cd_vs
-    ADD CONSTRAINT provenance_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_reason_cd(id);
+    ADD CONSTRAINT provenance_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_reason_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -73128,7 +73150,7 @@ ALTER TABLE ONLY provenance_reason_cd_vs
 --
 
 ALTER TABLE ONLY provenance_reason_cd_vs
-    ADD CONSTRAINT provenance_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73136,7 +73158,7 @@ ALTER TABLE ONLY provenance_reason_cd_vs
 --
 
 ALTER TABLE ONLY provenance_reason
-    ADD CONSTRAINT provenance_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73144,7 +73166,7 @@ ALTER TABLE ONLY provenance_reason
 --
 
 ALTER TABLE ONLY provenance_reason
-    ADD CONSTRAINT provenance_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73152,7 +73174,7 @@ ALTER TABLE ONLY provenance_reason
 --
 
 ALTER TABLE ONLY provenance_target
-    ADD CONSTRAINT provenance_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73160,7 +73182,7 @@ ALTER TABLE ONLY provenance_target
 --
 
 ALTER TABLE ONLY provenance_target
-    ADD CONSTRAINT provenance_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73168,7 +73190,7 @@ ALTER TABLE ONLY provenance_target
 --
 
 ALTER TABLE ONLY provenance_text
-    ADD CONSTRAINT provenance_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73176,7 +73198,7 @@ ALTER TABLE ONLY provenance_text
 --
 
 ALTER TABLE ONLY provenance_text
-    ADD CONSTRAINT provenance_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id);
+    ADD CONSTRAINT provenance_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(id) ON DELETE CASCADE;
 
 
 --
@@ -73184,7 +73206,7 @@ ALTER TABLE ONLY provenance_text
 --
 
 ALTER TABLE ONLY query_response
-    ADD CONSTRAINT query_response_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES query(id);
+    ADD CONSTRAINT query_response_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES query(id) ON DELETE CASCADE;
 
 
 --
@@ -73192,7 +73214,7 @@ ALTER TABLE ONLY query_response
 --
 
 ALTER TABLE ONLY query_response_reference
-    ADD CONSTRAINT query_response_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES query_response(id);
+    ADD CONSTRAINT query_response_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES query_response(id) ON DELETE CASCADE;
 
 
 --
@@ -73200,7 +73222,7 @@ ALTER TABLE ONLY query_response_reference
 --
 
 ALTER TABLE ONLY query_response_reference
-    ADD CONSTRAINT query_response_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES query(id);
+    ADD CONSTRAINT query_response_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES query(id) ON DELETE CASCADE;
 
 
 --
@@ -73208,7 +73230,7 @@ ALTER TABLE ONLY query_response_reference
 --
 
 ALTER TABLE ONLY query_response
-    ADD CONSTRAINT query_response_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES query(id);
+    ADD CONSTRAINT query_response_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES query(id) ON DELETE CASCADE;
 
 
 --
@@ -73216,7 +73238,7 @@ ALTER TABLE ONLY query_response
 --
 
 ALTER TABLE ONLY query_text
-    ADD CONSTRAINT query_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES query(id);
+    ADD CONSTRAINT query_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES query(id) ON DELETE CASCADE;
 
 
 --
@@ -73224,7 +73246,7 @@ ALTER TABLE ONLY query_text
 --
 
 ALTER TABLE ONLY query_text
-    ADD CONSTRAINT query_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES query(id);
+    ADD CONSTRAINT query_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES query(id) ON DELETE CASCADE;
 
 
 --
@@ -73232,7 +73254,7 @@ ALTER TABLE ONLY query_text
 --
 
 ALTER TABLE ONLY questionnaire_author
-    ADD CONSTRAINT questionnaire_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73240,7 +73262,7 @@ ALTER TABLE ONLY questionnaire_author
 --
 
 ALTER TABLE ONLY questionnaire_author
-    ADD CONSTRAINT questionnaire_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73248,7 +73270,7 @@ ALTER TABLE ONLY questionnaire_author
 --
 
 ALTER TABLE ONLY questionnaire_encounter
-    ADD CONSTRAINT questionnaire_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73256,7 +73278,7 @@ ALTER TABLE ONLY questionnaire_encounter
 --
 
 ALTER TABLE ONLY questionnaire_encounter
-    ADD CONSTRAINT questionnaire_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73264,7 +73286,7 @@ ALTER TABLE ONLY questionnaire_encounter
 --
 
 ALTER TABLE ONLY questionnaire_group_name_cd
-    ADD CONSTRAINT questionnaire_group_name_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_name(id);
+    ADD CONSTRAINT questionnaire_group_name_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_name(id) ON DELETE CASCADE;
 
 
 --
@@ -73272,7 +73294,7 @@ ALTER TABLE ONLY questionnaire_group_name_cd
 --
 
 ALTER TABLE ONLY questionnaire_group_name_cd
-    ADD CONSTRAINT questionnaire_group_name_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_group_name_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73280,7 +73302,7 @@ ALTER TABLE ONLY questionnaire_group_name_cd
 --
 
 ALTER TABLE ONLY questionnaire_group_name_cd_vs
-    ADD CONSTRAINT questionnaire_group_name_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_name_cd(id);
+    ADD CONSTRAINT questionnaire_group_name_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_name_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -73288,7 +73310,7 @@ ALTER TABLE ONLY questionnaire_group_name_cd_vs
 --
 
 ALTER TABLE ONLY questionnaire_group_name_cd_vs
-    ADD CONSTRAINT questionnaire_group_name_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_group_name_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73296,7 +73318,7 @@ ALTER TABLE ONLY questionnaire_group_name_cd_vs
 --
 
 ALTER TABLE ONLY questionnaire_group_name
-    ADD CONSTRAINT questionnaire_group_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group(id);
+    ADD CONSTRAINT questionnaire_group_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group(id) ON DELETE CASCADE;
 
 
 --
@@ -73304,7 +73326,7 @@ ALTER TABLE ONLY questionnaire_group_name
 --
 
 ALTER TABLE ONLY questionnaire_group_name
-    ADD CONSTRAINT questionnaire_group_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_group_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73312,7 +73334,7 @@ ALTER TABLE ONLY questionnaire_group_name
 --
 
 ALTER TABLE ONLY questionnaire_group
-    ADD CONSTRAINT questionnaire_group_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_group_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73320,7 +73342,7 @@ ALTER TABLE ONLY questionnaire_group
 --
 
 ALTER TABLE ONLY questionnaire_group_question_choice
-    ADD CONSTRAINT questionnaire_group_question_choice_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question(id);
+    ADD CONSTRAINT questionnaire_group_question_choice_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question(id) ON DELETE CASCADE;
 
 
 --
@@ -73328,7 +73350,7 @@ ALTER TABLE ONLY questionnaire_group_question_choice
 --
 
 ALTER TABLE ONLY questionnaire_group_question_choice
-    ADD CONSTRAINT questionnaire_group_question_choice_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_group_question_choice_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73336,7 +73358,7 @@ ALTER TABLE ONLY questionnaire_group_question_choice
 --
 
 ALTER TABLE ONLY questionnaire_group_question_choice_vs
-    ADD CONSTRAINT questionnaire_group_question_choice_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question_choice(id);
+    ADD CONSTRAINT questionnaire_group_question_choice_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question_choice(id) ON DELETE CASCADE;
 
 
 --
@@ -73344,7 +73366,7 @@ ALTER TABLE ONLY questionnaire_group_question_choice_vs
 --
 
 ALTER TABLE ONLY questionnaire_group_question_choice_vs
-    ADD CONSTRAINT questionnaire_group_question_choice_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_group_question_choice_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73352,7 +73374,7 @@ ALTER TABLE ONLY questionnaire_group_question_choice_vs
 --
 
 ALTER TABLE ONLY questionnaire_group_question_name_cd
-    ADD CONSTRAINT questionnaire_group_question_name_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question_name(id);
+    ADD CONSTRAINT questionnaire_group_question_name_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question_name(id) ON DELETE CASCADE;
 
 
 --
@@ -73360,7 +73382,7 @@ ALTER TABLE ONLY questionnaire_group_question_name_cd
 --
 
 ALTER TABLE ONLY questionnaire_group_question_name_cd
-    ADD CONSTRAINT questionnaire_group_question_name_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_group_question_name_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73368,7 +73390,7 @@ ALTER TABLE ONLY questionnaire_group_question_name_cd
 --
 
 ALTER TABLE ONLY questionnaire_group_question_name_cd_vs
-    ADD CONSTRAINT questionnaire_group_question_name_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question_name_cd(id);
+    ADD CONSTRAINT questionnaire_group_question_name_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question_name_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -73376,7 +73398,7 @@ ALTER TABLE ONLY questionnaire_group_question_name_cd_vs
 --
 
 ALTER TABLE ONLY questionnaire_group_question_name_cd_vs
-    ADD CONSTRAINT questionnaire_group_question_name_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_group_question_name_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73384,7 +73406,7 @@ ALTER TABLE ONLY questionnaire_group_question_name_cd_vs
 --
 
 ALTER TABLE ONLY questionnaire_group_question_name
-    ADD CONSTRAINT questionnaire_group_question_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question(id);
+    ADD CONSTRAINT questionnaire_group_question_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question(id) ON DELETE CASCADE;
 
 
 --
@@ -73392,7 +73414,7 @@ ALTER TABLE ONLY questionnaire_group_question_name
 --
 
 ALTER TABLE ONLY questionnaire_group_question_name
-    ADD CONSTRAINT questionnaire_group_question_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_group_question_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73400,7 +73422,7 @@ ALTER TABLE ONLY questionnaire_group_question_name
 --
 
 ALTER TABLE ONLY questionnaire_group_question_options
-    ADD CONSTRAINT questionnaire_group_question_options_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question(id);
+    ADD CONSTRAINT questionnaire_group_question_options_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question(id) ON DELETE CASCADE;
 
 
 --
@@ -73408,7 +73430,7 @@ ALTER TABLE ONLY questionnaire_group_question_options
 --
 
 ALTER TABLE ONLY questionnaire_group_question_options
-    ADD CONSTRAINT questionnaire_group_question_options_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_group_question_options_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73416,7 +73438,7 @@ ALTER TABLE ONLY questionnaire_group_question_options
 --
 
 ALTER TABLE ONLY questionnaire_group_question
-    ADD CONSTRAINT questionnaire_group_question_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group(id);
+    ADD CONSTRAINT questionnaire_group_question_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group(id) ON DELETE CASCADE;
 
 
 --
@@ -73424,7 +73446,7 @@ ALTER TABLE ONLY questionnaire_group_question
 --
 
 ALTER TABLE ONLY questionnaire_group_question
-    ADD CONSTRAINT questionnaire_group_question_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_group_question_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73432,7 +73454,7 @@ ALTER TABLE ONLY questionnaire_group_question
 --
 
 ALTER TABLE ONLY questionnaire_group
-    ADD CONSTRAINT questionnaire_group_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_group_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73440,7 +73462,7 @@ ALTER TABLE ONLY questionnaire_group
 --
 
 ALTER TABLE ONLY questionnaire_group_subject
-    ADD CONSTRAINT questionnaire_group_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group(id);
+    ADD CONSTRAINT questionnaire_group_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group(id) ON DELETE CASCADE;
 
 
 --
@@ -73448,7 +73470,7 @@ ALTER TABLE ONLY questionnaire_group_subject
 --
 
 ALTER TABLE ONLY questionnaire_group_subject
-    ADD CONSTRAINT questionnaire_group_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_group_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73456,7 +73478,7 @@ ALTER TABLE ONLY questionnaire_group_subject
 --
 
 ALTER TABLE ONLY questionnaire_idn_assigner
-    ADD CONSTRAINT questionnaire_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_idn(id);
+    ADD CONSTRAINT questionnaire_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -73464,7 +73486,7 @@ ALTER TABLE ONLY questionnaire_idn_assigner
 --
 
 ALTER TABLE ONLY questionnaire_idn_assigner
-    ADD CONSTRAINT questionnaire_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73472,7 +73494,7 @@ ALTER TABLE ONLY questionnaire_idn_assigner
 --
 
 ALTER TABLE ONLY questionnaire_idn
-    ADD CONSTRAINT questionnaire_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73480,7 +73502,7 @@ ALTER TABLE ONLY questionnaire_idn
 --
 
 ALTER TABLE ONLY questionnaire_idn_period
-    ADD CONSTRAINT questionnaire_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_idn(id);
+    ADD CONSTRAINT questionnaire_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -73488,7 +73510,7 @@ ALTER TABLE ONLY questionnaire_idn_period
 --
 
 ALTER TABLE ONLY questionnaire_idn_period
-    ADD CONSTRAINT questionnaire_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73496,7 +73518,7 @@ ALTER TABLE ONLY questionnaire_idn_period
 --
 
 ALTER TABLE ONLY questionnaire_idn
-    ADD CONSTRAINT questionnaire_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73504,7 +73526,7 @@ ALTER TABLE ONLY questionnaire_idn
 --
 
 ALTER TABLE ONLY questionnaire_name_cd
-    ADD CONSTRAINT questionnaire_name_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_name(id);
+    ADD CONSTRAINT questionnaire_name_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_name(id) ON DELETE CASCADE;
 
 
 --
@@ -73512,7 +73534,7 @@ ALTER TABLE ONLY questionnaire_name_cd
 --
 
 ALTER TABLE ONLY questionnaire_name_cd
-    ADD CONSTRAINT questionnaire_name_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_name_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73520,7 +73542,7 @@ ALTER TABLE ONLY questionnaire_name_cd
 --
 
 ALTER TABLE ONLY questionnaire_name_cd_vs
-    ADD CONSTRAINT questionnaire_name_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_name_cd(id);
+    ADD CONSTRAINT questionnaire_name_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_name_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -73528,7 +73550,7 @@ ALTER TABLE ONLY questionnaire_name_cd_vs
 --
 
 ALTER TABLE ONLY questionnaire_name_cd_vs
-    ADD CONSTRAINT questionnaire_name_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_name_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73536,7 +73558,7 @@ ALTER TABLE ONLY questionnaire_name_cd_vs
 --
 
 ALTER TABLE ONLY questionnaire_name
-    ADD CONSTRAINT questionnaire_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73544,7 +73566,7 @@ ALTER TABLE ONLY questionnaire_name
 --
 
 ALTER TABLE ONLY questionnaire_name
-    ADD CONSTRAINT questionnaire_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73552,7 +73574,7 @@ ALTER TABLE ONLY questionnaire_name
 --
 
 ALTER TABLE ONLY questionnaire_source
-    ADD CONSTRAINT questionnaire_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73560,7 +73582,7 @@ ALTER TABLE ONLY questionnaire_source
 --
 
 ALTER TABLE ONLY questionnaire_source
-    ADD CONSTRAINT questionnaire_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73568,7 +73590,7 @@ ALTER TABLE ONLY questionnaire_source
 --
 
 ALTER TABLE ONLY questionnaire_subject
-    ADD CONSTRAINT questionnaire_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73576,7 +73598,7 @@ ALTER TABLE ONLY questionnaire_subject
 --
 
 ALTER TABLE ONLY questionnaire_subject
-    ADD CONSTRAINT questionnaire_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73584,7 +73606,7 @@ ALTER TABLE ONLY questionnaire_subject
 --
 
 ALTER TABLE ONLY questionnaire_text
-    ADD CONSTRAINT questionnaire_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73592,7 +73614,7 @@ ALTER TABLE ONLY questionnaire_text
 --
 
 ALTER TABLE ONLY questionnaire_text
-    ADD CONSTRAINT questionnaire_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id);
+    ADD CONSTRAINT questionnaire_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(id) ON DELETE CASCADE;
 
 
 --
@@ -73600,7 +73622,7 @@ ALTER TABLE ONLY questionnaire_text
 --
 
 ALTER TABLE ONLY related_person_address
-    ADD CONSTRAINT related_person_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73608,7 +73630,7 @@ ALTER TABLE ONLY related_person_address
 --
 
 ALTER TABLE ONLY related_person_address_period
-    ADD CONSTRAINT related_person_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_address(id);
+    ADD CONSTRAINT related_person_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_address(id) ON DELETE CASCADE;
 
 
 --
@@ -73616,7 +73638,7 @@ ALTER TABLE ONLY related_person_address_period
 --
 
 ALTER TABLE ONLY related_person_address_period
-    ADD CONSTRAINT related_person_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73624,7 +73646,7 @@ ALTER TABLE ONLY related_person_address_period
 --
 
 ALTER TABLE ONLY related_person_address
-    ADD CONSTRAINT related_person_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73632,7 +73654,7 @@ ALTER TABLE ONLY related_person_address
 --
 
 ALTER TABLE ONLY related_person_gender_cd
-    ADD CONSTRAINT related_person_gender_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_gender(id);
+    ADD CONSTRAINT related_person_gender_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_gender(id) ON DELETE CASCADE;
 
 
 --
@@ -73640,7 +73662,7 @@ ALTER TABLE ONLY related_person_gender_cd
 --
 
 ALTER TABLE ONLY related_person_gender_cd
-    ADD CONSTRAINT related_person_gender_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_gender_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73648,7 +73670,7 @@ ALTER TABLE ONLY related_person_gender_cd
 --
 
 ALTER TABLE ONLY related_person_gender_cd_vs
-    ADD CONSTRAINT related_person_gender_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_gender_cd(id);
+    ADD CONSTRAINT related_person_gender_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_gender_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -73656,7 +73678,7 @@ ALTER TABLE ONLY related_person_gender_cd_vs
 --
 
 ALTER TABLE ONLY related_person_gender_cd_vs
-    ADD CONSTRAINT related_person_gender_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_gender_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73664,7 +73686,7 @@ ALTER TABLE ONLY related_person_gender_cd_vs
 --
 
 ALTER TABLE ONLY related_person_gender
-    ADD CONSTRAINT related_person_gender_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_gender_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73672,7 +73694,7 @@ ALTER TABLE ONLY related_person_gender
 --
 
 ALTER TABLE ONLY related_person_gender
-    ADD CONSTRAINT related_person_gender_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_gender_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73680,7 +73702,7 @@ ALTER TABLE ONLY related_person_gender
 --
 
 ALTER TABLE ONLY related_person_idn_assigner
-    ADD CONSTRAINT related_person_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_idn(id);
+    ADD CONSTRAINT related_person_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -73688,7 +73710,7 @@ ALTER TABLE ONLY related_person_idn_assigner
 --
 
 ALTER TABLE ONLY related_person_idn_assigner
-    ADD CONSTRAINT related_person_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73696,7 +73718,7 @@ ALTER TABLE ONLY related_person_idn_assigner
 --
 
 ALTER TABLE ONLY related_person_idn
-    ADD CONSTRAINT related_person_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73704,7 +73726,7 @@ ALTER TABLE ONLY related_person_idn
 --
 
 ALTER TABLE ONLY related_person_idn_period
-    ADD CONSTRAINT related_person_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_idn(id);
+    ADD CONSTRAINT related_person_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -73712,7 +73734,7 @@ ALTER TABLE ONLY related_person_idn_period
 --
 
 ALTER TABLE ONLY related_person_idn_period
-    ADD CONSTRAINT related_person_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73720,7 +73742,7 @@ ALTER TABLE ONLY related_person_idn_period
 --
 
 ALTER TABLE ONLY related_person_idn
-    ADD CONSTRAINT related_person_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73728,7 +73750,7 @@ ALTER TABLE ONLY related_person_idn
 --
 
 ALTER TABLE ONLY related_person_name
-    ADD CONSTRAINT related_person_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73736,7 +73758,7 @@ ALTER TABLE ONLY related_person_name
 --
 
 ALTER TABLE ONLY related_person_name_period
-    ADD CONSTRAINT related_person_name_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_name(id);
+    ADD CONSTRAINT related_person_name_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_name(id) ON DELETE CASCADE;
 
 
 --
@@ -73744,7 +73766,7 @@ ALTER TABLE ONLY related_person_name_period
 --
 
 ALTER TABLE ONLY related_person_name_period
-    ADD CONSTRAINT related_person_name_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_name_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73752,7 +73774,7 @@ ALTER TABLE ONLY related_person_name_period
 --
 
 ALTER TABLE ONLY related_person_name
-    ADD CONSTRAINT related_person_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73760,7 +73782,7 @@ ALTER TABLE ONLY related_person_name
 --
 
 ALTER TABLE ONLY related_person_patient
-    ADD CONSTRAINT related_person_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73768,7 +73790,7 @@ ALTER TABLE ONLY related_person_patient
 --
 
 ALTER TABLE ONLY related_person_patient
-    ADD CONSTRAINT related_person_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73776,7 +73798,7 @@ ALTER TABLE ONLY related_person_patient
 --
 
 ALTER TABLE ONLY related_person_photo
-    ADD CONSTRAINT related_person_photo_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_photo_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73784,7 +73806,7 @@ ALTER TABLE ONLY related_person_photo
 --
 
 ALTER TABLE ONLY related_person_photo
-    ADD CONSTRAINT related_person_photo_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_photo_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73792,7 +73814,7 @@ ALTER TABLE ONLY related_person_photo
 --
 
 ALTER TABLE ONLY related_person_relationship_cd
-    ADD CONSTRAINT related_person_relationship_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_relationship(id);
+    ADD CONSTRAINT related_person_relationship_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_relationship(id) ON DELETE CASCADE;
 
 
 --
@@ -73800,7 +73822,7 @@ ALTER TABLE ONLY related_person_relationship_cd
 --
 
 ALTER TABLE ONLY related_person_relationship_cd
-    ADD CONSTRAINT related_person_relationship_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_relationship_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73808,7 +73830,7 @@ ALTER TABLE ONLY related_person_relationship_cd
 --
 
 ALTER TABLE ONLY related_person_relationship_cd_vs
-    ADD CONSTRAINT related_person_relationship_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_relationship_cd(id);
+    ADD CONSTRAINT related_person_relationship_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_relationship_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -73816,7 +73838,7 @@ ALTER TABLE ONLY related_person_relationship_cd_vs
 --
 
 ALTER TABLE ONLY related_person_relationship_cd_vs
-    ADD CONSTRAINT related_person_relationship_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_relationship_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73824,7 +73846,7 @@ ALTER TABLE ONLY related_person_relationship_cd_vs
 --
 
 ALTER TABLE ONLY related_person_relationship
-    ADD CONSTRAINT related_person_relationship_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_relationship_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73832,7 +73854,7 @@ ALTER TABLE ONLY related_person_relationship
 --
 
 ALTER TABLE ONLY related_person_relationship
-    ADD CONSTRAINT related_person_relationship_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_relationship_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73840,7 +73862,7 @@ ALTER TABLE ONLY related_person_relationship
 --
 
 ALTER TABLE ONLY related_person_telecom
-    ADD CONSTRAINT related_person_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73848,7 +73870,7 @@ ALTER TABLE ONLY related_person_telecom
 --
 
 ALTER TABLE ONLY related_person_telecom_period
-    ADD CONSTRAINT related_person_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_telecom(id);
+    ADD CONSTRAINT related_person_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_telecom(id) ON DELETE CASCADE;
 
 
 --
@@ -73856,7 +73878,7 @@ ALTER TABLE ONLY related_person_telecom_period
 --
 
 ALTER TABLE ONLY related_person_telecom_period
-    ADD CONSTRAINT related_person_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73864,7 +73886,7 @@ ALTER TABLE ONLY related_person_telecom_period
 --
 
 ALTER TABLE ONLY related_person_telecom
-    ADD CONSTRAINT related_person_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73872,7 +73894,7 @@ ALTER TABLE ONLY related_person_telecom
 --
 
 ALTER TABLE ONLY related_person_text
-    ADD CONSTRAINT related_person_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73880,7 +73902,7 @@ ALTER TABLE ONLY related_person_text
 --
 
 ALTER TABLE ONLY related_person_text
-    ADD CONSTRAINT related_person_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id);
+    ADD CONSTRAINT related_person_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(id) ON DELETE CASCADE;
 
 
 --
@@ -73888,7 +73910,7 @@ ALTER TABLE ONLY related_person_text
 --
 
 ALTER TABLE ONLY resource_component
-    ADD CONSTRAINT resource_component_container_id_fkey FOREIGN KEY (container_id) REFERENCES resource(id);
+    ADD CONSTRAINT resource_component_container_id_fkey FOREIGN KEY (container_id) REFERENCES resource(id) ON DELETE CASCADE;
 
 
 --
@@ -73896,7 +73918,7 @@ ALTER TABLE ONLY resource_component
 --
 
 ALTER TABLE ONLY resource_component
-    ADD CONSTRAINT resource_component_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES resource_component(id);
+    ADD CONSTRAINT resource_component_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES resource_component(id) ON DELETE CASCADE;
 
 
 --
@@ -73904,7 +73926,7 @@ ALTER TABLE ONLY resource_component
 --
 
 ALTER TABLE ONLY resource_component
-    ADD CONSTRAINT resource_component_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES resource(id);
+    ADD CONSTRAINT resource_component_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES resource(id) ON DELETE CASCADE;
 
 
 --
@@ -73912,7 +73934,7 @@ ALTER TABLE ONLY resource_component
 --
 
 ALTER TABLE ONLY resource
-    ADD CONSTRAINT resource_container_id_fkey FOREIGN KEY (container_id) REFERENCES resource(id);
+    ADD CONSTRAINT resource_container_id_fkey FOREIGN KEY (container_id) REFERENCES resource(id) ON DELETE CASCADE;
 
 
 --
@@ -73920,7 +73942,7 @@ ALTER TABLE ONLY resource
 --
 
 ALTER TABLE ONLY security_event_event
-    ADD CONSTRAINT security_event_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -73928,7 +73950,7 @@ ALTER TABLE ONLY security_event_event
 --
 
 ALTER TABLE ONLY security_event_event
-    ADD CONSTRAINT security_event_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -73936,7 +73958,7 @@ ALTER TABLE ONLY security_event_event
 --
 
 ALTER TABLE ONLY security_event_event_subtype_cd
-    ADD CONSTRAINT security_event_event_subtype_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event_subtype(id);
+    ADD CONSTRAINT security_event_event_subtype_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event_subtype(id) ON DELETE CASCADE;
 
 
 --
@@ -73944,7 +73966,7 @@ ALTER TABLE ONLY security_event_event_subtype_cd
 --
 
 ALTER TABLE ONLY security_event_event_subtype_cd
-    ADD CONSTRAINT security_event_event_subtype_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_event_subtype_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -73952,7 +73974,7 @@ ALTER TABLE ONLY security_event_event_subtype_cd
 --
 
 ALTER TABLE ONLY security_event_event_subtype_cd_vs
-    ADD CONSTRAINT security_event_event_subtype_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event_subtype_cd(id);
+    ADD CONSTRAINT security_event_event_subtype_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event_subtype_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -73960,7 +73982,7 @@ ALTER TABLE ONLY security_event_event_subtype_cd_vs
 --
 
 ALTER TABLE ONLY security_event_event_subtype_cd_vs
-    ADD CONSTRAINT security_event_event_subtype_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_event_subtype_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -73968,7 +73990,7 @@ ALTER TABLE ONLY security_event_event_subtype_cd_vs
 --
 
 ALTER TABLE ONLY security_event_event_subtype
-    ADD CONSTRAINT security_event_event_subtype_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event(id);
+    ADD CONSTRAINT security_event_event_subtype_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event(id) ON DELETE CASCADE;
 
 
 --
@@ -73976,7 +73998,7 @@ ALTER TABLE ONLY security_event_event_subtype
 --
 
 ALTER TABLE ONLY security_event_event_subtype
-    ADD CONSTRAINT security_event_event_subtype_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_event_subtype_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -73984,7 +74006,7 @@ ALTER TABLE ONLY security_event_event_subtype
 --
 
 ALTER TABLE ONLY security_event_event_type_cd
-    ADD CONSTRAINT security_event_event_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event_type(id);
+    ADD CONSTRAINT security_event_event_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event_type(id) ON DELETE CASCADE;
 
 
 --
@@ -73992,7 +74014,7 @@ ALTER TABLE ONLY security_event_event_type_cd
 --
 
 ALTER TABLE ONLY security_event_event_type_cd
-    ADD CONSTRAINT security_event_event_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_event_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74000,7 +74022,7 @@ ALTER TABLE ONLY security_event_event_type_cd
 --
 
 ALTER TABLE ONLY security_event_event_type_cd_vs
-    ADD CONSTRAINT security_event_event_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event_type_cd(id);
+    ADD CONSTRAINT security_event_event_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -74008,7 +74030,7 @@ ALTER TABLE ONLY security_event_event_type_cd_vs
 --
 
 ALTER TABLE ONLY security_event_event_type_cd_vs
-    ADD CONSTRAINT security_event_event_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_event_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74016,7 +74038,7 @@ ALTER TABLE ONLY security_event_event_type_cd_vs
 --
 
 ALTER TABLE ONLY security_event_event_type
-    ADD CONSTRAINT security_event_event_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event(id);
+    ADD CONSTRAINT security_event_event_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74024,7 +74046,7 @@ ALTER TABLE ONLY security_event_event_type
 --
 
 ALTER TABLE ONLY security_event_event_type
-    ADD CONSTRAINT security_event_event_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_event_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74032,7 +74054,7 @@ ALTER TABLE ONLY security_event_event_type
 --
 
 ALTER TABLE ONLY security_event_object_detail
-    ADD CONSTRAINT security_event_object_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object(id);
+    ADD CONSTRAINT security_event_object_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object(id) ON DELETE CASCADE;
 
 
 --
@@ -74040,7 +74062,7 @@ ALTER TABLE ONLY security_event_object_detail
 --
 
 ALTER TABLE ONLY security_event_object_detail
-    ADD CONSTRAINT security_event_object_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_object_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74048,7 +74070,7 @@ ALTER TABLE ONLY security_event_object_detail
 --
 
 ALTER TABLE ONLY security_event_object_idn_assigner
-    ADD CONSTRAINT security_event_object_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object_idn(id);
+    ADD CONSTRAINT security_event_object_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -74056,7 +74078,7 @@ ALTER TABLE ONLY security_event_object_idn_assigner
 --
 
 ALTER TABLE ONLY security_event_object_idn_assigner
-    ADD CONSTRAINT security_event_object_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_object_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74064,7 +74086,7 @@ ALTER TABLE ONLY security_event_object_idn_assigner
 --
 
 ALTER TABLE ONLY security_event_object_idn
-    ADD CONSTRAINT security_event_object_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object(id);
+    ADD CONSTRAINT security_event_object_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object(id) ON DELETE CASCADE;
 
 
 --
@@ -74072,7 +74094,7 @@ ALTER TABLE ONLY security_event_object_idn
 --
 
 ALTER TABLE ONLY security_event_object_idn_period
-    ADD CONSTRAINT security_event_object_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object_idn(id);
+    ADD CONSTRAINT security_event_object_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -74080,7 +74102,7 @@ ALTER TABLE ONLY security_event_object_idn_period
 --
 
 ALTER TABLE ONLY security_event_object_idn_period
-    ADD CONSTRAINT security_event_object_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_object_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74088,7 +74110,7 @@ ALTER TABLE ONLY security_event_object_idn_period
 --
 
 ALTER TABLE ONLY security_event_object_idn
-    ADD CONSTRAINT security_event_object_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_object_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74096,7 +74118,7 @@ ALTER TABLE ONLY security_event_object_idn
 --
 
 ALTER TABLE ONLY security_event_object
-    ADD CONSTRAINT security_event_object_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_object_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74104,7 +74126,7 @@ ALTER TABLE ONLY security_event_object
 --
 
 ALTER TABLE ONLY security_event_object_reference
-    ADD CONSTRAINT security_event_object_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object(id);
+    ADD CONSTRAINT security_event_object_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object(id) ON DELETE CASCADE;
 
 
 --
@@ -74112,7 +74134,7 @@ ALTER TABLE ONLY security_event_object_reference
 --
 
 ALTER TABLE ONLY security_event_object_reference
-    ADD CONSTRAINT security_event_object_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_object_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74120,7 +74142,7 @@ ALTER TABLE ONLY security_event_object_reference
 --
 
 ALTER TABLE ONLY security_event_object
-    ADD CONSTRAINT security_event_object_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_object_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74128,7 +74150,7 @@ ALTER TABLE ONLY security_event_object
 --
 
 ALTER TABLE ONLY security_event_object_sensitivity_cd
-    ADD CONSTRAINT security_event_object_sensitivity_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object_sensitivity(id);
+    ADD CONSTRAINT security_event_object_sensitivity_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object_sensitivity(id) ON DELETE CASCADE;
 
 
 --
@@ -74136,7 +74158,7 @@ ALTER TABLE ONLY security_event_object_sensitivity_cd
 --
 
 ALTER TABLE ONLY security_event_object_sensitivity_cd
-    ADD CONSTRAINT security_event_object_sensitivity_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_object_sensitivity_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74144,7 +74166,7 @@ ALTER TABLE ONLY security_event_object_sensitivity_cd
 --
 
 ALTER TABLE ONLY security_event_object_sensitivity_cd_vs
-    ADD CONSTRAINT security_event_object_sensitivity_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object_sensitivity_cd(id);
+    ADD CONSTRAINT security_event_object_sensitivity_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object_sensitivity_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -74152,7 +74174,7 @@ ALTER TABLE ONLY security_event_object_sensitivity_cd_vs
 --
 
 ALTER TABLE ONLY security_event_object_sensitivity_cd_vs
-    ADD CONSTRAINT security_event_object_sensitivity_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_object_sensitivity_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74160,7 +74182,7 @@ ALTER TABLE ONLY security_event_object_sensitivity_cd_vs
 --
 
 ALTER TABLE ONLY security_event_object_sensitivity
-    ADD CONSTRAINT security_event_object_sensitivity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object(id);
+    ADD CONSTRAINT security_event_object_sensitivity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object(id) ON DELETE CASCADE;
 
 
 --
@@ -74168,7 +74190,7 @@ ALTER TABLE ONLY security_event_object_sensitivity
 --
 
 ALTER TABLE ONLY security_event_object_sensitivity
-    ADD CONSTRAINT security_event_object_sensitivity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_object_sensitivity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74176,7 +74198,7 @@ ALTER TABLE ONLY security_event_object_sensitivity
 --
 
 ALTER TABLE ONLY security_event_participant_media
-    ADD CONSTRAINT security_event_participant_media_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant(id);
+    ADD CONSTRAINT security_event_participant_media_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant(id) ON DELETE CASCADE;
 
 
 --
@@ -74184,7 +74206,7 @@ ALTER TABLE ONLY security_event_participant_media
 --
 
 ALTER TABLE ONLY security_event_participant_media
-    ADD CONSTRAINT security_event_participant_media_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_participant_media_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74192,7 +74214,7 @@ ALTER TABLE ONLY security_event_participant_media
 --
 
 ALTER TABLE ONLY security_event_participant_media_vs
-    ADD CONSTRAINT security_event_participant_media_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant_media(id);
+    ADD CONSTRAINT security_event_participant_media_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant_media(id) ON DELETE CASCADE;
 
 
 --
@@ -74200,7 +74222,7 @@ ALTER TABLE ONLY security_event_participant_media_vs
 --
 
 ALTER TABLE ONLY security_event_participant_media_vs
-    ADD CONSTRAINT security_event_participant_media_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_participant_media_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74208,7 +74230,7 @@ ALTER TABLE ONLY security_event_participant_media_vs
 --
 
 ALTER TABLE ONLY security_event_participant_network
-    ADD CONSTRAINT security_event_participant_network_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant(id);
+    ADD CONSTRAINT security_event_participant_network_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant(id) ON DELETE CASCADE;
 
 
 --
@@ -74216,7 +74238,7 @@ ALTER TABLE ONLY security_event_participant_network
 --
 
 ALTER TABLE ONLY security_event_participant_network
-    ADD CONSTRAINT security_event_participant_network_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_participant_network_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74224,7 +74246,7 @@ ALTER TABLE ONLY security_event_participant_network
 --
 
 ALTER TABLE ONLY security_event_participant
-    ADD CONSTRAINT security_event_participant_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_participant_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74232,7 +74254,7 @@ ALTER TABLE ONLY security_event_participant
 --
 
 ALTER TABLE ONLY security_event_participant_reference
-    ADD CONSTRAINT security_event_participant_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant(id);
+    ADD CONSTRAINT security_event_participant_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant(id) ON DELETE CASCADE;
 
 
 --
@@ -74240,7 +74262,7 @@ ALTER TABLE ONLY security_event_participant_reference
 --
 
 ALTER TABLE ONLY security_event_participant_reference
-    ADD CONSTRAINT security_event_participant_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_participant_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74248,7 +74270,7 @@ ALTER TABLE ONLY security_event_participant_reference
 --
 
 ALTER TABLE ONLY security_event_participant
-    ADD CONSTRAINT security_event_participant_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_participant_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74256,7 +74278,7 @@ ALTER TABLE ONLY security_event_participant
 --
 
 ALTER TABLE ONLY security_event_participant_role_cd
-    ADD CONSTRAINT security_event_participant_role_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant_role(id);
+    ADD CONSTRAINT security_event_participant_role_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant_role(id) ON DELETE CASCADE;
 
 
 --
@@ -74264,7 +74286,7 @@ ALTER TABLE ONLY security_event_participant_role_cd
 --
 
 ALTER TABLE ONLY security_event_participant_role_cd
-    ADD CONSTRAINT security_event_participant_role_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_participant_role_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74272,7 +74294,7 @@ ALTER TABLE ONLY security_event_participant_role_cd
 --
 
 ALTER TABLE ONLY security_event_participant_role_cd_vs
-    ADD CONSTRAINT security_event_participant_role_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant_role_cd(id);
+    ADD CONSTRAINT security_event_participant_role_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant_role_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -74280,7 +74302,7 @@ ALTER TABLE ONLY security_event_participant_role_cd_vs
 --
 
 ALTER TABLE ONLY security_event_participant_role_cd_vs
-    ADD CONSTRAINT security_event_participant_role_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_participant_role_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74288,7 +74310,7 @@ ALTER TABLE ONLY security_event_participant_role_cd_vs
 --
 
 ALTER TABLE ONLY security_event_participant_role
-    ADD CONSTRAINT security_event_participant_role_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant(id);
+    ADD CONSTRAINT security_event_participant_role_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant(id) ON DELETE CASCADE;
 
 
 --
@@ -74296,7 +74318,7 @@ ALTER TABLE ONLY security_event_participant_role
 --
 
 ALTER TABLE ONLY security_event_participant_role
-    ADD CONSTRAINT security_event_participant_role_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_participant_role_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74304,7 +74326,7 @@ ALTER TABLE ONLY security_event_participant_role
 --
 
 ALTER TABLE ONLY security_event_source
-    ADD CONSTRAINT security_event_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74312,7 +74334,7 @@ ALTER TABLE ONLY security_event_source
 --
 
 ALTER TABLE ONLY security_event_source
-    ADD CONSTRAINT security_event_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74320,7 +74342,7 @@ ALTER TABLE ONLY security_event_source
 --
 
 ALTER TABLE ONLY security_event_source_type
-    ADD CONSTRAINT security_event_source_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_source(id);
+    ADD CONSTRAINT security_event_source_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_source(id) ON DELETE CASCADE;
 
 
 --
@@ -74328,7 +74350,7 @@ ALTER TABLE ONLY security_event_source_type
 --
 
 ALTER TABLE ONLY security_event_source_type
-    ADD CONSTRAINT security_event_source_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_source_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74336,7 +74358,7 @@ ALTER TABLE ONLY security_event_source_type
 --
 
 ALTER TABLE ONLY security_event_source_type_vs
-    ADD CONSTRAINT security_event_source_type_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_source_type(id);
+    ADD CONSTRAINT security_event_source_type_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_source_type(id) ON DELETE CASCADE;
 
 
 --
@@ -74344,7 +74366,7 @@ ALTER TABLE ONLY security_event_source_type_vs
 --
 
 ALTER TABLE ONLY security_event_source_type_vs
-    ADD CONSTRAINT security_event_source_type_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_source_type_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74352,7 +74374,7 @@ ALTER TABLE ONLY security_event_source_type_vs
 --
 
 ALTER TABLE ONLY security_event_text
-    ADD CONSTRAINT security_event_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74360,7 +74382,7 @@ ALTER TABLE ONLY security_event_text
 --
 
 ALTER TABLE ONLY security_event_text
-    ADD CONSTRAINT security_event_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id);
+    ADD CONSTRAINT security_event_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(id) ON DELETE CASCADE;
 
 
 --
@@ -74368,7 +74390,7 @@ ALTER TABLE ONLY security_event_text
 --
 
 ALTER TABLE ONLY specimen_accession_identifier_assigner
-    ADD CONSTRAINT specimen_accession_identifier_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_accession_identifier(id);
+    ADD CONSTRAINT specimen_accession_identifier_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_accession_identifier(id) ON DELETE CASCADE;
 
 
 --
@@ -74376,7 +74398,7 @@ ALTER TABLE ONLY specimen_accession_identifier_assigner
 --
 
 ALTER TABLE ONLY specimen_accession_identifier_assigner
-    ADD CONSTRAINT specimen_accession_identifier_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_accession_identifier_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74384,7 +74406,7 @@ ALTER TABLE ONLY specimen_accession_identifier_assigner
 --
 
 ALTER TABLE ONLY specimen_accession_identifier
-    ADD CONSTRAINT specimen_accession_identifier_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_accession_identifier_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74392,7 +74414,7 @@ ALTER TABLE ONLY specimen_accession_identifier
 --
 
 ALTER TABLE ONLY specimen_accession_identifier_period
-    ADD CONSTRAINT specimen_accession_identifier_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_accession_identifier(id);
+    ADD CONSTRAINT specimen_accession_identifier_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_accession_identifier(id) ON DELETE CASCADE;
 
 
 --
@@ -74400,7 +74422,7 @@ ALTER TABLE ONLY specimen_accession_identifier_period
 --
 
 ALTER TABLE ONLY specimen_accession_identifier_period
-    ADD CONSTRAINT specimen_accession_identifier_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_accession_identifier_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74408,7 +74430,7 @@ ALTER TABLE ONLY specimen_accession_identifier_period
 --
 
 ALTER TABLE ONLY specimen_accession_identifier
-    ADD CONSTRAINT specimen_accession_identifier_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_accession_identifier_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74416,7 +74438,7 @@ ALTER TABLE ONLY specimen_accession_identifier
 --
 
 ALTER TABLE ONLY specimen_collection_collected_period
-    ADD CONSTRAINT specimen_collection_collected_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection(id);
+    ADD CONSTRAINT specimen_collection_collected_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection(id) ON DELETE CASCADE;
 
 
 --
@@ -74424,7 +74446,7 @@ ALTER TABLE ONLY specimen_collection_collected_period
 --
 
 ALTER TABLE ONLY specimen_collection_collected_period
-    ADD CONSTRAINT specimen_collection_collected_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_collection_collected_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74432,7 +74454,7 @@ ALTER TABLE ONLY specimen_collection_collected_period
 --
 
 ALTER TABLE ONLY specimen_collection_collector
-    ADD CONSTRAINT specimen_collection_collector_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection(id);
+    ADD CONSTRAINT specimen_collection_collector_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection(id) ON DELETE CASCADE;
 
 
 --
@@ -74440,7 +74462,7 @@ ALTER TABLE ONLY specimen_collection_collector
 --
 
 ALTER TABLE ONLY specimen_collection_collector
-    ADD CONSTRAINT specimen_collection_collector_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_collection_collector_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74448,7 +74470,7 @@ ALTER TABLE ONLY specimen_collection_collector
 --
 
 ALTER TABLE ONLY specimen_collection_method_cd
-    ADD CONSTRAINT specimen_collection_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection_method(id);
+    ADD CONSTRAINT specimen_collection_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection_method(id) ON DELETE CASCADE;
 
 
 --
@@ -74456,7 +74478,7 @@ ALTER TABLE ONLY specimen_collection_method_cd
 --
 
 ALTER TABLE ONLY specimen_collection_method_cd
-    ADD CONSTRAINT specimen_collection_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_collection_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74464,7 +74486,7 @@ ALTER TABLE ONLY specimen_collection_method_cd
 --
 
 ALTER TABLE ONLY specimen_collection_method_cd_vs
-    ADD CONSTRAINT specimen_collection_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection_method_cd(id);
+    ADD CONSTRAINT specimen_collection_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection_method_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -74472,7 +74494,7 @@ ALTER TABLE ONLY specimen_collection_method_cd_vs
 --
 
 ALTER TABLE ONLY specimen_collection_method_cd_vs
-    ADD CONSTRAINT specimen_collection_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_collection_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74480,7 +74502,7 @@ ALTER TABLE ONLY specimen_collection_method_cd_vs
 --
 
 ALTER TABLE ONLY specimen_collection_method
-    ADD CONSTRAINT specimen_collection_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection(id);
+    ADD CONSTRAINT specimen_collection_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection(id) ON DELETE CASCADE;
 
 
 --
@@ -74488,7 +74510,7 @@ ALTER TABLE ONLY specimen_collection_method
 --
 
 ALTER TABLE ONLY specimen_collection_method
-    ADD CONSTRAINT specimen_collection_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_collection_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74496,7 +74518,7 @@ ALTER TABLE ONLY specimen_collection_method
 --
 
 ALTER TABLE ONLY specimen_collection
-    ADD CONSTRAINT specimen_collection_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_collection_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74504,7 +74526,7 @@ ALTER TABLE ONLY specimen_collection
 --
 
 ALTER TABLE ONLY specimen_collection_quantity
-    ADD CONSTRAINT specimen_collection_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection(id);
+    ADD CONSTRAINT specimen_collection_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection(id) ON DELETE CASCADE;
 
 
 --
@@ -74512,7 +74534,7 @@ ALTER TABLE ONLY specimen_collection_quantity
 --
 
 ALTER TABLE ONLY specimen_collection_quantity
-    ADD CONSTRAINT specimen_collection_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_collection_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74520,7 +74542,7 @@ ALTER TABLE ONLY specimen_collection_quantity
 --
 
 ALTER TABLE ONLY specimen_collection
-    ADD CONSTRAINT specimen_collection_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_collection_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74528,7 +74550,7 @@ ALTER TABLE ONLY specimen_collection
 --
 
 ALTER TABLE ONLY specimen_collection_source_site_cd
-    ADD CONSTRAINT specimen_collection_source_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection_source_site(id);
+    ADD CONSTRAINT specimen_collection_source_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection_source_site(id) ON DELETE CASCADE;
 
 
 --
@@ -74536,7 +74558,7 @@ ALTER TABLE ONLY specimen_collection_source_site_cd
 --
 
 ALTER TABLE ONLY specimen_collection_source_site_cd
-    ADD CONSTRAINT specimen_collection_source_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_collection_source_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74544,7 +74566,7 @@ ALTER TABLE ONLY specimen_collection_source_site_cd
 --
 
 ALTER TABLE ONLY specimen_collection_source_site_cd_vs
-    ADD CONSTRAINT specimen_collection_source_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection_source_site_cd(id);
+    ADD CONSTRAINT specimen_collection_source_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection_source_site_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -74552,7 +74574,7 @@ ALTER TABLE ONLY specimen_collection_source_site_cd_vs
 --
 
 ALTER TABLE ONLY specimen_collection_source_site_cd_vs
-    ADD CONSTRAINT specimen_collection_source_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_collection_source_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74560,7 +74582,7 @@ ALTER TABLE ONLY specimen_collection_source_site_cd_vs
 --
 
 ALTER TABLE ONLY specimen_collection_source_site
-    ADD CONSTRAINT specimen_collection_source_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection(id);
+    ADD CONSTRAINT specimen_collection_source_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection(id) ON DELETE CASCADE;
 
 
 --
@@ -74568,7 +74590,7 @@ ALTER TABLE ONLY specimen_collection_source_site
 --
 
 ALTER TABLE ONLY specimen_collection_source_site
-    ADD CONSTRAINT specimen_collection_source_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_collection_source_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74576,7 +74598,7 @@ ALTER TABLE ONLY specimen_collection_source_site
 --
 
 ALTER TABLE ONLY specimen_container_additive
-    ADD CONSTRAINT specimen_container_additive_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container(id);
+    ADD CONSTRAINT specimen_container_additive_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container(id) ON DELETE CASCADE;
 
 
 --
@@ -74584,7 +74606,7 @@ ALTER TABLE ONLY specimen_container_additive
 --
 
 ALTER TABLE ONLY specimen_container_additive
-    ADD CONSTRAINT specimen_container_additive_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_container_additive_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74592,7 +74614,7 @@ ALTER TABLE ONLY specimen_container_additive
 --
 
 ALTER TABLE ONLY specimen_container_capacity
-    ADD CONSTRAINT specimen_container_capacity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container(id);
+    ADD CONSTRAINT specimen_container_capacity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container(id) ON DELETE CASCADE;
 
 
 --
@@ -74600,7 +74622,7 @@ ALTER TABLE ONLY specimen_container_capacity
 --
 
 ALTER TABLE ONLY specimen_container_capacity
-    ADD CONSTRAINT specimen_container_capacity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_container_capacity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74608,7 +74630,7 @@ ALTER TABLE ONLY specimen_container_capacity
 --
 
 ALTER TABLE ONLY specimen_container_idn_assigner
-    ADD CONSTRAINT specimen_container_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container_idn(id);
+    ADD CONSTRAINT specimen_container_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -74616,7 +74638,7 @@ ALTER TABLE ONLY specimen_container_idn_assigner
 --
 
 ALTER TABLE ONLY specimen_container_idn_assigner
-    ADD CONSTRAINT specimen_container_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_container_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74624,7 +74646,7 @@ ALTER TABLE ONLY specimen_container_idn_assigner
 --
 
 ALTER TABLE ONLY specimen_container_idn
-    ADD CONSTRAINT specimen_container_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container(id);
+    ADD CONSTRAINT specimen_container_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container(id) ON DELETE CASCADE;
 
 
 --
@@ -74632,7 +74654,7 @@ ALTER TABLE ONLY specimen_container_idn
 --
 
 ALTER TABLE ONLY specimen_container_idn_period
-    ADD CONSTRAINT specimen_container_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container_idn(id);
+    ADD CONSTRAINT specimen_container_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -74640,7 +74662,7 @@ ALTER TABLE ONLY specimen_container_idn_period
 --
 
 ALTER TABLE ONLY specimen_container_idn_period
-    ADD CONSTRAINT specimen_container_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_container_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74648,7 +74670,7 @@ ALTER TABLE ONLY specimen_container_idn_period
 --
 
 ALTER TABLE ONLY specimen_container_idn
-    ADD CONSTRAINT specimen_container_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_container_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74656,7 +74678,7 @@ ALTER TABLE ONLY specimen_container_idn
 --
 
 ALTER TABLE ONLY specimen_container
-    ADD CONSTRAINT specimen_container_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_container_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74664,7 +74686,7 @@ ALTER TABLE ONLY specimen_container
 --
 
 ALTER TABLE ONLY specimen_container
-    ADD CONSTRAINT specimen_container_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_container_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74672,7 +74694,7 @@ ALTER TABLE ONLY specimen_container
 --
 
 ALTER TABLE ONLY specimen_container_specimen_quantity
-    ADD CONSTRAINT specimen_container_specimen_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container(id);
+    ADD CONSTRAINT specimen_container_specimen_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container(id) ON DELETE CASCADE;
 
 
 --
@@ -74680,7 +74702,7 @@ ALTER TABLE ONLY specimen_container_specimen_quantity
 --
 
 ALTER TABLE ONLY specimen_container_specimen_quantity
-    ADD CONSTRAINT specimen_container_specimen_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_container_specimen_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74688,7 +74710,7 @@ ALTER TABLE ONLY specimen_container_specimen_quantity
 --
 
 ALTER TABLE ONLY specimen_container_type_cd
-    ADD CONSTRAINT specimen_container_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container_type(id);
+    ADD CONSTRAINT specimen_container_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container_type(id) ON DELETE CASCADE;
 
 
 --
@@ -74696,7 +74718,7 @@ ALTER TABLE ONLY specimen_container_type_cd
 --
 
 ALTER TABLE ONLY specimen_container_type_cd
-    ADD CONSTRAINT specimen_container_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_container_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74704,7 +74726,7 @@ ALTER TABLE ONLY specimen_container_type_cd
 --
 
 ALTER TABLE ONLY specimen_container_type_cd_vs
-    ADD CONSTRAINT specimen_container_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container_type_cd(id);
+    ADD CONSTRAINT specimen_container_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -74712,7 +74734,7 @@ ALTER TABLE ONLY specimen_container_type_cd_vs
 --
 
 ALTER TABLE ONLY specimen_container_type_cd_vs
-    ADD CONSTRAINT specimen_container_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_container_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74720,7 +74742,7 @@ ALTER TABLE ONLY specimen_container_type_cd_vs
 --
 
 ALTER TABLE ONLY specimen_container_type
-    ADD CONSTRAINT specimen_container_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container(id);
+    ADD CONSTRAINT specimen_container_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container(id) ON DELETE CASCADE;
 
 
 --
@@ -74728,7 +74750,7 @@ ALTER TABLE ONLY specimen_container_type
 --
 
 ALTER TABLE ONLY specimen_container_type
-    ADD CONSTRAINT specimen_container_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_container_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74736,7 +74758,7 @@ ALTER TABLE ONLY specimen_container_type
 --
 
 ALTER TABLE ONLY specimen_idn_assigner
-    ADD CONSTRAINT specimen_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_idn(id);
+    ADD CONSTRAINT specimen_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -74744,7 +74766,7 @@ ALTER TABLE ONLY specimen_idn_assigner
 --
 
 ALTER TABLE ONLY specimen_idn_assigner
-    ADD CONSTRAINT specimen_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74752,7 +74774,7 @@ ALTER TABLE ONLY specimen_idn_assigner
 --
 
 ALTER TABLE ONLY specimen_idn
-    ADD CONSTRAINT specimen_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74760,7 +74782,7 @@ ALTER TABLE ONLY specimen_idn
 --
 
 ALTER TABLE ONLY specimen_idn_period
-    ADD CONSTRAINT specimen_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_idn(id);
+    ADD CONSTRAINT specimen_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -74768,7 +74790,7 @@ ALTER TABLE ONLY specimen_idn_period
 --
 
 ALTER TABLE ONLY specimen_idn_period
-    ADD CONSTRAINT specimen_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74776,7 +74798,7 @@ ALTER TABLE ONLY specimen_idn_period
 --
 
 ALTER TABLE ONLY specimen_idn
-    ADD CONSTRAINT specimen_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74784,7 +74806,7 @@ ALTER TABLE ONLY specimen_idn
 --
 
 ALTER TABLE ONLY specimen_source
-    ADD CONSTRAINT specimen_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74792,7 +74814,7 @@ ALTER TABLE ONLY specimen_source
 --
 
 ALTER TABLE ONLY specimen_source
-    ADD CONSTRAINT specimen_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74800,7 +74822,7 @@ ALTER TABLE ONLY specimen_source
 --
 
 ALTER TABLE ONLY specimen_source_target
-    ADD CONSTRAINT specimen_source_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_source(id);
+    ADD CONSTRAINT specimen_source_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_source(id) ON DELETE CASCADE;
 
 
 --
@@ -74808,7 +74830,7 @@ ALTER TABLE ONLY specimen_source_target
 --
 
 ALTER TABLE ONLY specimen_source_target
-    ADD CONSTRAINT specimen_source_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_source_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74816,7 +74838,7 @@ ALTER TABLE ONLY specimen_source_target
 --
 
 ALTER TABLE ONLY specimen_subject
-    ADD CONSTRAINT specimen_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74824,7 +74846,7 @@ ALTER TABLE ONLY specimen_subject
 --
 
 ALTER TABLE ONLY specimen_subject
-    ADD CONSTRAINT specimen_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74832,7 +74854,7 @@ ALTER TABLE ONLY specimen_subject
 --
 
 ALTER TABLE ONLY specimen_text
-    ADD CONSTRAINT specimen_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74840,7 +74862,7 @@ ALTER TABLE ONLY specimen_text
 --
 
 ALTER TABLE ONLY specimen_text
-    ADD CONSTRAINT specimen_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74848,7 +74870,7 @@ ALTER TABLE ONLY specimen_text
 --
 
 ALTER TABLE ONLY specimen_treatment_additive
-    ADD CONSTRAINT specimen_treatment_additive_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_treatment(id);
+    ADD CONSTRAINT specimen_treatment_additive_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_treatment(id) ON DELETE CASCADE;
 
 
 --
@@ -74856,7 +74878,7 @@ ALTER TABLE ONLY specimen_treatment_additive
 --
 
 ALTER TABLE ONLY specimen_treatment_additive
-    ADD CONSTRAINT specimen_treatment_additive_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_treatment_additive_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74864,7 +74886,7 @@ ALTER TABLE ONLY specimen_treatment_additive
 --
 
 ALTER TABLE ONLY specimen_treatment
-    ADD CONSTRAINT specimen_treatment_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_treatment_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74872,7 +74894,7 @@ ALTER TABLE ONLY specimen_treatment
 --
 
 ALTER TABLE ONLY specimen_treatment_procedure_cd
-    ADD CONSTRAINT specimen_treatment_procedure_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_treatment_procedure(id);
+    ADD CONSTRAINT specimen_treatment_procedure_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_treatment_procedure(id) ON DELETE CASCADE;
 
 
 --
@@ -74880,7 +74902,7 @@ ALTER TABLE ONLY specimen_treatment_procedure_cd
 --
 
 ALTER TABLE ONLY specimen_treatment_procedure_cd
-    ADD CONSTRAINT specimen_treatment_procedure_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_treatment_procedure_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74888,7 +74910,7 @@ ALTER TABLE ONLY specimen_treatment_procedure_cd
 --
 
 ALTER TABLE ONLY specimen_treatment_procedure_cd_vs
-    ADD CONSTRAINT specimen_treatment_procedure_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_treatment_procedure_cd(id);
+    ADD CONSTRAINT specimen_treatment_procedure_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_treatment_procedure_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -74896,7 +74918,7 @@ ALTER TABLE ONLY specimen_treatment_procedure_cd_vs
 --
 
 ALTER TABLE ONLY specimen_treatment_procedure_cd_vs
-    ADD CONSTRAINT specimen_treatment_procedure_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_treatment_procedure_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74904,7 +74926,7 @@ ALTER TABLE ONLY specimen_treatment_procedure_cd_vs
 --
 
 ALTER TABLE ONLY specimen_treatment_procedure
-    ADD CONSTRAINT specimen_treatment_procedure_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_treatment(id);
+    ADD CONSTRAINT specimen_treatment_procedure_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_treatment(id) ON DELETE CASCADE;
 
 
 --
@@ -74912,7 +74934,7 @@ ALTER TABLE ONLY specimen_treatment_procedure
 --
 
 ALTER TABLE ONLY specimen_treatment_procedure
-    ADD CONSTRAINT specimen_treatment_procedure_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_treatment_procedure_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74920,7 +74942,7 @@ ALTER TABLE ONLY specimen_treatment_procedure
 --
 
 ALTER TABLE ONLY specimen_treatment
-    ADD CONSTRAINT specimen_treatment_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_treatment_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74928,7 +74950,7 @@ ALTER TABLE ONLY specimen_treatment
 --
 
 ALTER TABLE ONLY specimen_type_cd
-    ADD CONSTRAINT specimen_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_type(id);
+    ADD CONSTRAINT specimen_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_type(id) ON DELETE CASCADE;
 
 
 --
@@ -74936,7 +74958,7 @@ ALTER TABLE ONLY specimen_type_cd
 --
 
 ALTER TABLE ONLY specimen_type_cd
-    ADD CONSTRAINT specimen_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74944,7 +74966,7 @@ ALTER TABLE ONLY specimen_type_cd
 --
 
 ALTER TABLE ONLY specimen_type_cd_vs
-    ADD CONSTRAINT specimen_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_type_cd(id);
+    ADD CONSTRAINT specimen_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -74952,7 +74974,7 @@ ALTER TABLE ONLY specimen_type_cd_vs
 --
 
 ALTER TABLE ONLY specimen_type_cd_vs
-    ADD CONSTRAINT specimen_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74960,7 +74982,7 @@ ALTER TABLE ONLY specimen_type_cd_vs
 --
 
 ALTER TABLE ONLY specimen_type
-    ADD CONSTRAINT specimen_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74968,7 +74990,7 @@ ALTER TABLE ONLY specimen_type
 --
 
 ALTER TABLE ONLY specimen_type
-    ADD CONSTRAINT specimen_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id);
+    ADD CONSTRAINT specimen_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(id) ON DELETE CASCADE;
 
 
 --
@@ -74976,7 +74998,7 @@ ALTER TABLE ONLY specimen_type
 --
 
 ALTER TABLE ONLY substance_ingredient
-    ADD CONSTRAINT substance_ingredient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_ingredient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -74984,7 +75006,7 @@ ALTER TABLE ONLY substance_ingredient
 --
 
 ALTER TABLE ONLY substance_ingredient_quantity_denominator
-    ADD CONSTRAINT substance_ingredient_quantity_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_ingredient_quantity(id);
+    ADD CONSTRAINT substance_ingredient_quantity_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_ingredient_quantity(id) ON DELETE CASCADE;
 
 
 --
@@ -74992,7 +75014,7 @@ ALTER TABLE ONLY substance_ingredient_quantity_denominator
 --
 
 ALTER TABLE ONLY substance_ingredient_quantity_denominator
-    ADD CONSTRAINT substance_ingredient_quantity_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_ingredient_quantity_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75000,7 +75022,7 @@ ALTER TABLE ONLY substance_ingredient_quantity_denominator
 --
 
 ALTER TABLE ONLY substance_ingredient_quantity_numerator
-    ADD CONSTRAINT substance_ingredient_quantity_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_ingredient_quantity(id);
+    ADD CONSTRAINT substance_ingredient_quantity_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_ingredient_quantity(id) ON DELETE CASCADE;
 
 
 --
@@ -75008,7 +75030,7 @@ ALTER TABLE ONLY substance_ingredient_quantity_numerator
 --
 
 ALTER TABLE ONLY substance_ingredient_quantity_numerator
-    ADD CONSTRAINT substance_ingredient_quantity_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_ingredient_quantity_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75016,7 +75038,7 @@ ALTER TABLE ONLY substance_ingredient_quantity_numerator
 --
 
 ALTER TABLE ONLY substance_ingredient_quantity
-    ADD CONSTRAINT substance_ingredient_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_ingredient(id);
+    ADD CONSTRAINT substance_ingredient_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_ingredient(id) ON DELETE CASCADE;
 
 
 --
@@ -75024,7 +75046,7 @@ ALTER TABLE ONLY substance_ingredient_quantity
 --
 
 ALTER TABLE ONLY substance_ingredient_quantity
-    ADD CONSTRAINT substance_ingredient_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_ingredient_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75032,7 +75054,7 @@ ALTER TABLE ONLY substance_ingredient_quantity
 --
 
 ALTER TABLE ONLY substance_ingredient
-    ADD CONSTRAINT substance_ingredient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_ingredient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75040,7 +75062,7 @@ ALTER TABLE ONLY substance_ingredient
 --
 
 ALTER TABLE ONLY substance_ingredient_substance
-    ADD CONSTRAINT substance_ingredient_substance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_ingredient(id);
+    ADD CONSTRAINT substance_ingredient_substance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_ingredient(id) ON DELETE CASCADE;
 
 
 --
@@ -75048,7 +75070,7 @@ ALTER TABLE ONLY substance_ingredient_substance
 --
 
 ALTER TABLE ONLY substance_ingredient_substance
-    ADD CONSTRAINT substance_ingredient_substance_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_ingredient_substance_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75056,7 +75078,7 @@ ALTER TABLE ONLY substance_ingredient_substance
 --
 
 ALTER TABLE ONLY substance_instance_idn_assigner
-    ADD CONSTRAINT substance_instance_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_instance_idn(id);
+    ADD CONSTRAINT substance_instance_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_instance_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -75064,7 +75086,7 @@ ALTER TABLE ONLY substance_instance_idn_assigner
 --
 
 ALTER TABLE ONLY substance_instance_idn_assigner
-    ADD CONSTRAINT substance_instance_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_instance_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75072,7 +75094,7 @@ ALTER TABLE ONLY substance_instance_idn_assigner
 --
 
 ALTER TABLE ONLY substance_instance_idn
-    ADD CONSTRAINT substance_instance_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_instance(id);
+    ADD CONSTRAINT substance_instance_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_instance(id) ON DELETE CASCADE;
 
 
 --
@@ -75080,7 +75102,7 @@ ALTER TABLE ONLY substance_instance_idn
 --
 
 ALTER TABLE ONLY substance_instance_idn_period
-    ADD CONSTRAINT substance_instance_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_instance_idn(id);
+    ADD CONSTRAINT substance_instance_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_instance_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -75088,7 +75110,7 @@ ALTER TABLE ONLY substance_instance_idn_period
 --
 
 ALTER TABLE ONLY substance_instance_idn_period
-    ADD CONSTRAINT substance_instance_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_instance_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75096,7 +75118,7 @@ ALTER TABLE ONLY substance_instance_idn_period
 --
 
 ALTER TABLE ONLY substance_instance_idn
-    ADD CONSTRAINT substance_instance_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_instance_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75104,7 +75126,7 @@ ALTER TABLE ONLY substance_instance_idn
 --
 
 ALTER TABLE ONLY substance_instance
-    ADD CONSTRAINT substance_instance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_instance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75112,7 +75134,7 @@ ALTER TABLE ONLY substance_instance
 --
 
 ALTER TABLE ONLY substance_instance_quantity
-    ADD CONSTRAINT substance_instance_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_instance(id);
+    ADD CONSTRAINT substance_instance_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_instance(id) ON DELETE CASCADE;
 
 
 --
@@ -75120,7 +75142,7 @@ ALTER TABLE ONLY substance_instance_quantity
 --
 
 ALTER TABLE ONLY substance_instance_quantity
-    ADD CONSTRAINT substance_instance_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_instance_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75128,7 +75150,7 @@ ALTER TABLE ONLY substance_instance_quantity
 --
 
 ALTER TABLE ONLY substance_instance
-    ADD CONSTRAINT substance_instance_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_instance_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75136,7 +75158,7 @@ ALTER TABLE ONLY substance_instance
 --
 
 ALTER TABLE ONLY substance_text
-    ADD CONSTRAINT substance_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75144,7 +75166,7 @@ ALTER TABLE ONLY substance_text
 --
 
 ALTER TABLE ONLY substance_text
-    ADD CONSTRAINT substance_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75152,7 +75174,7 @@ ALTER TABLE ONLY substance_text
 --
 
 ALTER TABLE ONLY substance_type_cd
-    ADD CONSTRAINT substance_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_type(id);
+    ADD CONSTRAINT substance_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_type(id) ON DELETE CASCADE;
 
 
 --
@@ -75160,7 +75182,7 @@ ALTER TABLE ONLY substance_type_cd
 --
 
 ALTER TABLE ONLY substance_type_cd
-    ADD CONSTRAINT substance_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75168,7 +75190,7 @@ ALTER TABLE ONLY substance_type_cd
 --
 
 ALTER TABLE ONLY substance_type_cd_vs
-    ADD CONSTRAINT substance_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_type_cd(id);
+    ADD CONSTRAINT substance_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -75176,7 +75198,7 @@ ALTER TABLE ONLY substance_type_cd_vs
 --
 
 ALTER TABLE ONLY substance_type_cd_vs
-    ADD CONSTRAINT substance_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75184,7 +75206,7 @@ ALTER TABLE ONLY substance_type_cd_vs
 --
 
 ALTER TABLE ONLY substance_type
-    ADD CONSTRAINT substance_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75192,7 +75214,7 @@ ALTER TABLE ONLY substance_type
 --
 
 ALTER TABLE ONLY substance_type
-    ADD CONSTRAINT substance_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id);
+    ADD CONSTRAINT substance_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(id) ON DELETE CASCADE;
 
 
 --
@@ -75200,7 +75222,7 @@ ALTER TABLE ONLY substance_type
 --
 
 ALTER TABLE ONLY supply_dispense_destination
-    ADD CONSTRAINT supply_dispense_destination_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id);
+    ADD CONSTRAINT supply_dispense_destination_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -75208,7 +75230,7 @@ ALTER TABLE ONLY supply_dispense_destination
 --
 
 ALTER TABLE ONLY supply_dispense_destination
-    ADD CONSTRAINT supply_dispense_destination_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_dispense_destination_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75216,7 +75238,7 @@ ALTER TABLE ONLY supply_dispense_destination
 --
 
 ALTER TABLE ONLY supply_dispense_idn_assigner
-    ADD CONSTRAINT supply_dispense_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense_idn(id);
+    ADD CONSTRAINT supply_dispense_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -75224,7 +75246,7 @@ ALTER TABLE ONLY supply_dispense_idn_assigner
 --
 
 ALTER TABLE ONLY supply_dispense_idn_assigner
-    ADD CONSTRAINT supply_dispense_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_dispense_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75232,7 +75254,7 @@ ALTER TABLE ONLY supply_dispense_idn_assigner
 --
 
 ALTER TABLE ONLY supply_dispense_idn
-    ADD CONSTRAINT supply_dispense_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id);
+    ADD CONSTRAINT supply_dispense_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -75240,7 +75262,7 @@ ALTER TABLE ONLY supply_dispense_idn
 --
 
 ALTER TABLE ONLY supply_dispense_idn_period
-    ADD CONSTRAINT supply_dispense_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense_idn(id);
+    ADD CONSTRAINT supply_dispense_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -75248,7 +75270,7 @@ ALTER TABLE ONLY supply_dispense_idn_period
 --
 
 ALTER TABLE ONLY supply_dispense_idn_period
-    ADD CONSTRAINT supply_dispense_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_dispense_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75256,7 +75278,7 @@ ALTER TABLE ONLY supply_dispense_idn_period
 --
 
 ALTER TABLE ONLY supply_dispense_idn
-    ADD CONSTRAINT supply_dispense_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_dispense_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75264,7 +75286,7 @@ ALTER TABLE ONLY supply_dispense_idn
 --
 
 ALTER TABLE ONLY supply_dispense
-    ADD CONSTRAINT supply_dispense_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_dispense_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75272,7 +75294,7 @@ ALTER TABLE ONLY supply_dispense
 --
 
 ALTER TABLE ONLY supply_dispense_quantity
-    ADD CONSTRAINT supply_dispense_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id);
+    ADD CONSTRAINT supply_dispense_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -75280,7 +75302,7 @@ ALTER TABLE ONLY supply_dispense_quantity
 --
 
 ALTER TABLE ONLY supply_dispense_quantity
-    ADD CONSTRAINT supply_dispense_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_dispense_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75288,7 +75310,7 @@ ALTER TABLE ONLY supply_dispense_quantity
 --
 
 ALTER TABLE ONLY supply_dispense_receiver
-    ADD CONSTRAINT supply_dispense_receiver_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id);
+    ADD CONSTRAINT supply_dispense_receiver_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -75296,7 +75318,7 @@ ALTER TABLE ONLY supply_dispense_receiver
 --
 
 ALTER TABLE ONLY supply_dispense_receiver
-    ADD CONSTRAINT supply_dispense_receiver_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_dispense_receiver_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75304,7 +75326,7 @@ ALTER TABLE ONLY supply_dispense_receiver
 --
 
 ALTER TABLE ONLY supply_dispense
-    ADD CONSTRAINT supply_dispense_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_dispense_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75312,7 +75334,7 @@ ALTER TABLE ONLY supply_dispense
 --
 
 ALTER TABLE ONLY supply_dispense_supplied_item
-    ADD CONSTRAINT supply_dispense_supplied_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id);
+    ADD CONSTRAINT supply_dispense_supplied_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -75320,7 +75342,7 @@ ALTER TABLE ONLY supply_dispense_supplied_item
 --
 
 ALTER TABLE ONLY supply_dispense_supplied_item
-    ADD CONSTRAINT supply_dispense_supplied_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_dispense_supplied_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75328,7 +75350,7 @@ ALTER TABLE ONLY supply_dispense_supplied_item
 --
 
 ALTER TABLE ONLY supply_dispense_supplier
-    ADD CONSTRAINT supply_dispense_supplier_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id);
+    ADD CONSTRAINT supply_dispense_supplier_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -75336,7 +75358,7 @@ ALTER TABLE ONLY supply_dispense_supplier
 --
 
 ALTER TABLE ONLY supply_dispense_supplier
-    ADD CONSTRAINT supply_dispense_supplier_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_dispense_supplier_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75344,7 +75366,7 @@ ALTER TABLE ONLY supply_dispense_supplier
 --
 
 ALTER TABLE ONLY supply_dispense_type_cd
-    ADD CONSTRAINT supply_dispense_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense_type(id);
+    ADD CONSTRAINT supply_dispense_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense_type(id) ON DELETE CASCADE;
 
 
 --
@@ -75352,7 +75374,7 @@ ALTER TABLE ONLY supply_dispense_type_cd
 --
 
 ALTER TABLE ONLY supply_dispense_type_cd
-    ADD CONSTRAINT supply_dispense_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_dispense_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75360,7 +75382,7 @@ ALTER TABLE ONLY supply_dispense_type_cd
 --
 
 ALTER TABLE ONLY supply_dispense_type_cd_vs
-    ADD CONSTRAINT supply_dispense_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense_type_cd(id);
+    ADD CONSTRAINT supply_dispense_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense_type_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -75368,7 +75390,7 @@ ALTER TABLE ONLY supply_dispense_type_cd_vs
 --
 
 ALTER TABLE ONLY supply_dispense_type_cd_vs
-    ADD CONSTRAINT supply_dispense_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_dispense_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75376,7 +75398,7 @@ ALTER TABLE ONLY supply_dispense_type_cd_vs
 --
 
 ALTER TABLE ONLY supply_dispense_type
-    ADD CONSTRAINT supply_dispense_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id);
+    ADD CONSTRAINT supply_dispense_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -75384,7 +75406,7 @@ ALTER TABLE ONLY supply_dispense_type
 --
 
 ALTER TABLE ONLY supply_dispense_type
-    ADD CONSTRAINT supply_dispense_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_dispense_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75392,7 +75414,7 @@ ALTER TABLE ONLY supply_dispense_type
 --
 
 ALTER TABLE ONLY supply_dispense_when_handed_over
-    ADD CONSTRAINT supply_dispense_when_handed_over_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id);
+    ADD CONSTRAINT supply_dispense_when_handed_over_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -75400,7 +75422,7 @@ ALTER TABLE ONLY supply_dispense_when_handed_over
 --
 
 ALTER TABLE ONLY supply_dispense_when_handed_over
-    ADD CONSTRAINT supply_dispense_when_handed_over_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_dispense_when_handed_over_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75408,7 +75430,7 @@ ALTER TABLE ONLY supply_dispense_when_handed_over
 --
 
 ALTER TABLE ONLY supply_dispense_when_prepared
-    ADD CONSTRAINT supply_dispense_when_prepared_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id);
+    ADD CONSTRAINT supply_dispense_when_prepared_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(id) ON DELETE CASCADE;
 
 
 --
@@ -75416,7 +75438,7 @@ ALTER TABLE ONLY supply_dispense_when_prepared
 --
 
 ALTER TABLE ONLY supply_dispense_when_prepared
-    ADD CONSTRAINT supply_dispense_when_prepared_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_dispense_when_prepared_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75424,7 +75446,7 @@ ALTER TABLE ONLY supply_dispense_when_prepared
 --
 
 ALTER TABLE ONLY supply_idn_assigner
-    ADD CONSTRAINT supply_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_idn(id);
+    ADD CONSTRAINT supply_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -75432,7 +75454,7 @@ ALTER TABLE ONLY supply_idn_assigner
 --
 
 ALTER TABLE ONLY supply_idn_assigner
-    ADD CONSTRAINT supply_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75440,7 +75462,7 @@ ALTER TABLE ONLY supply_idn_assigner
 --
 
 ALTER TABLE ONLY supply_idn
-    ADD CONSTRAINT supply_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75448,7 +75470,7 @@ ALTER TABLE ONLY supply_idn
 --
 
 ALTER TABLE ONLY supply_idn_period
-    ADD CONSTRAINT supply_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_idn(id);
+    ADD CONSTRAINT supply_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -75456,7 +75478,7 @@ ALTER TABLE ONLY supply_idn_period
 --
 
 ALTER TABLE ONLY supply_idn_period
-    ADD CONSTRAINT supply_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75464,7 +75486,7 @@ ALTER TABLE ONLY supply_idn_period
 --
 
 ALTER TABLE ONLY supply_idn
-    ADD CONSTRAINT supply_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75472,7 +75494,7 @@ ALTER TABLE ONLY supply_idn
 --
 
 ALTER TABLE ONLY supply_kind_cd
-    ADD CONSTRAINT supply_kind_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_kind(id);
+    ADD CONSTRAINT supply_kind_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_kind(id) ON DELETE CASCADE;
 
 
 --
@@ -75480,7 +75502,7 @@ ALTER TABLE ONLY supply_kind_cd
 --
 
 ALTER TABLE ONLY supply_kind_cd
-    ADD CONSTRAINT supply_kind_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_kind_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75488,7 +75510,7 @@ ALTER TABLE ONLY supply_kind_cd
 --
 
 ALTER TABLE ONLY supply_kind_cd_vs
-    ADD CONSTRAINT supply_kind_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_kind_cd(id);
+    ADD CONSTRAINT supply_kind_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_kind_cd(id) ON DELETE CASCADE;
 
 
 --
@@ -75496,7 +75518,7 @@ ALTER TABLE ONLY supply_kind_cd_vs
 --
 
 ALTER TABLE ONLY supply_kind_cd_vs
-    ADD CONSTRAINT supply_kind_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_kind_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75504,7 +75526,7 @@ ALTER TABLE ONLY supply_kind_cd_vs
 --
 
 ALTER TABLE ONLY supply_kind
-    ADD CONSTRAINT supply_kind_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_kind_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75512,7 +75534,7 @@ ALTER TABLE ONLY supply_kind
 --
 
 ALTER TABLE ONLY supply_kind
-    ADD CONSTRAINT supply_kind_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_kind_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75520,7 +75542,7 @@ ALTER TABLE ONLY supply_kind
 --
 
 ALTER TABLE ONLY supply_ordered_item
-    ADD CONSTRAINT supply_ordered_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_ordered_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75528,7 +75550,7 @@ ALTER TABLE ONLY supply_ordered_item
 --
 
 ALTER TABLE ONLY supply_ordered_item
-    ADD CONSTRAINT supply_ordered_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_ordered_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75536,7 +75558,7 @@ ALTER TABLE ONLY supply_ordered_item
 --
 
 ALTER TABLE ONLY supply_patient
-    ADD CONSTRAINT supply_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75544,7 +75566,7 @@ ALTER TABLE ONLY supply_patient
 --
 
 ALTER TABLE ONLY supply_patient
-    ADD CONSTRAINT supply_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75552,7 +75574,7 @@ ALTER TABLE ONLY supply_patient
 --
 
 ALTER TABLE ONLY supply_text
-    ADD CONSTRAINT supply_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75560,7 +75582,7 @@ ALTER TABLE ONLY supply_text
 --
 
 ALTER TABLE ONLY supply_text
-    ADD CONSTRAINT supply_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id);
+    ADD CONSTRAINT supply_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(id) ON DELETE CASCADE;
 
 
 --
@@ -75568,7 +75590,7 @@ ALTER TABLE ONLY supply_text
 --
 
 ALTER TABLE ONLY vs_compose_include_filter
-    ADD CONSTRAINT vs_compose_include_filter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_compose_include(id);
+    ADD CONSTRAINT vs_compose_include_filter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_compose_include(id) ON DELETE CASCADE;
 
 
 --
@@ -75576,7 +75598,7 @@ ALTER TABLE ONLY vs_compose_include_filter
 --
 
 ALTER TABLE ONLY vs_compose_include_filter
-    ADD CONSTRAINT vs_compose_include_filter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_compose_include_filter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75584,7 +75606,7 @@ ALTER TABLE ONLY vs_compose_include_filter
 --
 
 ALTER TABLE ONLY vs_compose_include
-    ADD CONSTRAINT vs_compose_include_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_compose(id);
+    ADD CONSTRAINT vs_compose_include_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_compose(id) ON DELETE CASCADE;
 
 
 --
@@ -75592,7 +75614,7 @@ ALTER TABLE ONLY vs_compose_include
 --
 
 ALTER TABLE ONLY vs_compose_include
-    ADD CONSTRAINT vs_compose_include_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_compose_include_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75600,7 +75622,7 @@ ALTER TABLE ONLY vs_compose_include
 --
 
 ALTER TABLE ONLY vs_compose
-    ADD CONSTRAINT vs_compose_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_compose_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75608,7 +75630,7 @@ ALTER TABLE ONLY vs_compose
 --
 
 ALTER TABLE ONLY vs_compose
-    ADD CONSTRAINT vs_compose_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_compose_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75616,7 +75638,7 @@ ALTER TABLE ONLY vs_compose
 --
 
 ALTER TABLE ONLY vs_define_concept
-    ADD CONSTRAINT vs_define_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_define(id);
+    ADD CONSTRAINT vs_define_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_define(id) ON DELETE CASCADE;
 
 
 --
@@ -75624,7 +75646,7 @@ ALTER TABLE ONLY vs_define_concept
 --
 
 ALTER TABLE ONLY vs_define_concept
-    ADD CONSTRAINT vs_define_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_define_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75632,7 +75654,7 @@ ALTER TABLE ONLY vs_define_concept
 --
 
 ALTER TABLE ONLY vs_define
-    ADD CONSTRAINT vs_define_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_define_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75640,7 +75662,7 @@ ALTER TABLE ONLY vs_define
 --
 
 ALTER TABLE ONLY vs_define
-    ADD CONSTRAINT vs_define_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_define_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75648,7 +75670,7 @@ ALTER TABLE ONLY vs_define
 --
 
 ALTER TABLE ONLY vs_expansion_contains
-    ADD CONSTRAINT vs_expansion_contains_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_expansion(id);
+    ADD CONSTRAINT vs_expansion_contains_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_expansion(id) ON DELETE CASCADE;
 
 
 --
@@ -75656,7 +75678,7 @@ ALTER TABLE ONLY vs_expansion_contains
 --
 
 ALTER TABLE ONLY vs_expansion_contains
-    ADD CONSTRAINT vs_expansion_contains_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_expansion_contains_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75664,7 +75686,7 @@ ALTER TABLE ONLY vs_expansion_contains
 --
 
 ALTER TABLE ONLY vs_expansion_idn_assigner
-    ADD CONSTRAINT vs_expansion_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_expansion_idn(id);
+    ADD CONSTRAINT vs_expansion_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_expansion_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -75672,7 +75694,7 @@ ALTER TABLE ONLY vs_expansion_idn_assigner
 --
 
 ALTER TABLE ONLY vs_expansion_idn_assigner
-    ADD CONSTRAINT vs_expansion_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_expansion_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75680,7 +75702,7 @@ ALTER TABLE ONLY vs_expansion_idn_assigner
 --
 
 ALTER TABLE ONLY vs_expansion_idn
-    ADD CONSTRAINT vs_expansion_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_expansion(id);
+    ADD CONSTRAINT vs_expansion_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_expansion(id) ON DELETE CASCADE;
 
 
 --
@@ -75688,7 +75710,7 @@ ALTER TABLE ONLY vs_expansion_idn
 --
 
 ALTER TABLE ONLY vs_expansion_idn_period
-    ADD CONSTRAINT vs_expansion_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_expansion_idn(id);
+    ADD CONSTRAINT vs_expansion_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_expansion_idn(id) ON DELETE CASCADE;
 
 
 --
@@ -75696,7 +75718,7 @@ ALTER TABLE ONLY vs_expansion_idn_period
 --
 
 ALTER TABLE ONLY vs_expansion_idn_period
-    ADD CONSTRAINT vs_expansion_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_expansion_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75704,7 +75726,7 @@ ALTER TABLE ONLY vs_expansion_idn_period
 --
 
 ALTER TABLE ONLY vs_expansion_idn
-    ADD CONSTRAINT vs_expansion_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_expansion_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75712,7 +75734,7 @@ ALTER TABLE ONLY vs_expansion_idn
 --
 
 ALTER TABLE ONLY vs_expansion
-    ADD CONSTRAINT vs_expansion_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_expansion_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75720,7 +75742,7 @@ ALTER TABLE ONLY vs_expansion
 --
 
 ALTER TABLE ONLY vs_expansion
-    ADD CONSTRAINT vs_expansion_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_expansion_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75728,7 +75750,7 @@ ALTER TABLE ONLY vs_expansion
 --
 
 ALTER TABLE ONLY vs_telecom
-    ADD CONSTRAINT vs_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75736,7 +75758,7 @@ ALTER TABLE ONLY vs_telecom
 --
 
 ALTER TABLE ONLY vs_telecom_period
-    ADD CONSTRAINT vs_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_telecom(id);
+    ADD CONSTRAINT vs_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_telecom(id) ON DELETE CASCADE;
 
 
 --
@@ -75744,7 +75766,7 @@ ALTER TABLE ONLY vs_telecom_period
 --
 
 ALTER TABLE ONLY vs_telecom_period
-    ADD CONSTRAINT vs_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75752,7 +75774,7 @@ ALTER TABLE ONLY vs_telecom_period
 --
 
 ALTER TABLE ONLY vs_telecom
-    ADD CONSTRAINT vs_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75760,7 +75782,7 @@ ALTER TABLE ONLY vs_telecom
 --
 
 ALTER TABLE ONLY vs_text
-    ADD CONSTRAINT vs_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
@@ -75768,7 +75790,7 @@ ALTER TABLE ONLY vs_text
 --
 
 ALTER TABLE ONLY vs_text
-    ADD CONSTRAINT vs_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id);
+    ADD CONSTRAINT vs_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(id) ON DELETE CASCADE;
 
 
 --
