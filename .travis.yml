@@ -9,4 +9,4 @@ before_script:
   - export PERL5LIB=/home/travis/perl5 && source /home/travis/.bashrc && cd /tmp/pgtap && make && sudo make install && sudo make installcheck
   - sudo service postgresql restart
   - cp $TRAVIS_BUILD_DIR/dev/fbdev_config.sh.travis $TRAVIS_BUILD_DIR/dev/fbdev_config.sh
-script: cd $TRAVIS_BUILD_DIR/dev  && ./fbdev test
+script: export PERL5LIB=/home/travis/perl5 && source /home/travis/.bashrc && cd $TRAVIS_BUILD_DIR/dev  && ./fbdev test
