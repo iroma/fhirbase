@@ -1,7 +1,7 @@
 # .travis.yml
 before_script:
-  - who && id && pwd && export && which ruby && ruby --version
-  - sudo su -l -c 'who && id && pwd && export && which ruby && ruby --version'
+  - who && id && pwd && export && which perl && perl --version
+  - sudo su -l -c 'who && id && pwd && export && which perl && perl --version'
   - echo y | sudo su -l -c 'perl -MCPAN -e ''install Test::Pod'''
   - source /home/travis/.bashrc && echo y | sudo su -l -c 'perl -MCPAN -e ''install TAP::Parser::SourceHandler::pgTAP'''
     #- sudo ./dev/apt.postgresql.org.sh
