@@ -13,12 +13,12 @@ SELECT plan(3);
 select fhir.insert_resource(:'pt_json'::json) as resource_id \gset
 
 SELECT is(text::varchar, 'Roel'::varchar, 'insert patient')
-       FROM fhir.patient_name;
+       FROM fhir.patient_name where resource_id = :'resource_id';
 
 select fhir.update_resource(:'resource_id', :'two_json'::json);
 
 SELECT is(text::varchar, 'Gavrila'::varchar, 'insert patient')
-       FROM fhir.patient_name;
+       FROM fhir.patient_name where resource_id = :'resource_id';
 
 ---
 select uuid_generate_v4() as uuid \gset
