@@ -10,5 +10,4 @@ before_script:
   - git clone https://github.com/theory/pgtap.git /tmp/pgtap
   - env PG_CONFIG=/etc/postgresql/9.3/main/postgresql.conf && export PERL5LIB=/home/travis/perl5/lib/perl5 && source /home/travis/.bashrc && cd /tmp/pgtap && make && sudo make install && sudo make installcheck
   - sudo service postgresql restart
-  - cp $TRAVIS_BUILD_DIR/dev/fbdev_config.sh.travis $TRAVIS_BUILD_DIR/dev/fbdev_config.sh
-script: export PERL5LIB=/home/travis/perl5/lib/perl5 && source /home/travis/.bashrc && cd $TRAVIS_BUILD_DIR/dev && ./fbdev test
+script: export PERL5LIB=/home/travis/perl5/lib/perl5 && source /home/travis/.bashrc && cd $TRAVIS_BUILD_DIR/dev && ./fbdev -c fbdev_config.sh.travis test
