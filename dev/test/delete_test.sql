@@ -8,7 +8,6 @@
 BEGIN;
 SELECT plan(8);
 
-\timing
 select fhir.insert_resource(:'pt_json'::json) as resource_id \gset
 
 SELECT :'resource_id';
