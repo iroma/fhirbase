@@ -13,5 +13,6 @@ DROP SCHEMA IF EXISTS meta CASCADE;
 \ir sql/views.sql
 \ir sql/insert.sql
 \ir sql/delete.sql
+\ir sql/update.sql
 
 --}}}
