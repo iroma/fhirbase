@@ -79,6 +79,7 @@ case "$1" in
 
         cd $FHIRBASE_HOME/.. && psql $PSQL_ARGS -d $BUILD_DB_NAME < fhirbase_test.sql
 
+        exit $? # return tests exit status
         ;;
     *)
         help_cmd
