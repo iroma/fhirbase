@@ -4,7 +4,7 @@
 
 Document/Relational hybryde database for FHIR
 
-![build](https://travis-ci.org/fhirbase/fhirbase.png)
+[![Build Status](https://travis-ci.org/fhirbase/fhirbase.png?branch=master)](https://travis-ci.org/fhirbase/fhirbase)
 
 ## Installation
 
