@@ -59,6 +59,7 @@ function test_cmd {
     echo "Running fhirbase tests..."
 
     glob=''
+    pg_prove_args=''
 
     for word in $ARGV; do
         if [ "$word" != "test" ]; then
@@ -66,12 +67,15 @@ function test_cmd {
         fi
     done
 
-    if [ "$glob" = "" ]; then glob="$FHIRBASE_HOME/test/*_test.sql"; fi
+    if [ "$glob" = "" ]; then
+        glob="$FHIRBASE_HOME/test/*_test.sql";
+        pg_prove_args='-v';
+    fi
 
     export TEST_DB_NAME
     recreate_db $TEST_DB_NAME
     cd $FHIRBASE_HOME/test &&
-    $FHIRBASE_HOME/pg_prove $PSQL_ARGS -d $TEST_DB_NAME $glob
+    $FHIRBASE_HOME/pg_prove $PSQL_ARGS $pg_prove_args -d $TEST_DB_NAME $glob
 
     exit $? # return test subprocess exit code
 }

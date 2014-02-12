@@ -7,7 +7,7 @@
 \ir ../sql/load_meta.sql
 \ir ../sql/functions.sql
 BEGIN;
-SELECT plan(6);
+SELECT plan(7);
 
 SELECT is(
   (SELECT array_last(ARRAY['a','b','c'])),
@@ -43,6 +43,12 @@ SELECT is(
   (SELECT table_name(ARRAY['xang','abay','baran','cidr']::varchar[])),
   'xang_abay_baran_cidr',
   'table_name'
+);
+
+SELECT is(
+  merge_json('{"a": 42, "b": 12}'::json, '{"c": 55}'::json)::varchar,
+  '{"a": 42, "c": 55, "b": 12}'::json::varchar,
+  'merge_json'
 );
 
 SELECT * FROM finish();

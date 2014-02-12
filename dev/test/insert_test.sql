@@ -27,10 +27,12 @@ SELECT :'resource_id';
 SELECT is(count(*)::integer, 1, 'insert patient')
        FROM fhir.patient;
 
-SELECT is(family, ARRAY['Bor']::varchar[], 'should record name')
-       FROM fhir.patient_name
-       WHERE text = 'Roel'
-       AND resource_id = :'resource_id';
+SELECT is(
+       (SELECT family FROM fhir.patient_name
+         WHERE text = 'Roel'
+         AND resource_id = :'resource_id'),
+       ARRAY['Bor']::varchar[],
+       'should record name');
 
 SELECT is(_type, 'patient')
        FROM fhir.resource

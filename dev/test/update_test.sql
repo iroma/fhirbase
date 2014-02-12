@@ -1,33 +1,39 @@
---db:myfhir
---{{{
 \ir 'spec_helper.sql'
 \ir ../install.sql
 
 \set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`
-\set two_json `cat $FHIRBASE_HOME/test/fixtures/patient_two.json`
+\set new_pt_json `cat $FHIRBASE_HOME/test/fixtures/updated_patient.json`
 
 BEGIN;
-SELECT plan(3);
+SELECT plan(4);
 
-\timing
-select fhir.insert_resource(:'pt_json'::json) as resource_id \gset
+SELECT fhir.insert_resource(:'pt_json'::json) AS resource_id \gset
 
-SELECT is(text::varchar, 'Roel'::varchar, 'insert patient')
-       FROM fhir.patient_name where resource_id = :'resource_id';
+SELECT is(COUNT(*)::integer, 1, 'patient was inserted')
+       FROM fhir.view_patient WHERE id = :'resource_id';
 
-select fhir.update_resource(:'resource_id', :'two_json'::json);
+SELECT is(
+       (SELECT text::varchar
+       FROM fhir.patient_name WHERE resource_id = :'resource_id'),
+       'Roel'::varchar,
+       'patient data was placed in correct tables');
 
-SELECT is(text::varchar, 'Gavrila'::varchar, 'insert patient')
-       FROM fhir.patient_name where resource_id = :'resource_id';
+SELECT fhir.update_resource(:'resource_id', :'new_pt_json'::json);
 
----
-select uuid_generate_v4() as uuid \gset
-PREPARE my_thrower AS select fhir.update_resource(:'uuid', :'two_json'::json);
+SELECT is(
+       (SELECT text::varchar
+       FROM fhir.patient_name WHERE resource_id = :'resource_id'),
+       'Gavrila'::varchar,
+       'patient data was correctly updated');
+
+-- test if error was thrown when update_resource is called with
+-- unknown resource ID
+SELECT uuid_generate_v4() AS random_uuid \gset
+PREPARE incorrect_update_resource_call AS SELECT fhir.update_resource(:'random_uuid', :'pt_json'::json);
 SELECT throws_ok(
-		'my_thrower',
- 'Resource with id ' || :'uuid'::varchar || ' not found'
+  'incorrect_update_resource_call',
+  'Resource with id ' || :'random_uuid'::varchar || ' not found'
 );
 
 SELECT * FROM finish();
 ROLLBACK;
---}}}

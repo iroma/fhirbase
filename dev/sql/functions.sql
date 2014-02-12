@@ -107,4 +107,13 @@ FUNCTION camelize(str varchar) RETURNS varchar LANGUAGE plpythonu AS $$
       return string[0].lower() + _camelize(string)[1:]
 
   return _camelize(str, False)
-$$;
+$$ IMMUTABLE;
+
+CREATE FUNCTION merge_json(left JSON, right JSON)
+RETURNS json LANGUAGE plpythonu AS $$
+  import simplejson as json
+  l, r = json.loads(left), json.loads(right)
+  l.update(r)
+  j = json.dumps(l)
+  return j
+$$ IMMUTABLE;

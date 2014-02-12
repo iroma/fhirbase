@@ -1,12 +1,15 @@
-create or replace function fhir.update_resource(id uuid, jdata json) returns integer language plpgsql as $$
+CREATE OR REPLACE FUNCTION fhir.update_resource(id uuid, resource_data json)
+RETURNS integer LANGUAGE plpgsql AS $$
 DECLARE
-res integer;
+num_of_deleted_rows integer;
 BEGIN
-				select fhir.delete_resource(id) into res;
-				IF res = 0 THEN
-								raise exception 'Resource with id % not found', id;
-				END IF;
-				perform fhir.insert_resource(jdata);
-				return 0::integer;
-	END
+  SELECT fhir.delete_resource(id) INTO num_of_deleted_rows;
+
+  IF num_of_deleted_rows = 0 THEN
+    RAISE EXCEPTION 'Resource with id % not found', id;
+	END IF;
+
+	PERFORM fhir.insert_resource(merge_json(resource_data, ('{ "id": "' || id::varchar || '"}')::json));
+	RETURN 0::integer;
+END
 $$;
