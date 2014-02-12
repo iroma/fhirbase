@@ -15,7 +15,7 @@ select fhir.insert_resource(:'pt_json'::json) as resource_id \gset
 SELECT is(text::varchar, 'Roel'::varchar, 'insert patient')
        FROM fhir.patient_name;
 
-select fhir.update_resource(:'resource_id', :'pt_json'::json);
+select fhir.update_resource(:'resource_id', :'two_json'::json);
 
 SELECT is(text::varchar, 'Gavrila'::varchar, 'insert patient')
        FROM fhir.patient_name;
