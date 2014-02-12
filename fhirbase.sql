@@ -11491,8 +11491,8 @@ CREATE VIEW view_alert AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM alert_category_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11666,8 +11666,8 @@ CREATE VIEW view_composition AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM composition_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11683,8 +11683,8 @@ CREATE VIEW view_composition AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM composition_class_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11704,8 +11704,8 @@ CREATE VIEW view_composition AS
                             t2.version,
                             t2.display,
                             t2.code,
-                            t2."primary",
-                            t2.system
+                            t2.system,
+                            t2."primary"
                            FROM composition_confidentiality t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS confidentiality,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -11815,8 +11815,8 @@ CREATE VIEW view_condition AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM condition_severity_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11832,8 +11832,8 @@ CREATE VIEW view_condition AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM condition_code_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11849,8 +11849,8 @@ CREATE VIEW view_condition AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM condition_certainty_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11866,8 +11866,8 @@ CREATE VIEW view_condition AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM condition_category_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11982,8 +11982,8 @@ CREATE VIEW view_device AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM device_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12165,8 +12165,8 @@ CREATE VIEW view_diagnostic_report AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM diagnostic_report_service_category_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12182,8 +12182,8 @@ CREATE VIEW view_diagnostic_report AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM diagnostic_report_name_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12199,8 +12199,8 @@ CREATE VIEW view_diagnostic_report AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM diagnostic_report_coded_diagnosis_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12298,8 +12298,8 @@ CREATE VIEW view_document_manifest AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM document_manifest_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12315,8 +12315,8 @@ CREATE VIEW view_document_manifest AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM document_manifest_confidentiality_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12388,8 +12388,8 @@ CREATE VIEW view_document_manifest AS
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
             t1.description,
             t1.status,
-            t1.created,
-            t1.source
+            t1.source,
+            t1.created
            FROM document_manifest t1) t_1;
 
 
@@ -12411,8 +12411,8 @@ CREATE VIEW view_document_reference AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM document_reference_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12428,8 +12428,8 @@ CREATE VIEW view_document_reference AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM document_reference_doc_status_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12445,8 +12445,8 @@ CREATE VIEW view_document_reference AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM document_reference_confidentiality_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12462,8 +12462,8 @@ CREATE VIEW view_document_reference AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM document_reference_class_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12530,15 +12530,15 @@ CREATE VIEW view_document_reference AS
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS authenticator,
             t1.hash,
             t1.description,
-            t1.indexed,
             t1.status,
             t1.primary_language AS "primaryLanguage",
             t1.mime_type AS "mimeType",
-            t1.created,
             t1.size,
             t1.policy_manager AS "policyManager",
             t1.location,
-            t1.format
+            t1.format,
+            t1.indexed,
+            t1.created
            FROM document_reference t1) t_1;
 
 
@@ -12560,8 +12560,8 @@ CREATE VIEW view_encounter AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM encounter_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12577,8 +12577,8 @@ CREATE VIEW view_encounter AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM encounter_reason_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12594,8 +12594,8 @@ CREATE VIEW view_encounter AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM encounter_priority_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12711,8 +12711,8 @@ CREATE VIEW view_group AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM group_code_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12774,8 +12774,8 @@ CREATE VIEW view_imaging_study AS
                             t2.version,
                             t2.display,
                             t2.code,
-                            t2."primary",
-                            t2.system
+                            t2.system,
+                            t2."primary"
                            FROM imaging_study_procedure t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS procedure,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
@@ -12832,15 +12832,15 @@ CREATE VIEW view_imaging_study AS
                             t2.display
                            FROM imaging_study_interpreter t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS interpreter,
-            t1.uid,
             t1.description,
             t1.clinical_information AS "clinicalInformation",
             t1.modality,
             t1.availability,
-            t1.date_time AS "dateTime",
             t1.number_of_series AS "numberOfSeries",
             t1.number_of_instances AS "numberOfInstances",
-            t1.url
+            t1.url,
+            t1.uid,
+            t1.date_time AS "dateTime"
            FROM imaging_study t1) t_1;
 
 
@@ -12862,8 +12862,8 @@ CREATE VIEW view_immunization AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM imm_vaccine_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12879,8 +12879,8 @@ CREATE VIEW view_immunization AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM imm_site_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12896,8 +12896,8 @@ CREATE VIEW view_immunization AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM imm_route_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12911,9 +12911,9 @@ CREATE VIEW view_immunization AS
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.units,
                             t2.code,
-                            t2.comparator,
                             t2.system,
-                            t2.value
+                            t2.value,
+                            t2.comparator
                            FROM imm_dose_quantity t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "doseQuantity",
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
@@ -13022,8 +13022,8 @@ CREATE VIEW view_list AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM list_empty_reason_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13039,8 +13039,8 @@ CREATE VIEW view_list AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM list_code_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13102,8 +13102,8 @@ CREATE VIEW view_location AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM loc_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13119,8 +13119,8 @@ CREATE VIEW view_location AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM loc_physical_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13137,13 +13137,13 @@ CREATE VIEW view_location AS
                                             t3."end"
                                            FROM loc_address_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city
+                            t2.city,
+                            t2.use
                            FROM loc_address t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -13209,8 +13209,8 @@ CREATE VIEW view_media AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM media_view_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13226,8 +13226,8 @@ CREATE VIEW view_media AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM media_subtype_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13277,11 +13277,11 @@ CREATE VIEW view_media AS
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS content,
             t1.device_name AS "deviceName",
             t1.type,
-            t1.date_time AS "dateTime",
             t1.width,
             t1.length,
             t1.height,
-            t1.frames
+            t1.frames,
+            t1.date_time AS "dateTime"
            FROM media t1) t_1;
 
 
@@ -13303,8 +13303,8 @@ CREATE VIEW view_medication AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM med_code_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13344,8 +13344,8 @@ CREATE VIEW view_medication_administration AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM med_adm_reason_not_given_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13480,8 +13480,8 @@ CREATE VIEW view_medication_prescription AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM med_prs_reason_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13557,8 +13557,8 @@ CREATE VIEW view_medication_statement AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM med_st_reason_not_given_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13628,8 +13628,8 @@ CREATE VIEW view_message_header AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM message_header_reason_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13649,8 +13649,8 @@ CREATE VIEW view_message_header AS
                             t2.version,
                             t2.display,
                             t2.code,
-                            t2."primary",
-                            t2.system
+                            t2.system,
+                            t2."primary"
                            FROM message_header_event t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS event,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -13701,8 +13701,8 @@ CREATE VIEW view_observation AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM obs_value_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13718,8 +13718,8 @@ CREATE VIEW view_observation AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM obs_name_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13735,8 +13735,8 @@ CREATE VIEW view_observation AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM obs_method_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13752,8 +13752,8 @@ CREATE VIEW view_observation AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM obs_interpretation_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13769,8 +13769,8 @@ CREATE VIEW view_observation AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM obs_body_site_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13780,9 +13780,9 @@ CREATE VIEW view_observation AS
                    FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
-                                            t3.comparator,
                                             t3.system,
-                                            t3.value
+                                            t3.value,
+                                            t3.comparator
                                            FROM obs_value_sampled_data_origin t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS origin,
                             t2.data,
@@ -13812,17 +13812,17 @@ CREATE VIEW view_observation AS
                    FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
-                                            t3.comparator,
                                             t3.system,
-                                            t3.value
+                                            t3.value,
+                                            t3.comparator
                                            FROM obs_value_ratio_numerator t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS numerator,
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
-                                            t3.comparator,
                                             t3.system,
-                                            t3.value
+                                            t3.value,
+                                            t3.comparator
                                            FROM obs_value_ratio_denominator t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS denominator
                            FROM obs_value_ratio t2
@@ -13830,9 +13830,9 @@ CREATE VIEW view_observation AS
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.units,
                             t2.code,
-                            t2.comparator,
                             t2.system,
-                            t2.value
+                            t2.value,
+                            t2.comparator
                            FROM obs_value_quantity t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "valueQuantity",
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -13879,9 +13879,9 @@ CREATE VIEW view_observation AS
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "valueAttachment",
             t1.value_string AS "valueString",
             t1.comments,
-            t1.issued,
             t1.status,
             t1.reliability,
+            t1.issued,
             t1.applies_date_time AS "appliesDateTime"
            FROM obs t1) t_1;
 
@@ -13920,8 +13920,8 @@ CREATE VIEW view_order AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM order_reason_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14001,8 +14001,8 @@ CREATE VIEW view_order_response AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM order_response_authority_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14074,8 +14074,8 @@ CREATE VIEW view_organization AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM organization_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14092,13 +14092,13 @@ CREATE VIEW view_organization AS
                                             t3."end"
                                            FROM organization_address_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city
+                            t2.city,
+                            t2.use
                            FROM organization_address t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
@@ -14162,8 +14162,8 @@ CREATE VIEW view_other AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM other_code_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14223,8 +14223,8 @@ CREATE VIEW view_patient AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM patient_marital_status_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14240,8 +14240,8 @@ CREATE VIEW view_patient AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM patient_gender_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14257,8 +14257,8 @@ CREATE VIEW view_patient AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM patient_communication_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14275,13 +14275,13 @@ CREATE VIEW view_patient AS
                                             t3."end"
                                            FROM patient_address_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city
+                            t2.city,
+                            t2.use
                            FROM patient_address t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
@@ -14346,9 +14346,9 @@ CREATE VIEW view_patient AS
                             t2.system
                            FROM patient_telecom t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS telecom,
+            t1.multiple_birth_integer AS "multipleBirthInteger",
             t1.deceased_date_time AS "deceasedDateTime",
             t1.birth_date AS "birthDate",
-            t1.multiple_birth_integer AS "multipleBirthInteger",
             t1.multiple_birth_boolean AS "multipleBirthBoolean",
             t1.deceased_boolean AS "deceasedBoolean",
             t1.active
@@ -14373,8 +14373,8 @@ CREATE VIEW view_practitioner AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM practitioner_specialty_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14390,8 +14390,8 @@ CREATE VIEW view_practitioner AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM practitioner_role_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14407,8 +14407,8 @@ CREATE VIEW view_practitioner AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM practitioner_gender_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14424,8 +14424,8 @@ CREATE VIEW view_practitioner AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM practitioner_communication_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14442,13 +14442,13 @@ CREATE VIEW view_practitioner AS
                                             t3."end"
                                            FROM practitioner_address_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city
+                            t2.city,
+                            t2.use
                            FROM practitioner_address t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -14540,8 +14540,8 @@ CREATE VIEW view_procedure AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM procedure_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14557,8 +14557,8 @@ CREATE VIEW view_procedure AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM procedure_indication_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14574,8 +14574,8 @@ CREATE VIEW view_procedure AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM procedure_complication_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14591,8 +14591,8 @@ CREATE VIEW view_procedure AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM procedure_body_site_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14664,8 +14664,8 @@ CREATE VIEW view_provenance AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM provenance_reason_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14692,8 +14692,8 @@ CREATE VIEW view_provenance AS
                            FROM provenance_loc t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS location,
             t1.integrity_signature AS "integritySignature",
-            t1.recorded,
-            t1.policy
+            t1.policy,
+            t1.recorded
            FROM provenance t1) t_1;
 
 
@@ -14732,8 +14732,8 @@ CREATE VIEW view_questionnaire AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM questionnaire_name_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14804,8 +14804,8 @@ CREATE VIEW view_related_person AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM related_person_relationship_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14821,8 +14821,8 @@ CREATE VIEW view_related_person AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM related_person_gender_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14839,13 +14839,13 @@ CREATE VIEW view_related_person AS
                                             t3."end"
                                            FROM related_person_address_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
-                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city
+                            t2.city,
+                            t2.use
                            FROM related_person_address t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -14942,8 +14942,8 @@ CREATE VIEW view_specimen AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM specimen_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15015,8 +15015,8 @@ CREATE VIEW view_substance AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM substance_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15049,8 +15049,8 @@ CREATE VIEW view_supply AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3."primary",
-                                            t3.system
+                                            t3.system,
+                                            t3."primary"
                                            FROM supply_kind_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text

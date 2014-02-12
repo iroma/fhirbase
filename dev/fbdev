@@ -73,7 +73,10 @@ function test_cmd {
 
     export TEST_DB_NAME
     recreate_db $TEST_DB_NAME
-    cd $FHIRBASE_HOME/test && $FHIRBASE_HOME/pg_prove $PSQL_ARGS -d $TEST_DB_NAME $glob
+    cd $FHIRBASE_HOME/test &&
+    $FHIRBASE_HOME/pg_prove $PSQL_ARGS -d $TEST_DB_NAME $glob
+
+    exit $? # return test subprocess exit code
 }
 
 case "$CMD" in
@@ -96,6 +99,7 @@ case "$CMD" in
 
         cd $FHIRBASE_HOME/.. && psql $PSQL_ARGS -d $BUILD_DB_NAME < fhirbase_test.sql
 
+        exit $? # return tests exit status
         ;;
     *)
         help_cmd
