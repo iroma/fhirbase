@@ -2,15 +2,18 @@
 before_script:
   - sudo pg_lsclusters
   - echo y | sudo perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP'
-  - sudo ./dev/apt.postgresql.org.sh
+#  - sudo ./dev/apt.postgresql.org.sh
   - sudo apt-get install tree curl build-essential git libpq-dev postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3 postgresql-plpython-9.3
+  - sudo pg_ctlcluster 9.1 main down
+  - sudo pg_ctlcluster 9.3 main up
   - sudo pg_lsclusters
   - tree /home/travis
+  - tree /etc/postgresql/
   - cat /home/travis/.bashrc
   - grep -v 'max_locks_per_transaction = 200' /etc/postgresql/9.3/main/postgresql.conf && (sudo bash -c "echo 'max_locks_per_transaction = 200' >> /etc/postgresql/9.3/main/postgresql.conf" && sudo service postgresql restart)
   - sudo su postgres -c 'createuser -s root'
   - git clone https://github.com/theory/pgtap.git /tmp/pgtap
-  - export PERL5LIB=/home/travis/perl5/lib/perl5 && source /home/travis/.bashrc && cd /tmp/pgtap && make && sudo make install && sudo make installcheck
+  - env PG_CONFIG=/etc/postgresql/9.3/main/postgresql.conf && export PERL5LIB=/home/travis/perl5/lib/perl5 && source /home/travis/.bashrc && cd /tmp/pgtap && make && sudo make install && sudo make installcheck
   - sudo service postgresql restart
   - cp $TRAVIS_BUILD_DIR/dev/fbdev_config.sh.travis $TRAVIS_BUILD_DIR/dev/fbdev_config.sh
 script: export PERL5LIB=/home/travis/perl5/lib/perl5 && source /home/travis/.bashrc && cd $TRAVIS_BUILD_DIR/dev && ./fbdev test
