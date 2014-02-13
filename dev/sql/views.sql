@@ -25,6 +25,33 @@ CREATE INDEX resource_elements_expanded_with_types_type_idx
 CREATE INDEX resource_elements_expanded_with_types_popped_path_idx
        ON meta.resource_elements_expanded_with_types (array_pop(path));
 
+DROP FUNCTION IF EXISTS contained(uuid) CASCADE;
+CREATE OR REPLACE FUNCTION contained(cid uuid)
+  RETURNS json
+  LANGUAGE plpgsql
+  AS $$
+  DECLARE
+        resource_type varchar;
+				resource_id uuid;
+        contained json;
+  BEGIN
+				select r.id, underscore(r.resource_type)
+				into resource_id, resource_type
+				from fhir.resource r
+				where r.container_id = cid
+				limit 1;
+		    IF resource_id IS NULL THEN
+			    contained := '[]'::json;
+		    ELSE
+								EXECUTE 'select array_to_json(array_agg(c.json)) from fhir.view_' || resource_type || ' c where c.id = $1'
+								INTO contained
+								USING resource_id;
+				END IF;
+
+				RETURN contained;
+  END
+$$;
+
 DROP FUNCTION IF EXISTS gen_select_sql(varchar[], varchar) CASCADE;
 CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
   RETURNS varchar
@@ -70,16 +97,15 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
            '"' || schm || '"."' || table_name(var_path) || '" t' || level::varchar ||
 
          CASE WHEN level = 1 THEN
-           E'\n where t' || level::varchar || '.container_id IS NULL'
+           E'\n'-- where t' || level::varchar || '.container_id IS NULL'
          ELSE
            E'\nwhere t' ||
              level::varchar || '."resource_id" = t1."id" and t' ||
              level::varchar || '."parent_id" = t' ||
              (level - 1)::varchar || '."id"'
          END;
-
       IF level = 1 THEN
-        RETURN 'select t1.id, ' || subselect;
+        RETURN 'select t1.id, contained(t1.id) as "contained", ' || subselect;
       ELSE
         RETURN
           CASE WHEN isArray THEN

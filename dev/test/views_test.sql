@@ -5,7 +5,7 @@
 
 BEGIN;
 
-SELECT plan(3);
+SELECT plan(4);
 
 SELECT fhir.insert_resource(:'pt_json'::json) AS resource_id \gset
 
@@ -15,16 +15,19 @@ SELECT is(
        'only one patient was inserted');
 
 SELECT is(
-       (SELECT (json->'birthDate')::varchar
+       (SELECT (json->>'birthDate')::varchar
          FROM fhir.view_patient LIMIT 1),
-       '"1960-03-13 00:00:00"'::varchar,
+       '1960-03-13 00:00:00'::varchar,
        'receive correct birth_date from patient view');
 
 SELECT is_empty('SELECT id FROM fhir.view_organization
                         WHERE (json->>''name'')::varchar = ''ACME''::varchar',
                 'contained resource is not available as regular resource');
-
-SELECT * FROM fhir.patient;
+SELECT is(
+       (SELECT (json->'contained'->0->>'name')::varchar
+         FROM fhir.view_patient LIMIT 1),
+       'ACME'::varchar,
+       'receive correct name for contained resource');
 
 SELECT * FROM finish();
 ROLLBACK;
