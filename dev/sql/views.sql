@@ -35,6 +35,8 @@ CREATE OR REPLACE FUNCTION contained(cid uuid)
 				resource_id uuid;
         contained json;
   BEGIN
+				--need loop for each resource row here instead of limit 1 single row
+        --need create shadow view with name _view_name without contained (currently commented) condition to select here from this shadow view
 				select r.id, underscore(r.resource_type)
 				into resource_id, resource_type
 				from fhir.resource r
