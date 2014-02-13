@@ -53,9 +53,9 @@ CREATE OR REPLACE FUNCTION generate_schema(version TEXT)
     else:
       create_fk = """
         ALTER TABLE fhir.%(table_name)s
-          ADD FOREIGN KEY (resource_id) REFERENCES fhir.%(resource_table_name)s (id);
+          ADD FOREIGN KEY (resource_id) REFERENCES fhir.%(resource_table_name)s (id) ON DELETE CASCADE;
         ALTER TABLE fhir.%(table_name)s
-          ADD FOREIGN KEY (parent_id) REFERENCES fhir.%(parent_table_name)s (id);
+          ADD FOREIGN KEY (parent_id) REFERENCES fhir.%(parent_table_name)s (id) ON DELETE CASCADE;
       """ % e
       create_indexes = """
         CREATE INDEX ON fhir.%(table_name)s (resource_id);
@@ -73,16 +73,16 @@ CREATE OR REPLACE FUNCTION generate_schema(version TEXT)
       _unknown_attributes json,
       resource_type varchar,
       language VARCHAR,
-      container_id UUID REFERENCES fhir.resource (id)
+      container_id UUID REFERENCES fhir.resource (id) ON DELETE CASCADE
     );
 
     CREATE TABLE fhir.resource_component (
      id uuid PRIMARY KEY,
      _type VARCHAR NOT NULL,
      _unknown_attributes json,
-     parent_id UUID NOT NULL REFERENCES fhir.resource_component (id),
-     resource_id UUID NOT NULL REFERENCES fhir.resource (id),
-     container_id UUID REFERENCES fhir.resource (id)
+     parent_id UUID NOT NULL REFERENCES fhir.resource_component (id) ON DELETE CASCADE,
+     resource_id UUID NOT NULL REFERENCES fhir.resource (id) ON DELETE CASCADE,
+     container_id UUID REFERENCES fhir.resource (id) ON DELETE CASCADE
     );
     """
   ]

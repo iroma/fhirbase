@@ -1,26 +1,21 @@
 #!/bin/bash
+
 CFG_FILE='fbdev_config.sh'
 while getopts ":c:" opt; do
-  case $opt in
-    c)
-      CFG_FILE=$OPTARG
-      ;;
-    *)
-      echo "* $OPTARG"
-      ;;
-  esac
+    case $opt in
+        c)
+            CFG_FILE=$OPTARG
+            ;;
+        *)
+            echo "* $OPTARG"
+            ;;
+    esac
 done
 
 shift $((OPTIND - 1))
 
 CMD=$1
 ARGV=$@
-
-echo "CMD - $CMD"
-echo "ARGV - $ARGV"
-
-
-echo "Loading $CFG_FILE"
 
 if [ -f ./$CFG_FILE ]; then
     . ./$CFG_FILE
@@ -51,7 +46,7 @@ function install_cmd {
         echo "install command requires dbname argument"
         exit 1
     else
-        echo "BEFORE INSTALL"
+        echo "Installing fhirbase into DB $1..."
         psql $PSQL_ARGS -d $1 < install.sql
     fi
 }
@@ -61,7 +56,10 @@ function recreate_db {
 }
 
 function test_cmd {
+    echo "Running fhirbase tests..."
+
     glob=''
+    pg_prove_args=''
 
     for word in $ARGV; do
         if [ "$word" != "test" ]; then
@@ -69,12 +67,15 @@ function test_cmd {
         fi
     done
 
-    if [ "$glob" = "" ]; then glob="$FHIRBASE_HOME/test/*_test.sql"; fi
+    if [ "$glob" = "" ]; then
+        glob="$FHIRBASE_HOME/test/*_test.sql";
+        pg_prove_args='-v';
+    fi
 
     export TEST_DB_NAME
     recreate_db $TEST_DB_NAME
     cd $FHIRBASE_HOME/test &&
-    $FHIRBASE_HOME/pg_prove $PSQL_ARGS -d $TEST_DB_NAME $glob
+    $FHIRBASE_HOME/pg_prove $PSQL_ARGS $pg_prove_args -d $TEST_DB_NAME $glob
 
     exit $? # return test subprocess exit code
 }
@@ -87,15 +88,17 @@ case "$CMD" in
         install_cmd $2
         ;;
     "build" )
+        echo "Building fhirbase.sql"
+
         recreate_db $BUILD_DB_NAME
         install_cmd $BUILD_DB_NAME
 
         pg_dump $PSQL_ARGS \
-          --format=plain \
-          --schema=fhir \
-          --no-owner \
-          --file=$FHIRBASE_HOME/../fhirbase.sql \
-          $BUILD_DB_NAME && echo "FhirBase schema successfully dumped to $FHIRBASE_HOME/../fhirbase.sql"
+                --format=plain \
+                --schema=fhir \
+                --no-owner \
+                --file=$FHIRBASE_HOME/../fhirbase.sql \
+                $BUILD_DB_NAME && echo "FhirBase schema successfully dumped to $FHIRBASE_HOME/../fhirbase.sql"
 
         cd $FHIRBASE_HOME/.. && psql $PSQL_ARGS -d $BUILD_DB_NAME < fhirbase_test.sql
 

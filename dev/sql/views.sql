@@ -44,8 +44,6 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
     FROM meta.resource_elements_expanded_with_types n
     WHERE n.path = var_path;
 
-    -- RAISE NOTICE '% %', var_path, isArray;
-
     SELECT array_to_string(array_agg('t' || level::varchar || '."' || underscore(array_last(n.path)) || '" as "' || camelize(array_last(n.path)) || '"'), ', ')
     INTO columns
     FROM meta.resource_elements_expanded_with_types n
@@ -104,7 +102,7 @@ CREATE OR REPLACE FUNCTION create_resource_view(resource_name varchar, schm varc
   DECLARE
   create_sql text;
   BEGIN
-    RAISE NOTICE 'Create JSON view for %', resource_name;
+    -- RAISE NOTICE 'Create JSON view for %', resource_name;
 
     create_sql :=
       'CREATE OR REPLACE VIEW "' || schm ||'"."view_' || underscore(resource_name) || '" AS SELECT t_1.id, row_to_json(t_1, true) AS json FROM (' ||
