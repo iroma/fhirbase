@@ -69,7 +69,9 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
          E'\nfrom ' ||
            '"' || schm || '"."' || table_name(var_path) || '" t' || level::varchar ||
 
-         CASE WHEN level = 1 THEN '' ELSE
+         CASE WHEN level = 1 THEN
+           E'\n where t' || level::varchar || '.container_id IS NULL'
+         ELSE
            E'\nwhere t' ||
              level::varchar || '."resource_id" = t1."id" and t' ||
              level::varchar || '."parent_id" = t' ||

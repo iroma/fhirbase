@@ -1,22 +1,13 @@
 \ir 'spec_helper.sql'
-drop schema if exists meta cascade;
-\ir ../sql/extensions.sql
-\ir ../sql/py_init.sql
-\ir ../sql/meta.sql
-\ir ../sql/load_meta.sql
-\ir ../sql/functions.sql
-\ir ../sql/datatypes.sql
-\ir ../sql/schema.sql
-\ir ../sql/generate_schema.sql
+\ir ../install.sql
 
-\ir ../sql/views.sql
+\set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`
 
 BEGIN;
 
-SELECT plan(2);
+SELECT plan(3);
 
-INSERT INTO fhir.patient (id, resource_type, birth_date)
-       VALUES(uuid_generate_v1(), 'Patient', '12-12-1987');
+SELECT fhir.insert_resource(:'pt_json'::json) AS resource_id \gset
 
 SELECT is(
        (SELECT COUNT(*) FROM fhir.patient),
@@ -26,8 +17,14 @@ SELECT is(
 SELECT is(
        (SELECT (json->'birthDate')::varchar
          FROM fhir.view_patient LIMIT 1),
-       '"1987-12-12 00:00:00"'::varchar,
+       '"1960-03-13 00:00:00"'::varchar,
        'receive correct birth_date from patient view');
+
+SELECT is_empty('SELECT id FROM fhir.view_organization
+                        WHERE (json->>''name'')::varchar = ''ACME''::varchar',
+                'contained resource is not available as regular resource');
+
+SELECT * FROM fhir.patient;
 
 SELECT * FROM finish();
 ROLLBACK;
