@@ -12,6 +12,17 @@
         "use":"mobile"
       }
     ]
+  }, {
+    "resourceType" : "Organization",
+    "id": "#org2",
+    "name": "Foobar",
+    "telecom": [
+      {
+        "system":"phone",
+        "value":"+31612234000",
+        "use":"mobile"
+      }
+    ]
   }],
   "identifier":[
   {"use":"official",

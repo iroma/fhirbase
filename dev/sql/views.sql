@@ -25,32 +25,35 @@ CREATE INDEX resource_elements_expanded_with_types_type_idx
 CREATE INDEX resource_elements_expanded_with_types_popped_path_idx
        ON meta.resource_elements_expanded_with_types (array_pop(path));
 
-DROP FUNCTION IF EXISTS contained(uuid) CASCADE;
-CREATE OR REPLACE FUNCTION contained(cid uuid)
+DROP FUNCTION IF EXISTS select_containeds(uuid) CASCADE;
+CREATE OR REPLACE FUNCTION select_containeds(cid uuid)
   RETURNS json
   LANGUAGE plpgsql
   AS $$
   DECLARE
-        resource_type varchar;
-				resource_id uuid;
-        contained json;
+    contained record;
+    idx integer;
+    query text;
+    containeds_json json;
   BEGIN
-				--need loop for each resource row here instead of limit 1 single row
-        --need create shadow view with name _view_name without contained (currently commented) condition to select here from this shadow view
-				select r.id, underscore(r.resource_type)
-				into resource_id, resource_type
-				from fhir.resource r
-				where r.container_id = cid
-				limit 1;
-		    IF resource_id IS NULL THEN
-			    contained := '[]'::json;
-		    ELSE
-								EXECUTE 'select array_to_json(array_agg(c.json)) from fhir.view_' || resource_type || ' c where c.id = $1'
-								INTO contained
-								USING resource_id;
-				END IF;
+    query := '';
+    idx := 0;
 
-				RETURN contained;
+    FOR contained IN SELECT r.id, table_name(ARRAY[r.resource_type]) as tbl
+                              FROM fhir.resource r
+                              WHERE r.container_id = cid LOOP
+
+      query := (CASE WHEN query = '' THEN '' ELSE query || ' UNION ALL' END) ||
+          ' SELECT v' || idx::varchar || '.json FROM fhir."view_' || contained.tbl || '_with_containeds" v' || idx::varchar ||
+          ' WHERE v' || idx::varchar || '.id = ''' || contained.id || '''';
+
+      idx := idx + 1;
+    END LOOP;
+
+    EXECUTE 'SELECT array_to_json(array_agg(t.json)) FROM (' || query || ') t'
+    INTO containeds_json;
+
+    RETURN containeds_json;
   END
 $$;
 
@@ -99,15 +102,17 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
            '"' || schm || '"."' || table_name(var_path) || '" t' || level::varchar ||
 
          CASE WHEN level = 1 THEN
-           E'\n'-- where t' || level::varchar || '.container_id IS NULL'
+           -- E'\n where t' || level::varchar || '.container_id IS NULL'
+           ''
          ELSE
            E'\nwhere t' ||
              level::varchar || '."resource_id" = t1."id" and t' ||
              level::varchar || '."parent_id" = t' ||
              (level - 1)::varchar || '."id"'
          END;
+
       IF level = 1 THEN
-        RETURN 'select t1.id, contained(t1.id) as "contained", ' || subselect;
+        RETURN 'select t1.id, (CASE WHEN t1.container_id IS NULL THEN select_containeds(t1.id) ELSE NULL END) as "contained", ' || subselect;
       ELSE
         RETURN
           CASE WHEN isArray THEN
@@ -130,16 +135,21 @@ CREATE OR REPLACE FUNCTION create_resource_view(resource_name varchar, schm varc
   LANGUAGE plpgsql
   AS $$
   DECLARE
-  create_sql text;
+  res_table_name varchar;
   BEGIN
     -- RAISE NOTICE 'Create JSON view for %', resource_name;
 
-    create_sql :=
-      'CREATE OR REPLACE VIEW "' || schm ||'"."view_' || underscore(resource_name) || '" AS SELECT t_1.id, row_to_json(t_1, true) AS json FROM (' ||
-      E'\n' || indent(gen_select_sql(ARRAY[resource_name], schm), 1) ||
-      ') t_1;';
+    res_table_name := table_name(ARRAY[resource_name]);
 
-    EXECUTE create_sql;
+    EXECUTE
+      'CREATE OR REPLACE VIEW "' || schm ||'"."view_' || res_table_name || '_with_containeds" AS ' ||
+      'SELECT t_1.id, row_to_json(t_1, true) AS json, res_table.container_id AS container_id FROM (' ||
+      E'\n' || indent(gen_select_sql(ARRAY[resource_name], schm), 1) ||
+      ') t_1 JOIN fhir.' || res_table_name || ' res_table ON res_table.id = t_1.id;';
+
+    EXECUTE
+      'CREATE OR REPLACE VIEW fhir."view_' || res_table_name || '" AS SELECT id, json ' ||
+      'FROM fhir."view_' || res_table_name || '_with_containeds" WHERE container_id IS NULL';
   END
 $$;
 

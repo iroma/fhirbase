@@ -35,15 +35,15 @@ SELECT is_empty(
   'should not contain any _unknown_attributes'
 );
 
-SELECT is((SELECT name FROM fhir.organization
-       WHERE container_id = :'resource_id' LIMIT 1),
-       'ACME'::varchar,
+SELECT is((SELECT array_agg(name) FROM fhir.organization
+       WHERE container_id = :'resource_id'),
+       ARRAY['ACME', 'Foobar']::varchar[],
        'contained resource was correctly saved');
 
-SELECT is((SELECT ot.value FROM fhir.organization_telecom ot
+SELECT is((SELECT array_agg(ot.value) FROM fhir.organization_telecom ot
        JOIN fhir.organization o ON o.id = ot.parent_id
-       WHERE o.container_id = :'resource_id' LIMIT 1),
-       '+31612234322'::varchar,
+       WHERE o.container_id = :'resource_id'),
+       ARRAY['+31612234322', '+31612234000']::varchar[],
        'contained resource was correctly saved');
 
 SELECT * FROM finish();
