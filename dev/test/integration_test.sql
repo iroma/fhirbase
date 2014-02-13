@@ -13,11 +13,13 @@
 \ir ../sql/views.sql
 \ir ../sql/insert.sql
 
-\set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`
+--}}}
+--{{{
 
 BEGIN;
 SELECT plan(4);
 
+\set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`
 -- CREATE LANGUAGE plpythonu;
 
 CREATE OR REPLACE
@@ -54,6 +56,8 @@ SELECT ok((SELECT (ARRAY['maritalStatus', 'deceasedDateTime']::varchar[] <@ arra
             FROM fhir.view_patient
             WHERE id = :'resource_id'
            ) keys), 'json attributes are correctly capitalized');
+
+SELECT json->'contained' FROM fhir.view_patient;
 
 SELECT * FROM finish();
 ROLLBACK;

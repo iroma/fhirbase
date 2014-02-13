@@ -16,7 +16,7 @@
 
 \set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`
 
-BEGIN;
+--BEGIN;
 SELECT plan(5);
 
 \timing
