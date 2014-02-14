@@ -50,8 +50,12 @@ CREATE OR REPLACE FUNCTION select_containeds(cid uuid)
       idx := idx + 1;
     END LOOP;
 
-    EXECUTE 'SELECT array_to_json(array_agg(merge_json(t.json, (''{"id": "'' || t.contained_id::varchar || ''"}'')::json))) FROM (' || query || ') t'
-    INTO containeds_json;
+    IF query <> '' THEN
+      EXECUTE 'SELECT array_to_json(array_agg(merge_json(t.json, (''{"id": "'' || t.contained_id::varchar || ''"}'')::json))) FROM (' || query || ') t'
+      INTO containeds_json;
+    ELSE
+		  containeds_json := null::json;
+    END IF;
 
     RETURN containeds_json;
   END
