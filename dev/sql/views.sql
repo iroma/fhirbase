@@ -25,39 +25,18 @@ CREATE INDEX resource_elements_expanded_with_types_type_idx
 CREATE INDEX resource_elements_expanded_with_types_popped_path_idx
        ON meta.resource_elements_expanded_with_types (array_pop(path));
 
-DROP FUNCTION IF EXISTS select_containeds(uuid) CASCADE;
-CREATE OR REPLACE FUNCTION select_containeds(cid uuid)
+DROP FUNCTION IF EXISTS select_contained(uuid, varchar) CASCADE;
+CREATE OR REPLACE FUNCTION select_contained(rid uuid, resource_type varchar)
   RETURNS json
   LANGUAGE plpgsql
   AS $$
   DECLARE
-    contained record;
-    idx integer;
-    query text;
-    containeds_json json;
+    contained json;
   BEGIN
-    query := '';
-    idx := 0;
-
-    FOR contained IN SELECT r.id, table_name(ARRAY[r.resource_type]) as tbl
-                              FROM fhir.resource r
-                              WHERE r.container_id = cid LOOP
-
-      query := (CASE WHEN query = '' THEN '' ELSE query || ' UNION ALL' END) ||
-          ' SELECT v' || idx::varchar || '.json, v' || idx::varchar || '.contained_id FROM fhir."view_' || contained.tbl || '_with_containeds" v' || idx::varchar ||
-          ' WHERE v' || idx::varchar || '.id = ''' || contained.id || '''';
-
-      idx := idx + 1;
-    END LOOP;
-
-    IF query <> '' THEN
-      EXECUTE 'SELECT array_to_json(array_agg(merge_json(t.json, (''{"id": "'' || t.contained_id::varchar || ''"}'')::json))) FROM (' || query || ') t'
-      INTO containeds_json;
-    ELSE
-		  containeds_json := null::json;
-    END IF;
-
-    RETURN containeds_json;
+    EXECUTE 'SELECT merge_json(t.json, (''{"id": "'' || t.contained_id::varchar || ''"}'')::json) FROM fhir."view_' || resource_type || '_with_containeds" t WHERE t.id = $1 LIMIT 1'
+    INTO contained
+    USING rid;
+    RETURN contained;
   END
 $$;
 
@@ -116,7 +95,7 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
          END;
 
       IF level = 1 THEN
-        RETURN 'select t1.id, (CASE WHEN t1.container_id IS NULL THEN select_containeds(t1.id) ELSE NULL END) as "contained", ' || subselect;
+        RETURN 'select t1.id, (CASE WHEN t1.container_id IS NULL THEN (SELECT array_to_json(array_agg(select_contained(r.id, table_name(ARRAY[r.resource_type])))) FROM fhir.resource r WHERE r.container_id = t1.id) ELSE NULL END) as "contained", ' || subselect;
       ELSE
         RETURN
           CASE WHEN isArray THEN
