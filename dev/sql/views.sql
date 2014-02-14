@@ -33,9 +33,12 @@ CREATE OR REPLACE FUNCTION select_contained(rid uuid, resource_type varchar)
   DECLARE
     contained json;
   BEGIN
-    EXECUTE 'SELECT merge_json(t.json, (''{"id": "'' || t.contained_id::varchar || ''"}'')::json) FROM fhir."view_' || resource_type || '_with_containeds" t WHERE t.id = $1 LIMIT 1'
+    EXECUTE
+      'SELECT merge_json(t.json, (''{"id": "'' || t.contained_id::varchar || ''"}'')::json)' ||
+      ' FROM fhir."view_' || resource_type || '_with_containeds" t WHERE t.id = $1 LIMIT 1'
     INTO contained
     USING rid;
+
     RETURN contained;
   END
 $$;
