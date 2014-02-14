@@ -100,7 +100,7 @@ case "$CMD" in
                 --file=$FHIRBASE_HOME/../fhirbase.sql \
                 $BUILD_DB_NAME && echo "FhirBase schema successfully dumped to $FHIRBASE_HOME/../fhirbase.sql"
 
-        cd $FHIRBASE_HOME/.. && psql $PSQL_ARGS -d $BUILD_DB_NAME < fhirbase_test.sql
+        cd $FHIRBASE_HOME/.. && psql $PSQL_ARGS -v ON_ERROR_STOP=1 -d $BUILD_DB_NAME < fhirbase_test.sql
 
         exit $? # return tests exit status
         ;;
