@@ -5,7 +5,7 @@
 
 BEGIN;
 
-SELECT plan(5);
+SELECT plan(7);
 
 SELECT fhir.insert_resource(:'pt_json'::json) AS resource_id \gset
 
@@ -31,10 +31,22 @@ SELECT is(
        'receive correct name for first contained resource');
 
 SELECT is(
+       (SELECT (json->'contained'->0->>'id')::varchar
+         FROM fhir.view_patient LIMIT 1),
+       '#org1'::varchar,
+       'receive correct id for first contained resource');
+
+SELECT is(
        (SELECT (json->'contained'->1->>'name')::varchar
          FROM fhir.view_patient LIMIT 1),
        'Foobar'::varchar,
        'receive correct name for second contained resource');
+
+SELECT is(
+       (SELECT (json->'contained'->1->>'id')::varchar
+         FROM fhir.view_patient LIMIT 1),
+       '#org2'::varchar,
+       'receive correct id for first contained resource');
 
 
 SELECT * FROM finish();

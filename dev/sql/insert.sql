@@ -134,6 +134,7 @@ create or replace function fhir.insert_resource(jdata json) returns uuid languag
   def insert_containeds(data):
     if 'contained' in data and isinstance(data['contained'], list):
       for contained in data['contained']:
+        contained['contained_id'] = contained['id']
         del contained['id']
         contained['container_id'] = data['id']
         insert_resource(contained)

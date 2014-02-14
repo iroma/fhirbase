@@ -44,13 +44,13 @@ CREATE OR REPLACE FUNCTION select_containeds(cid uuid)
                               WHERE r.container_id = cid LOOP
 
       query := (CASE WHEN query = '' THEN '' ELSE query || ' UNION ALL' END) ||
-          ' SELECT v' || idx::varchar || '.json FROM fhir."view_' || contained.tbl || '_with_containeds" v' || idx::varchar ||
+          ' SELECT v' || idx::varchar || '.json, v' || idx::varchar || '.contained_id FROM fhir."view_' || contained.tbl || '_with_containeds" v' || idx::varchar ||
           ' WHERE v' || idx::varchar || '.id = ''' || contained.id || '''';
 
       idx := idx + 1;
     END LOOP;
 
-    EXECUTE 'SELECT array_to_json(array_agg(t.json)) FROM (' || query || ') t'
+    EXECUTE 'SELECT array_to_json(array_agg(merge_json(t.json, (''{"id": "'' || t.contained_id::varchar || ''"}'')::json))) FROM (' || query || ') t'
     INTO containeds_json;
 
     RETURN containeds_json;
@@ -143,7 +143,7 @@ CREATE OR REPLACE FUNCTION create_resource_view(resource_name varchar, schm varc
 
     EXECUTE
       'CREATE OR REPLACE VIEW "' || schm ||'"."view_' || res_table_name || '_with_containeds" AS ' ||
-      'SELECT t_1.id, row_to_json(t_1, true) AS json, res_table.container_id AS container_id FROM (' ||
+      'SELECT t_1.id, row_to_json(t_1, true) AS json, res_table.container_id AS container_id , res_table.contained_id AS contained_id FROM (' ||
       E'\n' || indent(gen_select_sql(ARRAY[resource_name], schm), 1) ||
       ') t_1 JOIN fhir.' || res_table_name || ' res_table ON res_table.id = t_1.id;';
 

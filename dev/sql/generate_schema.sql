@@ -83,7 +83,8 @@ CREATE OR REPLACE FUNCTION generate_schema(version TEXT)
       _unknown_attributes json,
       resource_type varchar,
       language VARCHAR,
-      container_id UUID REFERENCES fhir.resource (id) ON DELETE CASCADE
+      container_id UUID REFERENCES fhir.resource (id) ON DELETE CASCADE,
+      contained_id VARCHAR
     );
 
     CREATE TABLE fhir.resource_component (

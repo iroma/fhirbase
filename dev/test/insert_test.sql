@@ -4,7 +4,7 @@
 \set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`
 
 BEGIN;
-SELECT plan(7);
+SELECT plan(8);
 
 select fhir.insert_resource(:'pt_json'::json) as resource_id \gset
 
@@ -39,6 +39,11 @@ SELECT is((SELECT array_agg(name) FROM fhir.organization
        WHERE container_id = :'resource_id'),
        ARRAY['ACME', 'Foobar']::varchar[],
        'contained resource was correctly saved');
+
+SELECT is((SELECT array_agg(contained_id) FROM fhir.organization
+       WHERE container_id = :'resource_id'),
+       ARRAY['#org1', '#org2']::varchar[],
+       'contained_id should be correct');
 
 SELECT is((SELECT array_agg(ot.value) FROM fhir.organization_telecom ot
        JOIN fhir.organization o ON o.id = ot.parent_id
