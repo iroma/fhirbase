@@ -87,6 +87,15 @@ case "$CMD" in
     "install" )
         install_cmd $2
         ;;
+
+    "bench" )
+        if [ "$2" != "-s" ]; then
+            recreate_db $BENCH_DB_NAME
+            install_cmd $BENCH_DB_NAME
+        fi
+
+        cd $FHIRBASE_HOME/bench && psql $PSQL_ARGS -v ON_ERROR_STOP=1 -d $BENCH_DB_NAME < bench.sql
+        ;;
     "build" )
         echo "Building fhirbase.sql"
 
