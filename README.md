@@ -22,14 +22,14 @@ EHR-based data sharing, server communication in large institutional healthcare p
 
 The most straightforward implementation of FHIR resources storage is document databases (like MongoDB, CouchDB, RethinkDB etc).
 
-* Fine-Granularity of data control
-* Rich Query & Data Abstraction API
-* Storage Efficiency
-* Enhanced Data Consistency
+* Fine-Granularity of data control - Rich Query & Data Abstraction capabilities - power of Relational Algebra
+* Storage Efficiency - calculate rate for document storages
+* Enhanced Data Consistency - applying most of FHIR contstraints on database level
 
 ## Scope
 
-The only current limitation is postgresql limitations, until we solve sharding problem.
+The only current limitation is scalability,
+postgresql. Possible solution - good sharding algorithm.
 
 ## Architecture
 
@@ -49,7 +49,15 @@ for infrastructure management, that all data tables are inherited from two base 
   * resource_id
   * container_id
 
-We use advanced postgresql features (recursive queries & plv8)
+## API
+
+* insert, update & delete procedures
+* aggregated resources views
+* querying
+
+## Performance Notes
+
+...
 
 ## Demo
 
@@ -57,11 +65,6 @@ You can try upload resources and query storage using simple demo site ...
 
 ## Installation
 
-## API
-
-* insert, update & delete procedures
-* aggregated resources views
-* querying
 
 ## Contribution
 
