@@ -2,11 +2,9 @@
 
 ## Synopsis
 
-Relational medical storage suitable for :
-
-* open source
-* postgresql
-* based on FHIR (Fast Health Interoperable Resources) Standard
+Open source Relational medical storage
+based on FHIR standard & postgresql
+suitable for health IT applications.
 
 ## FHIR
 
