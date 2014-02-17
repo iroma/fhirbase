@@ -1,23 +1,10 @@
---db:myfhir
---{{{
 \ir 'spec_helper.sql'
-\ir ../sql/extensions.sql
-\ir ../sql/py_init.sql
-\ir ../sql/meta.sql
-\ir ../sql/load_meta.sql
-\ir ../sql/functions.sql
-\ir ../sql/datatypes.sql
-\ir ../sql/schema.sql
-\ir ../sql/generate_schema.sql
---}}}
---{{{
-
-\ir ../sql/insert.sql
+\ir ../install.sql
 
 \set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`
 
---BEGIN;
-SELECT plan(5);
+BEGIN;
+SELECT plan(8);
 
 select fhir.insert_resource(:'pt_json'::json) as resource_id \gset
 
@@ -48,6 +35,21 @@ SELECT is_empty(
   'should not contain any _unknown_attributes'
 );
 
+SELECT is((SELECT array_agg(name) FROM fhir.organization
+       WHERE container_id = :'resource_id'),
+       ARRAY['ACME', 'Foobar']::varchar[],
+       'contained resource was correctly saved');
+
+SELECT is((SELECT array_agg(contained_id) FROM fhir.organization
+       WHERE container_id = :'resource_id'),
+       ARRAY['#org1', '#org2']::varchar[],
+       'contained_id should be correct');
+
+SELECT is((SELECT array_agg(ot.value) FROM fhir.organization_telecom ot
+       JOIN fhir.organization o ON o.id = ot.parent_id
+       WHERE o.container_id = :'resource_id'),
+       ARRAY['+31612234322', '+31612234000']::varchar[],
+       'contained resource was correctly saved');
+
 SELECT * FROM finish();
 ROLLBACK;
---}}}

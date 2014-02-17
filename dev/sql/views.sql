@@ -25,6 +25,24 @@ CREATE INDEX resource_elements_expanded_with_types_type_idx
 CREATE INDEX resource_elements_expanded_with_types_popped_path_idx
        ON meta.resource_elements_expanded_with_types (array_pop(path));
 
+DROP FUNCTION IF EXISTS select_contained(uuid, varchar) CASCADE;
+CREATE OR REPLACE FUNCTION select_contained(rid uuid, resource_type varchar)
+  RETURNS json
+  LANGUAGE plpgsql
+  AS $$
+  DECLARE
+    contained json;
+  BEGIN
+    EXECUTE
+      'SELECT merge_json(t.json, (''{"id": "'' || t.contained_id::varchar || ''"}'')::json)' ||
+      ' FROM fhir."view_' || resource_type || '_with_containeds" t WHERE t.id = $1 LIMIT 1'
+    INTO contained
+    USING rid;
+
+    RETURN contained;
+  END
+$$;
+
 DROP FUNCTION IF EXISTS gen_select_sql(varchar[], varchar) CASCADE;
 CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
   RETURNS varchar
@@ -69,7 +87,10 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
          E'\nfrom ' ||
            '"' || schm || '"."' || table_name(var_path) || '" t' || level::varchar ||
 
-         CASE WHEN level = 1 THEN '' ELSE
+         CASE WHEN level = 1 THEN
+           -- E'\n where t' || level::varchar || '.container_id IS NULL'
+           ''
+         ELSE
            E'\nwhere t' ||
              level::varchar || '."resource_id" = t1."id" and t' ||
              level::varchar || '."parent_id" = t' ||
@@ -77,7 +98,7 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
          END;
 
       IF level = 1 THEN
-        RETURN 'select t1.id, ' || subselect;
+        RETURN 'select t1.id, (CASE WHEN t1.container_id IS NULL THEN (SELECT array_to_json(array_agg(select_contained(r.id, table_name(ARRAY[r.resource_type])))) FROM fhir.resource r WHERE r.container_id = t1.id) ELSE NULL END) as "contained", ' || subselect;
       ELSE
         RETURN
           CASE WHEN isArray THEN
@@ -100,16 +121,21 @@ CREATE OR REPLACE FUNCTION create_resource_view(resource_name varchar, schm varc
   LANGUAGE plpgsql
   AS $$
   DECLARE
-  create_sql text;
+  res_table_name varchar;
   BEGIN
     -- RAISE NOTICE 'Create JSON view for %', resource_name;
 
-    create_sql :=
-      'CREATE OR REPLACE VIEW "' || schm ||'"."view_' || underscore(resource_name) || '" AS SELECT t_1.id, row_to_json(t_1, true) AS json FROM (' ||
-      E'\n' || indent(gen_select_sql(ARRAY[resource_name], schm), 1) ||
-      ') t_1;';
+    res_table_name := table_name(ARRAY[resource_name]);
 
-    EXECUTE create_sql;
+    EXECUTE
+      'CREATE OR REPLACE VIEW "' || schm ||'"."view_' || res_table_name || '_with_containeds" AS ' ||
+      'SELECT t_1.id, row_to_json(t_1, true) AS json, res_table.container_id AS container_id , res_table.contained_id AS contained_id FROM (' ||
+      E'\n' || indent(gen_select_sql(ARRAY[resource_name], schm), 1) ||
+      ') t_1 JOIN fhir.' || res_table_name || ' res_table ON res_table.id = t_1.id;';
+
+    EXECUTE
+      'CREATE OR REPLACE VIEW fhir."view_' || res_table_name || '" AS SELECT id, json ' ||
+      'FROM fhir."view_' || res_table_name || '_with_containeds" WHERE container_id IS NULL';
   END
 $$;
 

@@ -35,8 +35,8 @@ create or replace function fhir.insert_resource(jdata json) returns uuid languag
 
       insert_record('fhir', table_name, attrs)
       return attrs['id']
-    else:
-      log('Skip %s with path %s' % (table_name, pth))
+    # else:
+    #   log('Skip %s with path %s' % (table_name, pth))
 
   def insert_record(schema, table_name, attrs):
     attrs['_type'] = table_name
@@ -101,7 +101,7 @@ create or replace function fhir.insert_resource(jdata json) returns uuid languag
     return SD['columns'][table_name]
 
   def collect_attributes(table_name, obj):
-    #TODO: quote literal
+    # TODO: quote literal
     def arr2lit(v):
       return '{%s}' % ','.join(map(lambda e: '"%s"' % e, v))
 
@@ -131,10 +131,23 @@ create or replace function fhir.insert_resource(jdata json) returns uuid languag
       attrs['_unknown_attributes'] = json.dumps(attrs['_unknown_attributes'])
     return attrs
 
+  def insert_containeds(data):
+    if 'contained' in data and isinstance(data['contained'], list):
+      for contained in data['contained']:
+        contained['contained_id'] = contained['id']
+        del contained['id']
+        contained['container_id'] = data['id']
+        insert_resource(contained)
+
+  def insert_resource(data):
+    if 'id' not in data:
+      data['id'] = uuid()
+
+    walk([], underscore(data['resourceType']), data, walk_function)
+    insert_containeds(data)
+
+    return data['id']
 
   data = json.loads(jdata)
-  if 'id' not in data:
-    data['id'] = uuid()
-  walk([], underscore(data['resourceType']), data, walk_function)
-  return data['id']
+  return insert_resource(data)
 $$;
