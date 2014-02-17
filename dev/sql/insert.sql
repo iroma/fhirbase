@@ -138,4 +138,3 @@ create or replace function fhir.insert_resource(jdata json) returns uuid languag
   walk([], underscore(data['resourceType']), data, walk_function)
   return data['id']
 $$;
-
