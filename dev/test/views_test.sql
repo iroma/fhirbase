@@ -5,7 +5,7 @@
 
 BEGIN;
 
-SELECT plan(7);
+SELECT plan(8);
 
 SELECT fhir.insert_resource(:'pt_json'::json) AS resource_id \gset
 
@@ -13,6 +13,12 @@ SELECT is(
        (SELECT COUNT(*) FROM fhir.patient),
        1::bigint,
        'only one patient was inserted');
+
+SELECT is(
+       (SELECT (json->>'resourceType')::varchar
+         FROM fhir.view_patient LIMIT 1),
+       'Patient'::varchar,
+       'receive correct resourceType from patient view');
 
 SELECT is(
        (SELECT (json->>'birthDate')::varchar

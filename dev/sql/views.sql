@@ -98,7 +98,7 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
          END;
 
       IF level = 1 THEN
-        RETURN 'select t1.id, (CASE WHEN t1.container_id IS NULL THEN (SELECT array_to_json(array_agg(select_contained(r.id, table_name(ARRAY[r.resource_type])))) FROM fhir.resource r WHERE r.container_id = t1.id) ELSE NULL END) as "contained", ' || subselect;
+        RETURN 'select t1.id, t1.resource_type as "resourceType", (CASE WHEN t1.container_id IS NULL THEN (SELECT array_to_json(array_agg(select_contained(r.id, table_name(ARRAY[r.resource_type])))) FROM fhir.resource r WHERE r.container_id = t1.id) ELSE NULL END) as "contained", ' || subselect;
       ELSE
         RETURN
           CASE WHEN isArray THEN

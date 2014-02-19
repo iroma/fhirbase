@@ -288,8 +288,8 @@ CREATE FUNCTION insert_resource(jdata json) RETURNS uuid
 
       insert_record('fhir', table_name, attrs)
       return attrs['id']
-    else:
-      log('Skip %s with path %s' % (table_name, pth))
+    # else:
+    #   log('Skip %s with path %s' % (table_name, pth))
 
   def insert_record(schema, table_name, attrs):
     attrs['_type'] = table_name
@@ -11473,6 +11473,7 @@ CREATE VIEW view_adverse_reaction_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -11538,6 +11539,7 @@ CREATE VIEW view_alert_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -11554,8 +11556,8 @@ CREATE VIEW view_alert_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM alert_category_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11620,6 +11622,7 @@ CREATE VIEW view_allergy_intolerance_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -11702,6 +11705,7 @@ CREATE VIEW view_care_plan_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -11773,6 +11777,7 @@ CREATE VIEW view_composition_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -11789,8 +11794,8 @@ CREATE VIEW view_composition_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM composition_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11806,8 +11811,8 @@ CREATE VIEW view_composition_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM composition_class_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11827,8 +11832,8 @@ CREATE VIEW view_composition_with_containeds AS
                             t2.version,
                             t2.display,
                             t2.code,
-                            t2.system,
-                            t2."primary"
+                            t2."primary",
+                            t2.system
                            FROM composition_confidentiality t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS confidentiality,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -11896,6 +11901,7 @@ CREATE VIEW view_concept_map_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -11962,6 +11968,7 @@ CREATE VIEW view_condition_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -11978,8 +11985,8 @@ CREATE VIEW view_condition_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM condition_severity_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -11995,8 +12002,8 @@ CREATE VIEW view_condition_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM condition_code_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12012,8 +12019,8 @@ CREATE VIEW view_condition_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM condition_certainty_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12029,8 +12036,8 @@ CREATE VIEW view_condition_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM condition_category_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12106,6 +12113,7 @@ CREATE VIEW view_conformance_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -12169,6 +12177,7 @@ CREATE VIEW view_device_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -12185,8 +12194,8 @@ CREATE VIEW view_device_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM device_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12272,6 +12281,7 @@ CREATE VIEW view_device_observation_report_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -12336,6 +12346,7 @@ CREATE VIEW view_diagnostic_order_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -12412,6 +12423,7 @@ CREATE VIEW view_diagnostic_report_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -12428,8 +12440,8 @@ CREATE VIEW view_diagnostic_report_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM diagnostic_report_service_category_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12445,8 +12457,8 @@ CREATE VIEW view_diagnostic_report_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM diagnostic_report_name_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12462,8 +12474,8 @@ CREATE VIEW view_diagnostic_report_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM diagnostic_report_coded_diagnosis_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12565,6 +12577,7 @@ CREATE VIEW view_document_manifest_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -12581,8 +12594,8 @@ CREATE VIEW view_document_manifest_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_manifest_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12598,8 +12611,8 @@ CREATE VIEW view_document_manifest_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_manifest_confidentiality_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12671,8 +12684,8 @@ CREATE VIEW view_document_manifest_with_containeds AS
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS author,
             t1.description,
             t1.status,
-            t1.source,
-            t1.created
+            t1.created,
+            t1.source
            FROM document_manifest t1) t_1
    JOIN document_manifest res_table ON ((res_table.id = t_1.id)));
 
@@ -12698,6 +12711,7 @@ CREATE VIEW view_document_reference_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -12714,8 +12728,8 @@ CREATE VIEW view_document_reference_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_reference_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12731,8 +12745,8 @@ CREATE VIEW view_document_reference_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_reference_doc_status_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12748,8 +12762,8 @@ CREATE VIEW view_document_reference_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_reference_confidentiality_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12765,8 +12779,8 @@ CREATE VIEW view_document_reference_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_reference_class_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12833,15 +12847,15 @@ CREATE VIEW view_document_reference_with_containeds AS
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS authenticator,
             t1.hash,
             t1.description,
+            t1.indexed,
             t1.status,
             t1.primary_language AS "primaryLanguage",
             t1.mime_type AS "mimeType",
+            t1.created,
             t1.size,
             t1.policy_manager AS "policyManager",
             t1.location,
-            t1.format,
-            t1.indexed,
-            t1.created
+            t1.format
            FROM document_reference t1) t_1
    JOIN document_reference res_table ON ((res_table.id = t_1.id)));
 
@@ -12867,6 +12881,7 @@ CREATE VIEW view_encounter_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -12883,8 +12898,8 @@ CREATE VIEW view_encounter_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM encounter_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12900,8 +12915,8 @@ CREATE VIEW view_encounter_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM encounter_reason_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12917,8 +12932,8 @@ CREATE VIEW view_encounter_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM encounter_priority_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -12999,6 +13014,7 @@ CREATE VIEW view_family_history_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -13058,6 +13074,7 @@ CREATE VIEW view_group_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -13074,8 +13091,8 @@ CREATE VIEW view_group_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM group_code_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13137,6 +13154,7 @@ CREATE VIEW view_imaging_study_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -13157,8 +13175,8 @@ CREATE VIEW view_imaging_study_with_containeds AS
                             t2.version,
                             t2.display,
                             t2.code,
-                            t2.system,
-                            t2."primary"
+                            t2."primary",
+                            t2.system
                            FROM imaging_study_procedure t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS procedure,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
@@ -13215,15 +13233,15 @@ CREATE VIEW view_imaging_study_with_containeds AS
                             t2.display
                            FROM imaging_study_interpreter t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS interpreter,
+            t1.uid,
             t1.description,
             t1.clinical_information AS "clinicalInformation",
             t1.modality,
             t1.availability,
+            t1.date_time AS "dateTime",
             t1.number_of_series AS "numberOfSeries",
             t1.number_of_instances AS "numberOfInstances",
-            t1.url,
-            t1.uid,
-            t1.date_time AS "dateTime"
+            t1.url
            FROM imaging_study t1) t_1
    JOIN imaging_study res_table ON ((res_table.id = t_1.id)));
 
@@ -13249,6 +13267,7 @@ CREATE VIEW view_imm_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -13265,8 +13284,8 @@ CREATE VIEW view_imm_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM imm_vaccine_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13282,8 +13301,8 @@ CREATE VIEW view_imm_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM imm_site_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13299,8 +13318,8 @@ CREATE VIEW view_imm_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM imm_route_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13314,9 +13333,9 @@ CREATE VIEW view_imm_with_containeds AS
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.units,
                             t2.code,
+                            t2.comparator,
                             t2.system,
-                            t2.value,
-                            t2.comparator
+                            t2.value
                            FROM imm_dose_quantity t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "doseQuantity",
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
@@ -13391,6 +13410,7 @@ CREATE VIEW view_imm_rec_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -13449,6 +13469,7 @@ CREATE VIEW view_list_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -13465,8 +13486,8 @@ CREATE VIEW view_list_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM list_empty_reason_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13482,8 +13503,8 @@ CREATE VIEW view_list_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM list_code_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13549,6 +13570,7 @@ CREATE VIEW view_loc_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -13565,8 +13587,8 @@ CREATE VIEW view_loc_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM loc_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13582,8 +13604,8 @@ CREATE VIEW view_loc_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM loc_physical_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13600,13 +13622,13 @@ CREATE VIEW view_loc_with_containeds AS
                                             t3."end"
                                            FROM loc_address_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city,
-                            t2.use
+                            t2.city
                            FROM loc_address t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -13676,6 +13698,7 @@ CREATE VIEW view_med_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -13692,8 +13715,8 @@ CREATE VIEW view_med_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM med_code_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13737,6 +13760,7 @@ CREATE VIEW view_med_adm_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -13753,8 +13777,8 @@ CREATE VIEW view_med_adm_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM med_adm_reason_not_given_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -13844,6 +13868,7 @@ CREATE VIEW view_med_disp_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -13913,6 +13938,7 @@ CREATE VIEW view_med_prs_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -13929,8 +13955,8 @@ CREATE VIEW view_med_prs_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM med_prs_reason_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14010,6 +14036,7 @@ CREATE VIEW view_med_st_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -14026,8 +14053,8 @@ CREATE VIEW view_med_st_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM med_st_reason_not_given_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14101,6 +14128,7 @@ CREATE VIEW view_media_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -14117,8 +14145,8 @@ CREATE VIEW view_media_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM media_view_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14134,8 +14162,8 @@ CREATE VIEW view_media_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM media_subtype_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14185,11 +14213,11 @@ CREATE VIEW view_media_with_containeds AS
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS content,
             t1.device_name AS "deviceName",
             t1.type,
+            t1.date_time AS "dateTime",
             t1.width,
             t1.length,
             t1.height,
-            t1.frames,
-            t1.date_time AS "dateTime"
+            t1.frames
            FROM media t1) t_1
    JOIN media res_table ON ((res_table.id = t_1.id)));
 
@@ -14215,6 +14243,7 @@ CREATE VIEW view_message_header_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -14231,8 +14260,8 @@ CREATE VIEW view_message_header_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM message_header_reason_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14252,8 +14281,8 @@ CREATE VIEW view_message_header_with_containeds AS
                             t2.version,
                             t2.display,
                             t2.code,
-                            t2.system,
-                            t2."primary"
+                            t2."primary",
+                            t2.system
                            FROM message_header_event t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS event,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -14308,6 +14337,7 @@ CREATE VIEW view_obs_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -14324,8 +14354,8 @@ CREATE VIEW view_obs_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM obs_value_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14341,8 +14371,8 @@ CREATE VIEW view_obs_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM obs_name_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14358,8 +14388,8 @@ CREATE VIEW view_obs_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM obs_method_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14375,8 +14405,8 @@ CREATE VIEW view_obs_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM obs_interpretation_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14392,8 +14422,8 @@ CREATE VIEW view_obs_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM obs_body_site_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14403,9 +14433,9 @@ CREATE VIEW view_obs_with_containeds AS
                    FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM obs_value_sampled_data_origin t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS origin,
                             t2.data,
@@ -14435,17 +14465,17 @@ CREATE VIEW view_obs_with_containeds AS
                    FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM obs_value_ratio_numerator t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS numerator,
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM obs_value_ratio_denominator t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS denominator
                            FROM obs_value_ratio t2
@@ -14453,9 +14483,9 @@ CREATE VIEW view_obs_with_containeds AS
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.units,
                             t2.code,
+                            t2.comparator,
                             t2.system,
-                            t2.value,
-                            t2.comparator
+                            t2.value
                            FROM obs_value_quantity t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "valueQuantity",
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -14502,9 +14532,9 @@ CREATE VIEW view_obs_with_containeds AS
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS "valueAttachment",
             t1.value_string AS "valueString",
             t1.comments,
+            t1.issued,
             t1.status,
             t1.reliability,
-            t1.issued,
             t1.applies_date_time AS "appliesDateTime"
            FROM obs t1) t_1
    JOIN obs res_table ON ((res_table.id = t_1.id)));
@@ -14531,6 +14561,7 @@ CREATE VIEW view_operation_outcome_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -14567,6 +14598,7 @@ CREATE VIEW view_order_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -14583,8 +14615,8 @@ CREATE VIEW view_order_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM order_reason_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14668,6 +14700,7 @@ CREATE VIEW view_order_response_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -14684,8 +14717,8 @@ CREATE VIEW view_order_response_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM order_response_authority_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14761,6 +14794,7 @@ CREATE VIEW view_organization_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -14777,8 +14811,8 @@ CREATE VIEW view_organization_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM organization_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14795,13 +14829,13 @@ CREATE VIEW view_organization_with_containeds AS
                                             t3."end"
                                            FROM organization_address_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city,
-                            t2.use
+                            t2.city
                            FROM organization_address t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
@@ -14869,6 +14903,7 @@ CREATE VIEW view_other_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -14885,8 +14920,8 @@ CREATE VIEW view_other_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM other_code_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14950,6 +14985,7 @@ CREATE VIEW view_patient_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -14966,8 +15002,8 @@ CREATE VIEW view_patient_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM patient_marital_status_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -14983,8 +15019,8 @@ CREATE VIEW view_patient_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM patient_gender_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15000,8 +15036,8 @@ CREATE VIEW view_patient_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM patient_communication_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15018,13 +15054,13 @@ CREATE VIEW view_patient_with_containeds AS
                                             t3."end"
                                            FROM patient_address_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city,
-                            t2.use
+                            t2.city
                            FROM patient_address t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
@@ -15089,9 +15125,9 @@ CREATE VIEW view_patient_with_containeds AS
                             t2.system
                            FROM patient_telecom t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS telecom,
-            t1.multiple_birth_integer AS "multipleBirthInteger",
             t1.deceased_date_time AS "deceasedDateTime",
             t1.birth_date AS "birthDate",
+            t1.multiple_birth_integer AS "multipleBirthInteger",
             t1.multiple_birth_boolean AS "multipleBirthBoolean",
             t1.deceased_boolean AS "deceasedBoolean",
             t1.active
@@ -15120,6 +15156,7 @@ CREATE VIEW view_practitioner_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -15136,8 +15173,8 @@ CREATE VIEW view_practitioner_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM practitioner_specialty_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15153,8 +15190,8 @@ CREATE VIEW view_practitioner_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM practitioner_role_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15170,8 +15207,8 @@ CREATE VIEW view_practitioner_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM practitioner_gender_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15187,8 +15224,8 @@ CREATE VIEW view_practitioner_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM practitioner_communication_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15205,13 +15242,13 @@ CREATE VIEW view_practitioner_with_containeds AS
                                             t3."end"
                                            FROM practitioner_address_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city,
-                            t2.use
+                            t2.city
                            FROM practitioner_address t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -15307,6 +15344,7 @@ CREATE VIEW view_procedure_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -15323,8 +15361,8 @@ CREATE VIEW view_procedure_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM procedure_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15340,8 +15378,8 @@ CREATE VIEW view_procedure_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM procedure_indication_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15357,8 +15395,8 @@ CREATE VIEW view_procedure_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM procedure_complication_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15374,8 +15412,8 @@ CREATE VIEW view_procedure_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM procedure_body_site_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15451,6 +15489,7 @@ CREATE VIEW view_provenance_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -15467,8 +15506,8 @@ CREATE VIEW view_provenance_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM provenance_reason_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15495,8 +15534,8 @@ CREATE VIEW view_provenance_with_containeds AS
                            FROM provenance_loc t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS location,
             t1.integrity_signature AS "integritySignature",
-            t1.policy,
-            t1.recorded
+            t1.recorded,
+            t1.policy
            FROM provenance t1) t_1
    JOIN provenance res_table ON ((res_table.id = t_1.id)));
 
@@ -15522,6 +15561,7 @@ CREATE VIEW view_query_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -15559,6 +15599,7 @@ CREATE VIEW view_questionnaire_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -15575,8 +15616,8 @@ CREATE VIEW view_questionnaire_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM questionnaire_name_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15651,6 +15692,7 @@ CREATE VIEW view_related_person_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -15667,8 +15709,8 @@ CREATE VIEW view_related_person_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM related_person_relationship_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15684,8 +15726,8 @@ CREATE VIEW view_related_person_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM related_person_gender_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15702,13 +15744,13 @@ CREATE VIEW view_related_person_with_containeds AS
                                             t3."end"
                                            FROM related_person_address_period t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS period,
+                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city,
-                            t2.use
+                            t2.city
                            FROM related_person_address t2
                           WHERE ((t2.resource_id = t1.id) AND (t2.parent_id = t1.id))) t_2) AS address,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -15793,6 +15835,7 @@ CREATE VIEW view_security_event_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -15829,6 +15872,7 @@ CREATE VIEW view_specimen_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -15845,8 +15889,8 @@ CREATE VIEW view_specimen_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM specimen_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15922,6 +15966,7 @@ CREATE VIEW view_substance_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -15938,8 +15983,8 @@ CREATE VIEW view_substance_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM substance_type_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -15976,6 +16021,7 @@ CREATE VIEW view_supply_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
@@ -15992,8 +16038,8 @@ CREATE VIEW view_supply_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM supply_kind_cd t3
                                           WHERE ((t3.resource_id = t1.id) AND (t3.parent_id = t2.id))) t_3) AS coding,
                             t2.text
@@ -16103,6 +16149,7 @@ CREATE VIEW view_vs_with_containeds AS
     res_table.container_id,
     res_table.contained_id
    FROM (( SELECT t1.id,
+            t1.resource_type AS "resourceType",
                 CASE
                     WHEN (t1.container_id IS NULL) THEN ( SELECT array_to_json(array_agg(public.select_contained(r.id, public.table_name(ARRAY[r.resource_type])))) AS array_to_json
                        FROM resource r
