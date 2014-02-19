@@ -151,4 +151,3 @@ create or replace function fhir.insert_resource(jdata json) returns uuid languag
   data = json.loads(jdata)
   return insert_resource(data)
 $$;
-
