@@ -1,3 +1,4 @@
+set search_path = fhir, pg_catalog;
 create view meta.enums as (     --
   select replace(datatype, '-list','') as enum, array_agg(value) as options
   from meta.datatype_enums
@@ -84,3 +85,4 @@ VIEW meta.datatype_tables AS (
   order by array_length(cd.path,1), table_name
 );
 
+set search_path = public, pg_catalog;

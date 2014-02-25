@@ -1,7 +1,8 @@
-create or replace function py_init() returns void language plpythonu as $$
-  if '__init__' not in GD:
+create schema fhir;
+create or replace function fhir.py_init() returns void language plpythonu as $$
+  if '__fhir__init__' not in GD:
     def underscore(x):
-      return plpy.execute("select underscore('%s')" % x)[0]['underscore']
+      return plpy.execute("select fhir.underscore('%s')" % x)[0]['underscore']
 
     def prepare_path(path):
       word_aliases = {
@@ -37,5 +38,5 @@ create or replace function py_init() returns void language plpythonu as $$
 
     GD['underscore'] = underscore
     GD['prepare_path'] = prepare_path
-    GD['__init__'] = True
+    GD['__fhir__init__'] = True
 $$;

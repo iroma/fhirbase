@@ -47,12 +47,16 @@ function install_cmd {
         exit 1
     else
         echo "Installing fhirbase into DB $1..."
-        psql $PSQL_ARGS -d $1 < install.sql
+        psql $PSQL_ARGS -d $1 < $2
     fi
 }
 
 function recreate_db {
     echo "DROP DATABASE $1; CREATE DATABASE $1;" | psql $PSQL_ARGS -d postgres;
+}
+
+function drop_db {
+    psql $PSQL_ARGS -d template1 -c "DROP DATABASE $1";
 }
 
 function test_cmd {
@@ -85,25 +89,44 @@ case "$CMD" in
         test_cmd
         ;;
     "install" )
-        install_cmd $2
+        install_cmd $2 install.sql
         ;;
 
     "bench" )
         if [ "$2" != "-s" ]; then
             recreate_db $BENCH_DB_NAME
-            install_cmd $BENCH_DB_NAME
+            install_cmd $BENCH_DB_NAME install.sql
         fi
 
         cd $FHIRBASE_HOME/bench && psql $PSQL_ARGS -v ON_ERROR_STOP=1 -d $BENCH_DB_NAME < bench.sql
         ;;
+
+    "build_full_db" )
+        echo "Building fhirbase-full.sql"
+        recreate_db $BUILD_FULL_DB_NAME
+        install_cmd $BUILD_FULL_DB_NAME sql/extensions.sql
+        install_cmd $BUILD_FULL_DB_NAME $FHIRBASE_HOME/../fhirbase.sql
+
+        pg_dump $PSQL_ARGS \
+                --create \
+                --format=plain \
+                --no-owner \
+                --file=$FHIRBASE_HOME/../fhirbase-full.sql \
+                $BUILD_DB_NAME && echo "FhirBase database successfully dumped to $FHIRBASE_HOME/../fhirbase-full.sql"
+
+        cd $FHIRBASE_HOME/.. && psql $PSQL_ARGS -v ON_ERROR_STOP=1 -d $BUILD_FULL_DB_NAME < fhirbase_test.sql
+        drop_db $BUILD_FULL_DB_NAME
+        ;;
+
     "build" )
         echo "Building fhirbase.sql"
 
         recreate_db $BUILD_DB_NAME
-        install_cmd $BUILD_DB_NAME
+        install_cmd $BUILD_DB_NAME install.sql
 
         pg_dump $PSQL_ARGS \
                 --format=plain \
+                --schema=meta \
                 --schema=fhir \
                 --no-owner \
                 --file=$FHIRBASE_HOME/../fhirbase.sql \

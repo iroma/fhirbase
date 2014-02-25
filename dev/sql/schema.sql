@@ -1,3 +1,4 @@
+set search_path = fhir, pg_catalog;
 -- FIXME: may be use underscore
 
 -- expand polimorphic types
@@ -82,3 +83,5 @@ VIEW meta.resource_tables as (
     array[]::varchar[] as columns
   FROM meta.expanded_with_dt_resource_elements
 );
+
+set search_path = public, pg_catalog;

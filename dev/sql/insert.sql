@@ -66,7 +66,7 @@ create or replace function fhir.insert_resource(jdata json) returns uuid languag
 
   def get_table_name(path):
     args = ','.join(map(lambda e: plpy.quote_literal(e), path))
-    sql = 'SELECT table_name(ARRAY[%s])' % args
+    sql = 'SELECT fhir.table_name(ARRAY[%s])' % args
     return plpy.execute(sql)[0]['table_name']
 
   def table_exists(table_name):

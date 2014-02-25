@@ -33,7 +33,7 @@ $$  IMMUTABLE;
 
 SELECT is (
   (
-    select array_sort(array_agg(array_last(path))) as nm
+    select array_sort(array_agg(fhir.array_last(path))) as nm
     from meta.compound_resource_elements
     where path[1] = 'Encounter'
   ),

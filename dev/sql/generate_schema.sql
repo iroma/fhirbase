@@ -74,8 +74,6 @@ CREATE OR REPLACE FUNCTION generate_schema(version TEXT)
     return ";\n".join([create_table, create_fk, create_indexes])
 
   queries = [
-    "DROP SCHEMA IF EXISTS fhir CASCADE",
-    "CREATE SCHEMA fhir",
     """
     CREATE TABLE fhir.resource (
       id UUID PRIMARY KEY,

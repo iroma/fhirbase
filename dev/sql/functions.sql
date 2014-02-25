@@ -1,3 +1,6 @@
+--create schema functions;
+set search_path = fhir, pg_catalog;
+
 create OR replace function underscore(str varchar)
   returns varchar
   language plpgsql
@@ -41,7 +44,7 @@ $$ IMMUTABLE;
 CREATE OR REPLACE
 FUNCTION parent_table_name(path varchar[])
 RETURNS varchar LANGUAGE plpythonu AS $$
-  plpy.execute('select py_init()')
+  plpy.execute('select fhir.py_init()')
   acc = GD['prepare_path'](path)
   return GD['underscore']('_'.join(acc[0:-1]))
 $$ IMMUTABLE;
@@ -49,7 +52,7 @@ $$ IMMUTABLE;
 CREATE OR REPLACE
 FUNCTION resource_table_name(path varchar[])
 RETURNS varchar LANGUAGE plpythonu AS $$
-  plpy.execute('select py_init()')
+  plpy.execute('select fhir.py_init()')
   acc = GD['prepare_path'](path)
   return GD['underscore'](acc[0])
 $$ IMMUTABLE;
@@ -57,7 +60,7 @@ $$ IMMUTABLE;
 CREATE OR REPLACE
 FUNCTION table_name(path varchar[])
 RETURNS varchar LANGUAGE plpythonu AS $$
-  plpy.execute('select py_init()')
+  plpy.execute('select fhir.py_init()')
   acc = GD['prepare_path'](path)
   return GD['underscore']('_'.join(acc))
 $$ IMMUTABLE;
@@ -82,7 +85,7 @@ FUNCTION column_ddl(column_name varchar, pg_type varchar, min varchar, max varch
   RETURNS varchar LANGUAGE plpgsql AS $$
   BEGIN
     return ('"' ||
-      underscore(column_name) ||
+      fhir.underscore(column_name) ||
       '" ' ||
       pg_type ||
       case
@@ -117,3 +120,5 @@ RETURNS json LANGUAGE plpythonu AS $$
   j = json.dumps(l)
   return j
 $$ IMMUTABLE;
+
+set search_path = public, pg_catalog;

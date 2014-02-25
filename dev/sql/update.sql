@@ -7,9 +7,9 @@ BEGIN
 
   IF num_of_deleted_rows = 0 THEN
     RAISE EXCEPTION 'Resource with id % not found', id;
-	END IF;
+  END IF;
 
-	PERFORM fhir.insert_resource(merge_json(resource_data, ('{ "id": "' || id::varchar || '"}')::json));
-	RETURN 0::integer;
+  PERFORM fhir.insert_resource(fhir.merge_json(resource_data, ('{ "id": "' || id::varchar || '"}')::json));
+  RETURN 0::integer;
 END
 $$;

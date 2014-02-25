@@ -5,7 +5,7 @@ BEGIN;
 
 CREATE EXTENSION pgtap;
 
-SELECT plan(7);
+SELECT plan(8);
 
 SELECT COUNT(*) FROM (SELECT fhir.insert_resource(:'pt1') FROM generate_series(1,20)) gen;
 
@@ -30,5 +30,8 @@ SELECT is((SELECT (((json)->'identifier')->0->>'value')::varchar
        WHERE id = :'second_id'),
        '12345'::varchar,
        'second patient''s data was actualy changed');
+
+SELECT ok((SELECT count(*) FROM information_schema.views WHERE table_schema = 'fhir') = 94,
+          'Create all views');
 
 ROLLBACK;

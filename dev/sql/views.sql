@@ -1,3 +1,4 @@
+set search_path = fhir, pg_catalog;
 CREATE TABLE meta.resource_elements_expanded_with_types AS
 SELECT * FROM (
   SELECT
@@ -23,7 +24,7 @@ CREATE INDEX resource_elements_expanded_with_types_type_idx
        ON meta.resource_elements_expanded_with_types (type);
 
 CREATE INDEX resource_elements_expanded_with_types_popped_path_idx
-       ON meta.resource_elements_expanded_with_types (array_pop(path));
+       ON meta.resource_elements_expanded_with_types (fhir.array_pop(path));
 
 DROP FUNCTION IF EXISTS select_contained(uuid, varchar) CASCADE;
 CREATE OR REPLACE FUNCTION select_contained(rid uuid, resource_type varchar)
@@ -34,7 +35,7 @@ CREATE OR REPLACE FUNCTION select_contained(rid uuid, resource_type varchar)
     contained json;
   BEGIN
     EXECUTE
-      'SELECT merge_json(t.json, (''{"id": "'' || t.contained_id::varchar || ''"}'')::json)' ||
+      'SELECT fhir.merge_json(t.json, (''{"id": "'' || t.contained_id::varchar || ''"}'')::json)' ||
       ' FROM fhir."view_' || resource_type || '_with_containeds" t WHERE t.id = $1 LIMIT 1'
     INTO contained
     USING rid;
@@ -62,17 +63,17 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
     FROM meta.resource_elements_expanded_with_types n
     WHERE n.path = var_path;
 
-    SELECT array_to_string(array_agg('t' || level::varchar || '."' || underscore(array_last(n.path)) || '" as "' || camelize(array_last(n.path)) || '"'), ', ')
+    SELECT array_to_string(array_agg('t' || level::varchar || '."' || underscore(fhir.array_last(n.path)) || '" as "' || camelize(fhir.array_last(n.path)) || '"'), ', ')
     INTO columns
     FROM meta.resource_elements_expanded_with_types n
     JOIN meta.primitive_types pt ON underscore(pt.type) = underscore(n.type)
-    WHERE array_pop(n.path) = var_path;
+    WHERE fhir.array_pop(n.path) = var_path;
 
-    SELECT array_to_string(array_agg(E'(\n' || indent(gen_select_sql(n.path, schm), 3) || E'\n) as "' || camelize(array_last(n.path)) || '"'), E',\n')
+    SELECT array_to_string(array_agg(E'(\n' || indent(gen_select_sql(n.path, schm), 3) || E'\n) as "' || camelize(fhir.array_last(n.path)) || '"'), E',\n')
     INTO selects
     FROM meta.resource_elements_expanded_with_types n
     LEFT JOIN meta.primitive_types pt on underscore(pt.type) = underscore(n.type)
-    WHERE pt.type IS NULL AND array_pop(n.path) = var_path and array_last(n.path) not in ('contained');
+    WHERE pt.type IS NULL AND fhir.array_pop(n.path) = var_path and fhir.array_last(n.path) not in ('contained');
 
     IF selects IS NULL AND columns IS NULL THEN
       RETURN 'NULL';
@@ -85,7 +86,7 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
          COALESCE(columns, '') ||
 
          E'\nfrom ' ||
-           '"' || schm || '"."' || table_name(var_path) || '" t' || level::varchar ||
+           '"' || schm || '"."' || fhir.table_name(var_path) || '" t' || level::varchar ||
 
          CASE WHEN level = 1 THEN
            -- E'\n where t' || level::varchar || '.container_id IS NULL'
@@ -98,7 +99,7 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
          END;
 
       IF level = 1 THEN
-        RETURN 'select t1.id, t1.resource_type as "resourceType", (CASE WHEN t1.container_id IS NULL THEN (SELECT array_to_json(array_agg(select_contained(r.id, table_name(ARRAY[r.resource_type])))) FROM fhir.resource r WHERE r.container_id = t1.id) ELSE NULL END) as "contained", ' || subselect;
+        RETURN 'select t1.id, t1.resource_type as "resourceType", (CASE WHEN t1.container_id IS NULL THEN (SELECT array_to_json(array_agg(fhir.select_contained(r.id, fhir.table_name(ARRAY[r.resource_type])))) FROM fhir.resource r WHERE r.container_id = t1.id) ELSE NULL END) as "contained", ' || subselect;
       ELSE
         RETURN
           CASE WHEN isArray THEN
@@ -125,7 +126,7 @@ CREATE OR REPLACE FUNCTION create_resource_view(resource_name varchar, schm varc
   BEGIN
     -- RAISE NOTICE 'Create JSON view for %', resource_name;
 
-    res_table_name := table_name(ARRAY[resource_name]);
+    res_table_name := fhir.table_name(ARRAY[resource_name]);
 
     EXECUTE
       'CREATE OR REPLACE VIEW "' || schm ||'"."view_' || res_table_name || '_with_containeds" AS ' ||
@@ -143,3 +144,5 @@ $$;
 SELECT create_resource_view(path[1], 'fhir')
   FROM meta.expanded_resource_elements
   WHERE array_length(path, 1) = 1 AND path[1] <> 'Profile';
+
+set search_path = public, pg_catalog;
