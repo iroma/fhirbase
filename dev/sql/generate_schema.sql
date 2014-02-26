@@ -82,15 +82,17 @@ CREATE OR REPLACE FUNCTION generate_schema(version TEXT)
       resource_type varchar,
       language VARCHAR,
       container_id UUID REFERENCES fhir.resource (id) ON DELETE CASCADE,
-      contained_id VARCHAR
+      contained_id VARCHAR,
+      created_at timestamp DEFAULT now()
     );
 
     CREATE TABLE fhir.resource_component (
-     id uuid PRIMARY KEY,
-     _type VARCHAR NOT NULL,
-     _unknown_attributes json,
-     parent_id UUID NOT NULL REFERENCES fhir.resource_component (id) ON DELETE CASCADE,
-     resource_id UUID NOT NULL REFERENCES fhir.resource (id) ON DELETE CASCADE
+      id uuid PRIMARY KEY,
+      _type VARCHAR NOT NULL,
+      _unknown_attributes json,
+      parent_id UUID NOT NULL REFERENCES fhir.resource_component (id) ON DELETE CASCADE,
+      resource_id UUID NOT NULL REFERENCES fhir.resource (id) ON DELETE CASCADE,
+      created_at timestamp DEFAULT now()
     );
     """
   ]
