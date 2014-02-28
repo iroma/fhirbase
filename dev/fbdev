@@ -116,6 +116,7 @@ case "$CMD" in
 
         cd $FHIRBASE_HOME/.. && psql $PSQL_ARGS -v ON_ERROR_STOP=1 -d $BUILD_FULL_DB_NAME < fhirbase_test.sql
         drop_db $BUILD_FULL_DB_NAME
+        sed -i s/$BUILD_DB_NAME/fhirbase/g $FHIRBASE_HOME/../fhirbase-full.sql
         ;;
 
     "build" )

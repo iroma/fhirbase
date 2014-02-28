@@ -10,13 +10,13 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 
 --
--- Name: fhirbase_build; Type: DATABASE; Schema: -; Owner: -
+-- Name: fhirbase; Type: DATABASE; Schema: -; Owner: -
 --
 
-CREATE DATABASE fhirbase_build WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';
+CREATE DATABASE fhirbase WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';
 
 
-\connect fhirbase_build
+\connect fhirbase
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
