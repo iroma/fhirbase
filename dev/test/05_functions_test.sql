@@ -1,11 +1,12 @@
 --db:testfhir
 --{{{
-\ir 'spec_helper.sql'
-\ir ../sql/extensions.sql
-\ir ../sql/py_init.sql
-\ir ../sql/meta.sql
-\ir ../sql/load_meta.sql
-\ir ../sql/functions.sql
+\ir '00_spec_helper.sql'
+\ir ../sql/01_extensions.sql
+\ir ../sql/02_py_init.sql
+\ir ../sql/03_meta.sql
+\ir ../sql/04_load_meta.sql
+\ir ../sql/05_functions.sql
+
 BEGIN;
 SELECT plan(7);
 

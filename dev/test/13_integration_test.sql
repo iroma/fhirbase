@@ -1,20 +1,5 @@
---db:myfhir
---{{{
-\ir 'spec_helper.sql'
-\ir ../sql/extensions.sql
-\ir ../sql/py_init.sql
-\ir ../sql/meta.sql
-\ir ../sql/load_meta.sql
-\ir ../sql/functions.sql
-\ir ../sql/datatypes.sql
-\ir ../sql/schema.sql
-\ir ../sql/generate_schema.sql
-
-\ir ../sql/views.sql
-\ir ../sql/insert.sql
-
---}}}
---{{{
+\ir '00_spec_helper.sql'
+\ir ../install.sql
 
 BEGIN;
 SELECT plan(4);
@@ -61,4 +46,3 @@ SELECT json->'contained' FROM fhir.view_patient;
 
 SELECT * FROM finish();
 ROLLBACK;
---}}}

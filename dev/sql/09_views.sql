@@ -1,4 +1,5 @@
 set search_path = fhir, pg_catalog;
+
 CREATE TABLE meta.resource_elements_expanded_with_types AS
 SELECT * FROM (
   SELECT

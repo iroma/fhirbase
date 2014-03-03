@@ -1,5 +1,14 @@
-\ir 'spec_helper.sql'
-\ir ../install.sql
+\ir '00_spec_helper.sql'
+\ir ../sql/01_extensions.sql
+\ir ../sql/02_py_init.sql
+\ir ../sql/03_meta.sql
+\ir ../sql/04_load_meta.sql
+\ir ../sql/05_functions.sql
+\ir ../sql/06_datatypes.sql
+\ir ../sql/07_schema.sql
+\ir ../sql/08_generate_schema.sql
+\ir ../sql/09_views.sql
+\ir ../sql/10_insert.sql
 
 \set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`
 

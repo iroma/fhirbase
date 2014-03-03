@@ -105,4 +105,4 @@ CREATE OR REPLACE FUNCTION generate_schema(version TEXT)
     exe(query)
 $$;
 
-select generate_schema('0.12'::text);
+SELECT generate_schema('0.12'::text);

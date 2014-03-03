@@ -1,7 +1,7 @@
 --db:testfhir
 --{{{
-\ir 'spec_helper.sql'
-\ir ../sql/meta.sql
+\ir '00_spec_helper.sql'
+\ir ../sql/03_meta.sql
 
 BEGIN;
 SELECT plan(5);

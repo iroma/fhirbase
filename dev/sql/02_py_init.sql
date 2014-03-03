@@ -1,5 +1,10 @@
-create schema fhir;
-create or replace function fhir.py_init() returns void language plpythonu as $$
+-- TODO: replace with plv8
+CREATE LANGUAGE plpythonu;
+
+CREATE SCHEMA IF NOT EXISTS fhir;
+CREATE OR REPLACE FUNCTION
+fhir.py_init() RETURNS void
+LANGUAGE plpythonu as $$
   if '__fhir__init__' not in GD:
     def underscore(x):
       return plpy.execute("select fhir.underscore('%s')" % x)[0]['underscore']

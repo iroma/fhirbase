@@ -1,7 +1,7 @@
 --create schema functions;
 set search_path = fhir, pg_catalog;
-
-create OR replace function underscore(str varchar)
+CREATE OR REPLACE
+FUNCTION underscore(str varchar)
   returns varchar
   language plpgsql
   as $$

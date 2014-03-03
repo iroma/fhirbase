@@ -1,7 +1,7 @@
 create schema meta;
 -- FIXME: foreign keys and indexes
 
-create table meta.datatypes (
+CREATE TABLE meta.datatypes (
   version varchar,
   type varchar,
   kind varchar,
@@ -11,7 +11,7 @@ create table meta.datatypes (
   PRIMARY KEY(type)
 );
 
-create table meta.datatype_elements (
+CREATE TABLE meta.datatype_elements (
   version varchar,
   datatype varchar references meta.datatypes(type),
   name varchar,
@@ -22,7 +22,7 @@ create table meta.datatype_elements (
   PRIMARY KEY(datatype, name)
 );
 
-create table meta.datatype_enums (
+CREATE TABLE meta.datatype_enums (
   version varchar,
   datatype varchar references meta.datatypes(type),
   value varchar,
@@ -31,42 +31,21 @@ create table meta.datatype_enums (
 );
 
 
---create table meta.resources (
---version varchar,
---type varchar,
---publish boolean,
---PRIMARY KEY(type)
---);
-
-create table meta.resource_elements (
+CREATE TABLE meta.resource_elements (
   version varchar,
   path varchar[],
   min varchar,
   max varchar,
   type varchar[],
-  --is_modifier boolean,
-  --resource varchar references meta.resources(type),
-  --synonym varchar[],
-  --short text,
-  --formal text,
-  --mapping_target varchar,
-  --mapping_map varchar,
   PRIMARY KEY(path)
 );
 
---create table meta.resource_element_bindings (
-  --  version varchar,
-  --  path varchar[],
-  --  TODO varchar,
-  --  PRIMARY KEY(path)
-  --);
-
-create table meta.type_to_pg_type (
+CREATE TABLE meta.type_to_pg_type (
   type varchar,
   pg_type varchar
 );
 
-insert into meta.type_to_pg_type (type, pg_type)
+INSERT INTO meta.type_to_pg_type (type, pg_type)
 VALUES
 ('code', 'varchar'),
 ('date_time', 'timestamp'),

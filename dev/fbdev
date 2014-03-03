@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# set configuration file or use fbdev_config.sh
 CFG_FILE='fbdev_config.sh'
 while getopts ":c:" opt; do
     case $opt in
@@ -30,7 +31,7 @@ export FHIRBASE_HOME;
 
 function help_cmd {
     cat <<EOF
-Usage: $0 [command] [args]
+Usage: $0 [-c config_file.sh] [command] [args]
 
 Available commands:
 
@@ -104,7 +105,7 @@ case "$CMD" in
     "build_full_db" )
         echo "Building fhirbase-full.sql"
         recreate_db $BUILD_FULL_DB_NAME
-        install_cmd $BUILD_FULL_DB_NAME sql/extensions.sql
+        install_cmd $BUILD_FULL_DB_NAME sql/01_extensions.sql
         install_cmd $BUILD_FULL_DB_NAME $FHIRBASE_HOME/../fhirbase.sql
 
         pg_dump $PSQL_ARGS \

@@ -1,6 +1,6 @@
 --db:myfhir
 --{{{
-\ir 'spec_helper.sql'
+\ir '00_spec_helper.sql'
 \ir ../install.sql
 
 \set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`
