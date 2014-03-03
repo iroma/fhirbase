@@ -3,10 +3,15 @@
 Relational storage for [FHIR](http://hl7.org/implement/standards/fhir/) with document API
 
 
-### Why Relational
-... we need describe problems and examples
+#### Why Relational
 
-### Why Document API
+Проблемы с хранением в документных базах данных: невозможность/сложность поиска по атрибутам, сложность соблюдения целостность данных, большие размеры базы данных
+
+* Fine-Granularity of data control - Rich Query & Data Abstraction capabilities - power of Relational Algebra
+* Storage Efficiency - calculate rate for document storages
+* Enhanced Data Consistency - applying most of FHIR contstraints on database level
+
+#### Why Document API
 ... we need describe problems and examples
 
 
