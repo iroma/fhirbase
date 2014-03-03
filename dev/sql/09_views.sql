@@ -142,8 +142,10 @@ CREATE OR REPLACE FUNCTION create_resource_view(resource_name varchar, schm varc
 $$;
 
 -- run view generator for all resources
-SELECT create_resource_view(path[1], 'fhir')
-  FROM meta.expanded_resource_elements
-  WHERE array_length(path, 1) = 1 AND path[1] <> 'Profile';
+SELECT count(*) as resources_created FROM (
+  SELECT create_resource_view(path[1], 'fhir')
+    FROM meta.expanded_resource_elements
+    WHERE array_length(path, 1) = 1 AND path[1] <> 'Profile'
+  ) as _;
 
 set search_path = public, pg_catalog;

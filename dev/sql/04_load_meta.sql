@@ -1,10 +1,8 @@
---db:testfhir
---{{{
 \set fhir `cat $FHIRBASE_HOME/fhir/test/profiles-resources.xml`
 \set datatypes `cat $FHIRBASE_HOME/fhir/test/fhir-base.xsd`
 
-create OR replace
-function xattr(pth varchar, x xml) returns varchar
+CREATE or REPLACE
+FUNCTION xattr(pth varchar, x xml) returns varchar
   as $$
   BEGIN
     return  unnest(xpath(pth, x, ARRAY[ARRAY['fh', 'http://hl7.org/fhir']])) limit 1;
@@ -13,16 +11,16 @@ $$ language plpgsql;
 
 -- HACK: see http://joelonsql.com/2013/05/13/xml-madness/
 -- problems with namespaces
-create OR replace
-function xspath(pth varchar, x xml) returns xml[]
+CREATE OR REPLACE
+FUNCTION xspath(pth varchar, x xml) returns xml[]
   as $$
   BEGIN
     return  xpath('/xml' || pth, xml('<xml xmlns:xs="xs">' || x || '</xml>'), ARRAY[ARRAY['xs','xs']]);
   END
 $$ language plpgsql IMMUTABLE;
 
-create OR replace
-function xsattr(pth varchar, x xml) returns varchar
+CREATE OR REPLACE
+FUNCTION xsattr(pth varchar, x xml) returns varchar
   as $$
   BEGIN
     return  unnest(xspath( pth,x)) limit 1;
@@ -30,8 +28,8 @@ function xsattr(pth varchar, x xml) returns varchar
 $$ language plpgsql IMMUTABLE;
 
 
-create OR replace
-function fpath(pth varchar, x xml) returns xml[]
+CREATE OR REPLACE
+FUNCTION fpath(pth varchar, x xml) returns xml[]
   as $$
   BEGIN
     return xpath(pth, x, ARRAY[ARRAY['fh', 'http://hl7.org/fhir']]);
@@ -121,4 +119,3 @@ select
   ) els
 ;
 END;
---}}}

@@ -93,48 +93,24 @@ case "$CMD" in
         install_cmd $2 install.sql
         ;;
 
-    "bench" )
-        if [ "$2" != "-s" ]; then
-            recreate_db $BENCH_DB_NAME
-            install_cmd $BENCH_DB_NAME install.sql
-        fi
-
-        cd $FHIRBASE_HOME/bench && psql $PSQL_ARGS -v ON_ERROR_STOP=1 -d $BENCH_DB_NAME < bench.sql
-        ;;
-
-    "build_full_db" )
-        echo "Building fhirbase-full.sql"
-        recreate_db $BUILD_FULL_DB_NAME
-        install_cmd $BUILD_FULL_DB_NAME sql/01_extensions.sql
-        install_cmd $BUILD_FULL_DB_NAME $FHIRBASE_HOME/../fhirbase.sql
-
-        pg_dump $PSQL_ARGS \
-                --create \
-                --format=plain \
-                --no-owner \
-                --file=$FHIRBASE_HOME/../fhirbase-full.sql \
-                $BUILD_DB_NAME && echo "FhirBase database successfully dumped to $FHIRBASE_HOME/../fhirbase-full.sql"
-
-        cd $FHIRBASE_HOME/.. && psql $PSQL_ARGS -v ON_ERROR_STOP=1 -d $BUILD_FULL_DB_NAME < fhirbase_test.sql
-        drop_db $BUILD_FULL_DB_NAME
-        sed -i s/$BUILD_DB_NAME/fhirbase/g $FHIRBASE_HOME/../fhirbase-full.sql
-        ;;
-
     "build" )
         echo "Building fhirbase.sql"
 
+        BUILD_DB_NAME='fhir_build'
         recreate_db $BUILD_DB_NAME
         install_cmd $BUILD_DB_NAME install.sql
 
         pg_dump $PSQL_ARGS \
                 --format=plain \
-                --schema=meta \
-                --schema=fhir \
                 --no-owner \
                 --file=$FHIRBASE_HOME/../fhirbase.sql \
                 $BUILD_DB_NAME && echo "FhirBase schema successfully dumped to $FHIRBASE_HOME/../fhirbase.sql"
 
-        cd $FHIRBASE_HOME/.. && psql $PSQL_ARGS -v ON_ERROR_STOP=1 -d $BUILD_DB_NAME < fhirbase_test.sql
+        recreate_db $BUILD_DB_NAME
+        cd $FHIRBASE_HOME/.. && time psql $PSQL_ARGS -v ON_ERROR_STOP=1 -1 -q -d $BUILD_DB_NAME < fhirbase.sql
+        cd $FHIRBASE_HOME/.. && time psql $PSQL_ARGS -v ON_ERROR_STOP=1 -1 -q -d $BUILD_DB_NAME < fhirbase_test.sql
+        # cd $FHIRBASE_HOME/bench && time psql $PSQL_ARGS -v ON_ERROR_STOP=1 -1 -q -d $BUILD_DB_NAME < bench.sql
+        cd $FHIRBASE_HOME
 
         exit $? # return tests exit status
         ;;

@@ -77,3 +77,4 @@ You can try upload resources and query storage using simple demo site ...
 * Extensions
 * FHIR server implementation
 * FHIR version migrations
+* Oracle, MS SQL & Mysql support

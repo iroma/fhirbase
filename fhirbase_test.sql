@@ -1,7 +1,7 @@
+BEGIN;
+
 \set pt1 `cat ./test/pt1.json`
 \set pt2 `cat ./test/pt2.json`
-
-BEGIN;
 
 CREATE EXTENSION pgtap;
 
