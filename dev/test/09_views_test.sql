@@ -1,4 +1,7 @@
 \ir '00_spec_helper.sql'
+
+BEGIN;
+
 \ir ../sql/01_extensions.sql
 \ir ../sql/02_py_init.sql
 \ir ../sql/03_meta.sql
@@ -10,7 +13,6 @@
 \ir ../sql/09_views.sql
 \ir ../sql/10_insert.sql
 
-BEGIN;
 SELECT plan(8);
 
 \set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`

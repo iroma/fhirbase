@@ -1,7 +1,9 @@
 \ir '00_spec_helper.sql'
-\ir ../install.sql
 
 BEGIN;
+
+\ir ../install.sql
+
 SELECT plan(4);
 
 \set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`

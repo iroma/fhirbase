@@ -1,4 +1,7 @@
 \ir '00_spec_helper.sql'
+
+BEGIN;
+
 \ir ../sql/01_extensions.sql
 \ir ../sql/02_py_init.sql
 \ir ../sql/03_meta.sql
@@ -7,7 +10,6 @@
 \ir ../sql/06_datatypes.sql
 \ir ../sql/07_schema.sql
 
-BEGIN;
 SELECT plan(8);
 
 SELECT is (

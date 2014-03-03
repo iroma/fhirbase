@@ -1,13 +1,15 @@
 --db:testfhir
 --{{{
 \ir '00_spec_helper.sql'
+
+BEGIN;
+
 \ir ../sql/01_extensions.sql
 \ir ../sql/02_py_init.sql
 \ir ../sql/03_meta.sql
 \ir ../sql/04_load_meta.sql
 \ir ../sql/05_functions.sql
 
-BEGIN;
 SELECT plan(7);
 
 SELECT is(

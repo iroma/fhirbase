@@ -1,10 +1,9 @@
---db:testfhir
---{{{
 \ir '00_spec_helper.sql'
+BEGIN;
+
 \ir ../sql/03_meta.sql
 \ir ../sql/04_load_meta.sql
 
-BEGIN;
 
 SELECT plan(9);
 
@@ -17,4 +16,3 @@ SELECT  *
   FROM  finish();
 
 ROLLBACK;
---}}}

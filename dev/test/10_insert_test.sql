@@ -1,4 +1,7 @@
 \ir '00_spec_helper.sql'
+
+BEGIN;
+
 \ir ../sql/01_extensions.sql
 \ir ../sql/02_py_init.sql
 \ir ../sql/03_meta.sql
@@ -12,7 +15,6 @@
 
 \set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`
 
-BEGIN;
 SELECT plan(8);
 
 select fhir.insert_resource(:'pt_json'::json) as resource_id \gset

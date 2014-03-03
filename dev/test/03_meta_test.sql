@@ -1,9 +1,8 @@
---db:testfhir
---{{{
 \ir '00_spec_helper.sql'
+BEGIN;
+
 \ir ../sql/03_meta.sql
 
-BEGIN;
 SELECT plan(5);
 
 SELECT has_table('meta','datatypes', 'has table');
@@ -15,4 +14,3 @@ SELECT has_table('meta','type_to_pg_type', 'has table');
 
 SELECT * FROM finish();
 ROLLBACK;
---}}}

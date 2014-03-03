@@ -1,11 +1,11 @@
---db:myfhir
---{{{
 \ir '00_spec_helper.sql'
+
+BEGIN;
+
 \ir ../install.sql
 
 \set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`
 
-BEGIN;
 SELECT plan(8);
 
 select fhir.insert_resource(:'pt_json'::json) as resource_id \gset
@@ -46,4 +46,3 @@ SELECT is(count(*)::integer, 0, 'delete patient')
 
 SELECT * FROM finish();
 ROLLBACK;
---}}}

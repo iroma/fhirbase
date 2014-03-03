@@ -1,5 +1,5 @@
 \ir '00_spec_helper.sql'
-drop schema if exists meta cascade;
+BEGIN;
 
 \ir ../sql/01_extensions.sql
 \ir ../sql/02_py_init.sql
@@ -8,7 +8,6 @@ drop schema if exists meta cascade;
 \ir ../sql/05_functions.sql
 \ir ../sql/06_datatypes.sql
 
-BEGIN;
 SELECT plan(7);
 
 SELECT is(pg_type,'varchar','convert string') FROM meta.primitive_types
