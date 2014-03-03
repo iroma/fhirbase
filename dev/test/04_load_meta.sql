@@ -5,7 +5,7 @@ BEGIN;
 \ir ../sql/04_load_meta.sql
 
 
-SELECT plan(9);
+SELECT plan(1);
 
 SELECT  is(max,'*','should be multiple')
   FROM  meta.resource_elements

@@ -44,9 +44,6 @@ function xarrattr(pth varchar, x xml) returns varchar[]
   END
 $$ language plpgsql;
 
-BEGIN;
-
-
 INSERT INTO meta.datatypes (version, type)
 (
   select
@@ -118,4 +115,3 @@ select
     SELECT unnest(fpath('//fh:structure/fh:element', :'fhir')) as el
   ) els
 ;
-END;
