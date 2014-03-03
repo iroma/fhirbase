@@ -69,6 +69,8 @@ for infrastructure management, that all data tables are inherited from two base 
 ## Demo
 
 You can try upload resources and query storage using simple demo site ...
+http://try-fhirbase.hospital-systems.com
+
 
 ## Installation
 
