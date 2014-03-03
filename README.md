@@ -74,12 +74,18 @@ http://try-fhirbase.hospital-systems.com
 
 ## Installation
 
+* requirements:
+  * postgresql 9.3
+  * postgresql-contrib
+  * plpython
+* create databae
+* execute fhirbase.sql script
 
 ## Contribution
 
 * Star us on github
 * Create issue - for bug report or enhancment
-* Contribute to FHIRbase
+* Contribute to FHIRbase (see dev/README.md to prepare development environment)
 
 ## Plans
 
