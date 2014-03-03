@@ -1,4 +1,14 @@
-# FHIRBase
+# FHIRbase
+
+Relational storage for [FHIR](http://hl7.org/implement/standards/fhir/) with document API
+
+
+### Why Relational
+... we need describe problems and examples
+
+### Why Document API
+... we need describe problems and examples
+
 
 ## Synopsis
 
