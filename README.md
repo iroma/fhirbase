@@ -41,13 +41,20 @@ for infrastructure management, that all data tables are inherited from two base 
 * resource
   * id
   * _type
+  * _unknown_attributes
+  * resource_type
+  * language
   * container_id
+  * contained_id
+  * created_at
 * resource_component
   * id
   * _type
+  * _unknown_attributes
   * parent_id
   * resource_id
   * container_id
+  * created_at
 
 ## API
 
