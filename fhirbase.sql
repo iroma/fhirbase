@@ -824,6 +824,22 @@ END
 $$;
 
 
+SET search_path = meta, pg_catalog;
+
+--
+-- Name: eval_ddl(text); Type: FUNCTION; Schema: meta; Owner: -
+--
+
+CREATE FUNCTION eval_ddl(str text) RETURNS text
+    LANGUAGE plpgsql
+    AS $$
+  begin
+    EXECUTE str;
+    RETURN str;
+  end;
+$$;
+
+
 SET search_path = public, pg_catalog;
 
 --
@@ -836,119 +852,6 @@ CREATE FUNCTION fpath(pth character varying, x xml) RETURNS xml[]
   BEGIN
     return xpath(pth, x, ARRAY[ARRAY['fh', 'http://hl7.org/fhir']]);
   END
-$$;
-
-
---
--- Name: generate_schema(text); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION generate_schema(version text) RETURNS void
-    LANGUAGE plpythonu
-    AS $$
-
-  def exe(query):
-    return plpy.execute(query)
-
-  def create_object(func, query):
-    return map(func, exe(query))
-
-  def q(literal):
-    return '"%s"' % literal
-
-  def make_columns(e):
-    if 'columns' in e:
-      cols = map(lambda c: '%s' % c, e['columns'])
-      return ",\n".join(cols)
-    else:
-      return ''
-
-  def make_enums(en):
-    return "CREATE TYPE fhir.%(enum)s AS ENUM (%(opts)s)" % {
-      "enum": q(en['enum']),
-      "opts": ','.join(map(lambda i: "'%s'" % i, en['options'])) }
-
-  def make_datatypes(e):
-    return """
-      CREATE TABLE fhir.%(table)s (
-        %(columns)s
-      ) INHERITS (fhir.%(base_table)s)""" % {
-      "table": e['table_name'],
-      "base_table": e['base_table'],
-      "columns": make_columns(e) }
-
-  def make_resources(e):
-    create_table = """
-      CREATE TABLE fhir.%(table)s (
-        %(columns)s
-      ) INHERITS (fhir.%(base_table)s);
-
-      ALTER TABLE fhir.%(table)s
-        ALTER COLUMN _type SET DEFAULT '%(table)s';
-
-      ALTER TABLE fhir.%(table)s
-        ADD PRIMARY KEY (id);
-      """ % {
-      "table": e['table_name'],
-      "base_table": e['base_table'],
-      "columns": make_columns(e) }
-
-    if e['base_table'] == 'resource':
-      # TODO: this FK is important!
-      #create_fk = """
-      #  ALTER TABLE fhir.%(table_name)s
-      #    ADD FOREIGN KEY (container_id) REFERENCES fhir.resource (id) ON DELETE CASCADE;
-      #""" % e
-
-      create_fk = ""
-
-      create_indexes = """
-        CREATE INDEX ON fhir.%(table_name)s (container_id);
-      """ % e
-    else:
-      create_fk = """
-        ALTER TABLE fhir.%(table_name)s
-          ADD FOREIGN KEY (resource_id) REFERENCES fhir.%(resource_table_name)s (id) ON DELETE CASCADE;
-        ALTER TABLE fhir.%(table_name)s
-          ADD FOREIGN KEY (parent_id) REFERENCES fhir.%(parent_table_name)s (id) ON DELETE CASCADE;
-      """ % e
-      create_indexes = """
-        CREATE INDEX ON fhir.%(table_name)s (resource_id);
-        CREATE INDEX ON fhir.%(table_name)s (parent_id);
-      """ % e
-
-    return ";\n".join([create_table, create_fk, create_indexes])
-
-  queries = [
-    """
-    CREATE TABLE fhir.resource (
-      id UUID PRIMARY KEY,
-      _type VARCHAR NOT NULL,
-      _unknown_attributes json,
-      resource_type varchar,
-      language VARCHAR,
-      container_id UUID REFERENCES fhir.resource (id) ON DELETE CASCADE,
-      contained_id VARCHAR,
-      created_at timestamp DEFAULT now()
-    );
-
-    CREATE TABLE fhir.resource_component (
-      id uuid PRIMARY KEY,
-      _type VARCHAR NOT NULL,
-      _unknown_attributes json,
-      parent_id UUID NOT NULL REFERENCES fhir.resource_component (id) ON DELETE CASCADE,
-      resource_id UUID NOT NULL REFERENCES fhir.resource (id) ON DELETE CASCADE,
-      created_at timestamp DEFAULT now()
-    );
-    """
-  ]
-
-  queries += create_object(make_enums, "SELECT * FROM meta.enums")
-  queries += create_object(make_datatypes, "SELECT * FROM meta.datatype_tables WHERE table_name NOT IN ('resource', 'backbone_element')")
-  queries += create_object(make_resources, "SELECT * FROM meta.resource_tables WHERE table_name !~ '^profile'")
-  for query in queries:
-    #plpy.notice(query)
-    exe(query)
 $$;
 
 
@@ -1092,8 +995,8 @@ INHERITS (resource);
 --
 
 CREATE TABLE adverse_reaction_exposure (
-    causality_expectation character varying,
     type character varying,
+    causality_expectation character varying,
     date timestamp without time zone
 )
 INHERITS (resource_component);
@@ -1391,9 +1294,9 @@ INHERITS (narrative);
 --
 
 CREATE TABLE allergy_intolerance (
-    status character varying NOT NULL,
-    sensitivity_type character varying NOT NULL,
     criticality character varying,
+    sensitivity_type character varying NOT NULL,
+    status character varying NOT NULL,
     recorded_date timestamp without time zone
 )
 INHERITS (resource);
@@ -1544,8 +1447,8 @@ INHERITS (res_ref);
 
 CREATE TABLE care_plan_activity_simple (
     category character varying NOT NULL,
-    timing_string character varying,
-    details character varying
+    details character varying,
+    timing_string character varying
 )
 INHERITS (resource_component);
 
@@ -1729,8 +1632,8 @@ INHERITS (res_ref);
 
 CREATE TABLE care_plan_goal (
     status character varying,
-    notes character varying,
-    description character varying NOT NULL
+    description character varying NOT NULL,
+    notes character varying
 )
 INHERITS (resource_component);
 
@@ -2145,12 +2048,12 @@ CREATE TABLE concept_map (
     experimental boolean,
     status character varying NOT NULL,
     date timestamp without time zone,
-    copyright character varying,
-    description character varying,
     publisher character varying,
     name character varying NOT NULL,
     version character varying,
-    identifier character varying
+    identifier character varying,
+    copyright character varying,
+    description character varying
 )
 INHERITS (resource);
 
@@ -2172,8 +2075,8 @@ INHERITS (resource_component);
 
 CREATE TABLE concept_map_concept_depends_on (
     code character varying NOT NULL,
-    concept character varying NOT NULL,
-    system character varying NOT NULL
+    system character varying NOT NULL,
+    concept character varying NOT NULL
 )
 INHERITS (resource_component);
 
@@ -2183,8 +2086,8 @@ INHERITS (resource_component);
 --
 
 CREATE TABLE concept_map_concept_map (
-    equivalence character varying NOT NULL,
     code character varying,
+    equivalence character varying NOT NULL,
     comments character varying,
     system character varying
 )
@@ -2264,8 +2167,8 @@ INHERITS (narrative);
 CREATE TABLE condition (
     abatement_boolean boolean,
     status character varying NOT NULL,
-    abatement_date date,
     onset_date date,
+    abatement_date date,
     date_asserted date,
     notes character varying
 )
@@ -2621,17 +2524,17 @@ INHERITS (narrative);
 --
 
 CREATE TABLE conformance (
-    experimental boolean,
     accept_unknown boolean NOT NULL,
+    experimental boolean,
     status character varying,
     format character varying[] NOT NULL,
     date timestamp without time zone NOT NULL,
     fhir_version character varying NOT NULL,
-    description character varying,
-    publisher character varying NOT NULL,
-    name character varying,
+    identifier character varying,
     version character varying,
-    identifier character varying
+    name character varying,
+    publisher character varying NOT NULL,
+    description character varying
 )
 INHERITS (resource);
 
@@ -2684,9 +2587,9 @@ INHERITS (resource_component);
 --
 
 CREATE TABLE conformance_messaging_event (
-    focus character varying NOT NULL,
-    mode character varying NOT NULL,
     category character varying,
+    mode character varying NOT NULL,
+    focus character varying NOT NULL,
     documentation character varying
 )
 INHERITS (resource_component);
@@ -2783,8 +2686,8 @@ INHERITS (resource_component);
 --
 
 CREATE TABLE conformance_rest_query (
-    documentation character varying,
     name character varying NOT NULL,
+    documentation character varying,
     definition character varying NOT NULL
 )
 INHERITS (resource_component);
@@ -2795,8 +2698,8 @@ INHERITS (resource_component);
 --
 
 CREATE TABLE conformance_rest_resource (
-    update_create boolean,
     read_history boolean,
+    update_create boolean,
     type character varying NOT NULL,
     search_include character varying[]
 )
@@ -2830,9 +2733,9 @@ INHERITS (res_ref);
 CREATE TABLE conformance_rest_resource_search_param (
     type character varying NOT NULL,
     target character varying[],
-    chain character varying[],
-    documentation character varying,
     name character varying NOT NULL,
+    documentation character varying,
+    chain character varying[],
     definition character varying
 )
 INHERITS (resource_component);
@@ -2893,8 +2796,8 @@ INHERITS (cc_cd_vs);
 
 CREATE TABLE conformance_software (
     release_date timestamp without time zone,
-    version character varying,
-    name character varying NOT NULL
+    name character varying NOT NULL,
+    version character varying
 )
 INHERITS (resource_component);
 
@@ -3209,8 +3112,8 @@ INHERITS (cc_cd_vs);
 --
 
 CREATE TABLE diagnostic_order (
-    priority character varying,
     status character varying,
+    priority character varying,
     clinical_notes character varying
 )
 INHERITS (resource);
@@ -3809,17 +3712,17 @@ INHERITS (cc_cd_vs);
 --
 
 CREATE TABLE document_reference (
+    mime_type character varying NOT NULL,
     primary_language character varying,
     status character varying NOT NULL,
-    mime_type character varying NOT NULL,
     created timestamp without time zone,
     indexed timestamp without time zone NOT NULL,
     size integer,
-    hash character varying,
     description character varying,
-    policy_manager character varying,
+    hash character varying,
+    format character varying[],
     location character varying,
-    format character varying[]
+    policy_manager character varying
 )
 INHERITS (resource);
 
@@ -4092,8 +3995,8 @@ INHERITS (resource_component);
 --
 
 CREATE TABLE document_reference_service_parameter (
-    value character varying,
-    name character varying NOT NULL
+    name character varying NOT NULL,
+    value character varying
 )
 INHERITS (resource_component);
 
@@ -4693,11 +4596,11 @@ INHERITS (idn_period);
 
 CREATE TABLE family_history_relation (
     deceased_boolean boolean,
-    born_date date,
     deceased_date date,
-    note character varying,
-    deceased_string character varying,
+    born_date date,
     born_string character varying,
+    deceased_string character varying,
+    note character varying,
     name character varying
 )
 INHERITS (resource_component);
@@ -4717,8 +4620,8 @@ INHERITS (period);
 --
 
 CREATE TABLE family_history_relation_condition (
-    note character varying,
-    onset_string character varying
+    onset_string character varying,
+    note character varying
 )
 INHERITS (resource_component);
 
@@ -5118,14 +5021,14 @@ INHERITS (period);
 --
 
 CREATE TABLE imaging_study (
-    modality character varying[],
     availability character varying,
+    modality character varying[],
     date_time timestamp without time zone,
     number_of_series integer NOT NULL,
     number_of_instances integer NOT NULL,
     uid character varying NOT NULL,
-    description character varying,
     clinical_information character varying,
+    description character varying,
     url character varying
 )
 INHERITS (resource);
@@ -5235,11 +5138,11 @@ INHERITS (res_ref);
 --
 
 CREATE TABLE imaging_study_series (
-    availability character varying,
     modality character varying NOT NULL,
+    availability character varying,
     date_time timestamp without time zone,
-    number integer,
     number_of_instances integer NOT NULL,
+    number integer,
     uid character varying NOT NULL,
     description character varying,
     url character varying
@@ -5273,8 +5176,8 @@ CREATE TABLE imaging_study_series_instance (
     number integer,
     sopclass character varying NOT NULL,
     uid character varying NOT NULL,
-    title character varying,
     type character varying,
+    title character varying,
     url character varying
 )
 INHERITS (resource_component);
@@ -5312,8 +5215,8 @@ INHERITS (narrative);
 --
 
 CREATE TABLE imm (
-    reported boolean NOT NULL,
     refused_indicator boolean NOT NULL,
+    reported boolean NOT NULL,
     expiration_date date,
     date timestamp without time zone NOT NULL,
     lot_number character varying
@@ -5748,8 +5651,8 @@ INHERITS (narrative);
 --
 
 CREATE TABLE imm_vaccination_protocol (
-    dose_sequence integer NOT NULL,
     series_doses integer,
+    dose_sequence integer NOT NULL,
     series character varying,
     description character varying
 )
@@ -6148,9 +6051,9 @@ INHERITS (cc_cd_vs);
 --
 
 CREATE TABLE loc_position (
-    altitude numeric,
+    longitude numeric NOT NULL,
     latitude numeric NOT NULL,
-    longitude numeric NOT NULL
+    altitude numeric
 )
 INHERITS (resource_component);
 
@@ -6628,8 +6531,8 @@ INHERITS (res_ref);
 
 CREATE TABLE med_disp_dispense (
     status character varying,
-    when_prepared timestamp without time zone,
-    when_handed_over timestamp without time zone
+    when_handed_over timestamp without time zone,
+    when_prepared timestamp without time zone
 )
 INHERITS (resource_component);
 
@@ -8046,9 +7949,9 @@ INHERITS (narrative);
 CREATE TABLE media (
     type character varying NOT NULL,
     date_time timestamp without time zone,
-    width integer,
-    frames integer,
     length integer,
+    frames integer,
+    width integer,
     height integer,
     device_name character varying
 )
@@ -8358,12 +8261,12 @@ INHERITS (narrative);
 --
 
 CREATE TABLE obs (
-    status character varying NOT NULL,
     reliability character varying NOT NULL,
+    status character varying NOT NULL,
     applies_date_time timestamp without time zone,
     issued timestamp without time zone,
-    value_string character varying,
-    comments character varying
+    comments character varying,
+    value_string character varying
 )
 INHERITS (resource);
 
@@ -8786,8 +8689,8 @@ INHERITS (resource);
 
 CREATE TABLE operation_outcome_issue (
     severity character varying NOT NULL,
-    details character varying,
-    location character varying[]
+    location character varying[],
+    details character varying
 )
 INHERITS (resource_component);
 
@@ -10684,8 +10587,8 @@ INHERITS (res_ref);
 --
 
 CREATE TABLE questionnaire_group (
-    header character varying,
-    text character varying
+    text character varying,
+    header character varying
 )
 INHERITS (resource_component);
 
@@ -16682,12 +16585,12 @@ CREATE TABLE vs (
     extensible boolean,
     status character varying NOT NULL,
     date timestamp without time zone,
-    publisher character varying,
-    name character varying NOT NULL,
     copyright character varying,
+    name character varying NOT NULL,
+    publisher character varying,
+    identifier character varying,
     description character varying NOT NULL,
-    version character varying,
-    identifier character varying
+    version character varying
 )
 INHERITS (resource);
 
@@ -16804,8 +16707,8 @@ INHERITS (resource_component);
 --
 
 CREATE TABLE vs_compose_include_filter (
-    op character varying NOT NULL,
     property character varying NOT NULL,
+    op character varying NOT NULL,
     value character varying NOT NULL
 )
 INHERITS (resource_component);
@@ -16830,8 +16733,8 @@ INHERITS (resource_component);
 CREATE TABLE vs_define_concept (
     abstract boolean,
     code character varying NOT NULL,
-    definition character varying,
-    display character varying
+    display character varying,
+    definition character varying
 )
 INHERITS (resource_component);
 
@@ -16941,11 +16844,14 @@ CREATE VIEW expanded_resource_elements AS
     e.min,
     e.max
    FROM ( SELECT resource_elements.path,
-            unnest(resource_elements.type) AS type,
+                CASE
+                    WHEN (array_length(resource_elements.type, 1) IS NULL) THEN NULL::character varying
+                    ELSE unnest(resource_elements.type)
+                END AS type,
             resource_elements.min,
             resource_elements.max
            FROM resource_elements) e
-  WHERE ((e.type)::text <> ALL ((ARRAY['Extension'::character varying, 'contained'::character varying])::text[]));
+  WHERE (((e.type)::text <> ALL ((ARRAY['Extension'::character varying, 'contained'::character varying])::text[])) OR (e.type IS NULL));
 
 
 --
@@ -16953,9 +16859,13 @@ CREATE VIEW expanded_resource_elements AS
 --
 
 CREATE VIEW compound_resource_elements AS
- SELECT DISTINCT fhir.array_pop(expanded_resource_elements.path) AS path
-   FROM expanded_resource_elements
-  WHERE (array_length(expanded_resource_elements.path, 1) > 1);
+ SELECT a.path,
+    ere.min,
+    ere.max
+   FROM (( SELECT DISTINCT fhir.array_pop(expanded_resource_elements.path) AS path
+           FROM expanded_resource_elements
+          WHERE (array_length(expanded_resource_elements.path, 1) > 1)) a
+   LEFT JOIN expanded_resource_elements ere ON ((ere.path = a.path)));
 
 
 --
@@ -17095,6 +17005,26 @@ CREATE TABLE datatypes (
 
 
 --
+-- Name: datatypes_ddl; Type: VIEW; Schema: meta; Owner: -
+--
+
+CREATE VIEW datatypes_ddl AS
+ SELECT ((((((((('CREATE TABLE'::text || ' fhir."'::text) || (datatype_tables.table_name)::text) || '"'::text) || '('::text) || array_to_string(datatype_tables.columns, ','::text)) || ')'::text) || ' INHERITS (fhir.'::text) || (datatype_tables.base_table)::text) || ')'::text) AS ddl
+   FROM datatype_tables
+  WHERE ((datatype_tables.table_name)::text <> ALL ((ARRAY['resource'::character varying, 'backbone_element'::character varying])::text[]));
+
+
+--
+-- Name: enums_ddl; Type: VIEW; Schema: meta; Owner: -
+--
+
+CREATE VIEW enums_ddl AS
+ SELECT (((((('CREATE TYPE'::text || ' fhir."'::text) || enums.enum) || '"'::text) || ' AS ENUM ('::text) || array_to_string(( SELECT array_agg((('$quote$'::text || (unnest.unnest)::text) || '$quote$'::text)) AS array_agg
+           FROM unnest(enums.options) unnest(unnest)), ','::text)) || ')'::text) AS ddl
+   FROM enums;
+
+
+--
 -- Name: expanded_with_dt_resource_elements; Type: VIEW; Schema: meta; Owner: -
 --
 
@@ -17133,7 +17063,8 @@ CREATE TABLE resource_elements_expanded_with_types (
 --
 
 CREATE VIEW resource_tables AS
-         SELECT fhir.table_name(e.path) AS table_name,
+         SELECT e.path,
+            fhir.table_name(e.path) AS table_name,
             fhir.resource_table_name(e.path) AS resource_table_name,
             fhir.parent_table_name(e.path) AS parent_table_name,
                 CASE
@@ -17142,15 +17073,34 @@ CREATE VIEW resource_tables AS
                 END AS base_table,
             COALESCE(( SELECT array_agg(rc.column_ddl) AS array_agg
                    FROM resource_columns rc
-                  WHERE (fhir.array_pop(rc.path) = e.path)), ARRAY[]::character varying[]) AS columns
+                  WHERE (fhir.array_pop(rc.path) = e.path)), ARRAY[]::character varying[]) AS columns,
+            e.min,
+            e.max
            FROM compound_resource_elements e
 UNION
-         SELECT fhir.table_name(expanded_with_dt_resource_elements.path) AS table_name,
+         SELECT expanded_with_dt_resource_elements.path,
+            fhir.table_name(expanded_with_dt_resource_elements.path) AS table_name,
             fhir.resource_table_name(expanded_with_dt_resource_elements.path) AS resource_table_name,
             fhir.parent_table_name(expanded_with_dt_resource_elements.path) AS parent_table_name,
             expanded_with_dt_resource_elements.base_table,
-            ARRAY[]::character varying[] AS columns
+            ARRAY[]::character varying[] AS columns,
+            '0'::character varying AS min,
+            '0'::character varying AS max
            FROM expanded_with_dt_resource_elements;
+
+
+--
+-- Name: resources_ddl; Type: VIEW; Schema: meta; Owner: -
+--
+
+CREATE VIEW resources_ddl AS
+ SELECT ARRAY[((((((((('CREATE TABLE'::text || ' fhir."'::text) || (resource_tables.table_name)::text) || '"'::text) || '('::text) || array_to_string(resource_tables.columns, ','::text)) || ')'::text) || ' INHERITS (fhir.'::text) || resource_tables.base_table) || ')'::text), (((('ALTER TABLE fhir.'::text || (resource_tables.table_name)::text) || ' ALTER COLUMN _type SET DEFAULT $$'::text) || (resource_tables.table_name)::text) || '$$'::text), (('ALTER TABLE fhir.'::text || (resource_tables.table_name)::text) || ' ADD PRIMARY KEY (id)'::text),
+        CASE
+            WHEN (resource_tables.base_table = 'resource'::text) THEN (('CREATE INDEX ON fhir.'::text || (resource_tables.table_name)::text) || ' (container_id);'::text)
+            ELSE ((((((((((((((('ALTER TABLE fhir.'::text || (resource_tables.table_name)::text) || ' ADD FOREIGN KEY (resource_id) REFERENCES fhir.'::text) || (resource_tables.resource_table_name)::text) || ' (id) ON DELETE CASCADE;'::text) || 'CREATE INDEX ON fhir.'::text) || (resource_tables.table_name)::text) || ' (resource_id);'::text) || 'ALTER TABLE fhir.'::text) || (resource_tables.table_name)::text) || ' ADD FOREIGN KEY (parent_id) REFERENCES fhir.'::text) || (resource_tables.parent_table_name)::text) || ' (id) ON DELETE CASCADE;'::text) || 'CREATE INDEX ON fhir.'::text) || (resource_tables.table_name)::text) || ' (parent_id);'::text)
+        END] AS ddls
+   FROM resource_tables
+  WHERE ((resource_tables.table_name)::text !~ '^profile'::text);
 
 
 SET search_path = fhir, pg_catalog;
@@ -33668,7 +33618,7 @@ COPY adverse_reaction (id, _type, _unknown_attributes, resource_type, language, 
 -- Data for Name: adverse_reaction_exposure; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY adverse_reaction_exposure (id, _type, _unknown_attributes, parent_id, resource_id, created_at, causality_expectation, type, date) FROM stdin;
+COPY adverse_reaction_exposure (id, _type, _unknown_attributes, parent_id, resource_id, created_at, type, causality_expectation, date) FROM stdin;
 \.
 
 
@@ -33844,7 +33794,7 @@ COPY alert_text (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: allergy_intolerance; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY allergy_intolerance (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, status, sensitivity_type, criticality, recorded_date) FROM stdin;
+COPY allergy_intolerance (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, criticality, sensitivity_type, status, recorded_date) FROM stdin;
 \.
 
 
@@ -33964,7 +33914,7 @@ COPY care_plan_activity_detail (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: care_plan_activity_simple; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_simple (id, _type, _unknown_attributes, parent_id, resource_id, created_at, category, timing_string, details) FROM stdin;
+COPY care_plan_activity_simple (id, _type, _unknown_attributes, parent_id, resource_id, created_at, category, details, timing_string) FROM stdin;
 \.
 
 
@@ -34076,7 +34026,7 @@ COPY care_plan_concern (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: care_plan_goal; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_goal (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, notes, description) FROM stdin;
+COPY care_plan_goal (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, description, notes) FROM stdin;
 \.
 
 
@@ -34468,7 +34418,7 @@ COPY composition_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: concept_map; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY concept_map (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, experimental, status, date, copyright, description, publisher, name, version, identifier) FROM stdin;
+COPY concept_map (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, experimental, status, date, publisher, name, version, identifier, copyright, description) FROM stdin;
 \.
 
 
@@ -34484,7 +34434,7 @@ COPY concept_map_concept (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: concept_map_concept_depends_on; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY concept_map_concept_depends_on (id, _type, _unknown_attributes, parent_id, resource_id, created_at, code, concept, system) FROM stdin;
+COPY concept_map_concept_depends_on (id, _type, _unknown_attributes, parent_id, resource_id, created_at, code, system, concept) FROM stdin;
 \.
 
 
@@ -34492,7 +34442,7 @@ COPY concept_map_concept_depends_on (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: concept_map_concept_map; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY concept_map_concept_map (id, _type, _unknown_attributes, parent_id, resource_id, created_at, equivalence, code, comments, system) FROM stdin;
+COPY concept_map_concept_map (id, _type, _unknown_attributes, parent_id, resource_id, created_at, code, equivalence, comments, system) FROM stdin;
 \.
 
 
@@ -34540,7 +34490,7 @@ COPY concept_map_text (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: condition; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, abatement_boolean, status, abatement_date, onset_date, date_asserted, notes) FROM stdin;
+COPY condition (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, abatement_boolean, status, onset_date, abatement_date, date_asserted, notes) FROM stdin;
 \.
 
 
@@ -34852,7 +34802,7 @@ COPY condition_text (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: conformance; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, experimental, accept_unknown, status, format, date, fhir_version, description, publisher, name, version, identifier) FROM stdin;
+COPY conformance (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, accept_unknown, experimental, status, format, date, fhir_version, identifier, version, name, publisher, description) FROM stdin;
 \.
 
 
@@ -34892,7 +34842,7 @@ COPY conformance_messaging (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: conformance_messaging_event; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_messaging_event (id, _type, _unknown_attributes, parent_id, resource_id, created_at, focus, mode, category, documentation) FROM stdin;
+COPY conformance_messaging_event (id, _type, _unknown_attributes, parent_id, resource_id, created_at, category, mode, focus, documentation) FROM stdin;
 \.
 
 
@@ -34972,7 +34922,7 @@ COPY conformance_rest_operation (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: conformance_rest_query; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_rest_query (id, _type, _unknown_attributes, parent_id, resource_id, created_at, documentation, name, definition) FROM stdin;
+COPY conformance_rest_query (id, _type, _unknown_attributes, parent_id, resource_id, created_at, name, documentation, definition) FROM stdin;
 \.
 
 
@@ -34980,7 +34930,7 @@ COPY conformance_rest_query (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: conformance_rest_resource; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_rest_resource (id, _type, _unknown_attributes, parent_id, resource_id, created_at, update_create, read_history, type, search_include) FROM stdin;
+COPY conformance_rest_resource (id, _type, _unknown_attributes, parent_id, resource_id, created_at, read_history, update_create, type, search_include) FROM stdin;
 \.
 
 
@@ -35004,7 +34954,7 @@ COPY conformance_rest_resource_profile (id, _type, _unknown_attributes, parent_i
 -- Data for Name: conformance_rest_resource_search_param; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_rest_resource_search_param (id, _type, _unknown_attributes, parent_id, resource_id, created_at, type, target, chain, documentation, name, definition) FROM stdin;
+COPY conformance_rest_resource_search_param (id, _type, _unknown_attributes, parent_id, resource_id, created_at, type, target, name, documentation, chain, definition) FROM stdin;
 \.
 
 
@@ -35052,7 +35002,7 @@ COPY conformance_rest_security_service_cd_vs (id, _type, _unknown_attributes, pa
 -- Data for Name: conformance_software; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_software (id, _type, _unknown_attributes, parent_id, resource_id, created_at, release_date, version, name) FROM stdin;
+COPY conformance_software (id, _type, _unknown_attributes, parent_id, resource_id, created_at, release_date, name, version) FROM stdin;
 \.
 
 
@@ -35340,7 +35290,7 @@ COPY device_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: diagnostic_order; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, priority, status, clinical_notes) FROM stdin;
+COPY diagnostic_order (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, status, priority, clinical_notes) FROM stdin;
 \.
 
 
@@ -35860,7 +35810,7 @@ COPY document_manifest_type_cd_vs (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: document_reference; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, primary_language, status, mime_type, created, indexed, size, hash, description, policy_manager, location, format) FROM stdin;
+COPY document_reference (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, mime_type, primary_language, status, created, indexed, size, description, hash, format, location, policy_manager) FROM stdin;
 \.
 
 
@@ -36100,7 +36050,7 @@ COPY document_reference_service (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: document_reference_service_parameter; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_service_parameter (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, name) FROM stdin;
+COPY document_reference_service_parameter (id, _type, _unknown_attributes, parent_id, resource_id, created_at, name, value) FROM stdin;
 \.
 
 
@@ -36628,7 +36578,7 @@ COPY family_history_idn_period (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: family_history_relation; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation (id, _type, _unknown_attributes, parent_id, resource_id, created_at, deceased_boolean, born_date, deceased_date, note, deceased_string, born_string, name) FROM stdin;
+COPY family_history_relation (id, _type, _unknown_attributes, parent_id, resource_id, created_at, deceased_boolean, deceased_date, born_date, born_string, deceased_string, note, name) FROM stdin;
 \.
 
 
@@ -36644,7 +36594,7 @@ COPY family_history_relation_born_period (id, _type, _unknown_attributes, parent
 -- Data for Name: family_history_relation_condition; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_condition (id, _type, _unknown_attributes, parent_id, resource_id, created_at, note, onset_string) FROM stdin;
+COPY family_history_relation_condition (id, _type, _unknown_attributes, parent_id, resource_id, created_at, onset_string, note) FROM stdin;
 \.
 
 
@@ -36988,7 +36938,7 @@ COPY idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: imaging_study; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, modality, availability, date_time, number_of_series, number_of_instances, uid, description, clinical_information, url) FROM stdin;
+COPY imaging_study (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, availability, modality, date_time, number_of_series, number_of_instances, uid, clinical_information, description, url) FROM stdin;
 \.
 
 
@@ -37084,7 +37034,7 @@ COPY imaging_study_referrer (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: imaging_study_series; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_series (id, _type, _unknown_attributes, parent_id, resource_id, created_at, availability, modality, date_time, number, number_of_instances, uid, description, url) FROM stdin;
+COPY imaging_study_series (id, _type, _unknown_attributes, parent_id, resource_id, created_at, modality, availability, date_time, number_of_instances, number, uid, description, url) FROM stdin;
 \.
 
 
@@ -37108,7 +37058,7 @@ COPY imaging_study_series_body_site_vs (id, _type, _unknown_attributes, parent_i
 -- Data for Name: imaging_study_series_instance; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_series_instance (id, _type, _unknown_attributes, parent_id, resource_id, created_at, number, sopclass, uid, title, type, url) FROM stdin;
+COPY imaging_study_series_instance (id, _type, _unknown_attributes, parent_id, resource_id, created_at, number, sopclass, uid, type, title, url) FROM stdin;
 \.
 
 
@@ -37140,7 +37090,7 @@ COPY imaging_study_text (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: imm; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, reported, refused_indicator, expiration_date, date, lot_number) FROM stdin;
+COPY imm (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, refused_indicator, reported, expiration_date, date, lot_number) FROM stdin;
 \.
 
 
@@ -37516,7 +37466,7 @@ COPY imm_text (id, _type, _unknown_attributes, parent_id, resource_id, created_a
 -- Data for Name: imm_vaccination_protocol; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_vaccination_protocol (id, _type, _unknown_attributes, parent_id, resource_id, created_at, dose_sequence, series_doses, series, description) FROM stdin;
+COPY imm_vaccination_protocol (id, _type, _unknown_attributes, parent_id, resource_id, created_at, series_doses, dose_sequence, series, description) FROM stdin;
 \.
 
 
@@ -37860,7 +37810,7 @@ COPY loc_physical_type_cd_vs (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: loc_position; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_position (id, _type, _unknown_attributes, parent_id, resource_id, created_at, altitude, latitude, longitude) FROM stdin;
+COPY loc_position (id, _type, _unknown_attributes, parent_id, resource_id, created_at, longitude, latitude, altitude) FROM stdin;
 \.
 
 
@@ -38252,7 +38202,7 @@ COPY med_disp_authorizing_prescription (id, _type, _unknown_attributes, parent_i
 -- Data for Name: med_disp_dispense; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, when_prepared, when_handed_over) FROM stdin;
+COPY med_disp_dispense (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, when_handed_over, when_prepared) FROM stdin;
 \.
 
 
@@ -39500,7 +39450,7 @@ COPY med_text (id, _type, _unknown_attributes, parent_id, resource_id, created_a
 -- Data for Name: media; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY media (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, type, date_time, width, frames, length, height, device_name) FROM stdin;
+COPY media (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, type, date_time, length, frames, width, height, device_name) FROM stdin;
 \.
 
 
@@ -39772,7 +39722,7 @@ COPY narrative (id, _type, _unknown_attributes, parent_id, resource_id, created_
 -- Data for Name: obs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, status, reliability, applies_date_time, issued, value_string, comments) FROM stdin;
+COPY obs (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, reliability, status, applies_date_time, issued, comments, value_string) FROM stdin;
 \.
 
 
@@ -40124,7 +40074,7 @@ COPY operation_outcome (id, _type, _unknown_attributes, resource_type, language,
 -- Data for Name: operation_outcome_issue; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY operation_outcome_issue (id, _type, _unknown_attributes, parent_id, resource_id, created_at, severity, details, location) FROM stdin;
+COPY operation_outcome_issue (id, _type, _unknown_attributes, parent_id, resource_id, created_at, severity, location, details) FROM stdin;
 \.
 
 
@@ -41796,7 +41746,7 @@ COPY questionnaire_encounter (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: questionnaire_group; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_group (id, _type, _unknown_attributes, parent_id, resource_id, created_at, header, text) FROM stdin;
+COPY questionnaire_group (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text, header) FROM stdin;
 \.
 
 
@@ -43092,7 +43042,7 @@ COPY supply_text (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, experimental, extensible, status, date, publisher, name, copyright, description, version, identifier) FROM stdin;
+COPY vs (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, experimental, extensible, status, date, copyright, name, publisher, identifier, description, version) FROM stdin;
 \.
 
 
@@ -43116,7 +43066,7 @@ COPY vs_compose_include (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: vs_compose_include_filter; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs_compose_include_filter (id, _type, _unknown_attributes, parent_id, resource_id, created_at, op, property, value) FROM stdin;
+COPY vs_compose_include_filter (id, _type, _unknown_attributes, parent_id, resource_id, created_at, property, op, value) FROM stdin;
 \.
 
 
@@ -43132,7 +43082,7 @@ COPY vs_define (id, _type, _unknown_attributes, parent_id, resource_id, created_
 -- Data for Name: vs_define_concept; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs_define_concept (id, _type, _unknown_attributes, parent_id, resource_id, created_at, abstract, code, definition, display) FROM stdin;
+COPY vs_define_concept (id, _type, _unknown_attributes, parent_id, resource_id, created_at, abstract, code, display, definition) FROM stdin;
 \.
 
 
@@ -43498,429 +43448,429 @@ COPY resource_columns (path, pg_type, column_ddl) FROM stdin;
 {SecurityEvent,object,query}	bytea	"query" bytea
 {SecurityEvent,object,detail,value}	bytea	"value" bytea not null
 {Conformance,rest,security,certificate,blob}	bytea	"blob" bytea
-{ConceptMap,experimental}	boolean	"experimental" boolean
-{Group,characteristic,exclude}	boolean	"exclude" boolean not null
-{Profile,structure,element,definition,binding,isExtensible}	boolean	"is_extensible" boolean not null
-{Profile,structure,element,definition,isModifier}	boolean	"is_modifier" boolean not null
+{CarePlan,activity,prohibited}	boolean	"prohibited" boolean not null
+{Encounter,hospitalization,reAdmission}	boolean	"re_admission" boolean
+{Questionnaire,group,question,answer_boolean}	boolean	"answer_boolean" boolean
+{Conformance,rest,security,cors}	boolean	"cors" boolean
+{Medication,isBrand}	boolean	"is_brand" boolean
+{MedicationDispense,dispense,dosage,asNeeded_boolean}	boolean	"as_needed_boolean" boolean
+{MedicationPrescription,dosageInstruction,asNeeded_boolean}	boolean	"as_needed_boolean" boolean
 {Profile,structure,element,definition,mustSupport}	boolean	"must_support" boolean
 {ValueSet,define,concept,abstract}	boolean	"abstract" boolean
-{Encounter,hospitalization,reAdmission}	boolean	"re_admission" boolean
-{Condition,abatement_boolean}	boolean	"abatement_boolean" boolean
-{ValueSet,define,caseSensitive}	boolean	"case_sensitive" boolean
-{Profile,structure,element,slicing,ordered}	boolean	"ordered" boolean not null
-{Profile,structure,publish}	boolean	"publish" boolean
-{Conformance,experimental}	boolean	"experimental" boolean
-{MedicationStatement,wasNotGiven}	boolean	"was_not_given" boolean
-{Medication,isBrand}	boolean	"is_brand" boolean
-{Profile,experimental}	boolean	"experimental" boolean
-{Conformance,acceptUnknown}	boolean	"accept_unknown" boolean not null
-{Conformance,rest,security,cors}	boolean	"cors" boolean
-{Conformance,rest,resource,updateCreate}	boolean	"update_create" boolean
-{Conformance,rest,resource,readHistory}	boolean	"read_history" boolean
-{Immunization,reaction,reported}	boolean	"reported" boolean
-{List,entry,deleted}	boolean	"deleted" boolean
-{CarePlan,activity,prohibited}	boolean	"prohibited" boolean not null
-{Organization,active}	boolean	"active" boolean
-{SecurityEvent,participant,requestor}	boolean	"requestor" boolean not null
-{MedicationAdministration,wasNotGiven}	boolean	"was_not_given" boolean
-{MedicationDispense,dispense,dosage,asNeeded_boolean}	boolean	"as_needed_boolean" boolean
-{FamilyHistory,relation,deceased_boolean}	boolean	"deceased_boolean" boolean
 {ValueSet,experimental}	boolean	"experimental" boolean
-{MedicationAdministration,dosage,asNeeded_boolean}	boolean	"as_needed_boolean" boolean
-{List,ordered}	boolean	"ordered" boolean
-{Patient,deceased_boolean}	boolean	"deceased_boolean" boolean
-{Immunization,reported}	boolean	"reported" boolean not null
-{Questionnaire,group,question,answer_boolean}	boolean	"answer_boolean" boolean
-{Immunization,refusedIndicator}	boolean	"refused_indicator" boolean not null
-{Patient,multipleBirth_boolean}	boolean	"multiple_birth_boolean" boolean
-{AdverseReaction,didNotOccurFlag}	boolean	"did_not_occur_flag" boolean not null
-{MedicationPrescription,dosageInstruction,asNeeded_boolean}	boolean	"as_needed_boolean" boolean
+{Conformance,acceptUnknown}	boolean	"accept_unknown" boolean not null
+{Group,characteristic,exclude}	boolean	"exclude" boolean not null
+{Conformance,rest,resource,readHistory}	boolean	"read_history" boolean
+{Conformance,rest,resource,updateCreate}	boolean	"update_create" boolean
+{Conformance,experimental}	boolean	"experimental" boolean
 {ValueSet,extensible}	boolean	"extensible" boolean
+{Organization,active}	boolean	"active" boolean
+{MedicationStatement,wasNotGiven}	boolean	"was_not_given" boolean
+{Patient,deceased_boolean}	boolean	"deceased_boolean" boolean
 {MedicationStatement,dosage,asNeeded_boolean}	boolean	"as_needed_boolean" boolean
+{List,ordered}	boolean	"ordered" boolean
+{Patient,multipleBirth_boolean}	boolean	"multiple_birth_boolean" boolean
 {Group,actual}	boolean	"actual" boolean not null
+{AdverseReaction,didNotOccurFlag}	boolean	"did_not_occur_flag" boolean not null
+{FamilyHistory,relation,deceased_boolean}	boolean	"deceased_boolean" boolean
+{Condition,abatement_boolean}	boolean	"abatement_boolean" boolean
+{List,entry,deleted}	boolean	"deleted" boolean
+{Profile,structure,element,slicing,ordered}	boolean	"ordered" boolean not null
+{ValueSet,define,caseSensitive}	boolean	"case_sensitive" boolean
+{Profile,structure,publish}	boolean	"publish" boolean
+{Profile,experimental}	boolean	"experimental" boolean
+{MedicationAdministration,wasNotGiven}	boolean	"was_not_given" boolean
+{MedicationAdministration,dosage,asNeeded_boolean}	boolean	"as_needed_boolean" boolean
+{SecurityEvent,participant,requestor}	boolean	"requestor" boolean not null
 {Patient,active}	boolean	"active" boolean
+{ConceptMap,experimental}	boolean	"experimental" boolean
+{Profile,structure,element,definition,binding,isExtensible}	boolean	"is_extensible" boolean not null
+{Immunization,refusedIndicator}	boolean	"refused_indicator" boolean not null
+{Profile,structure,element,definition,isModifier}	boolean	"is_modifier" boolean not null
+{Immunization,reported}	boolean	"reported" boolean not null
 {Group,characteristic,value_boolean}	boolean	"value_boolean" boolean not null
-{Profile,status}	varchar	"status" varchar not null
-{Conformance,rest,mode}	varchar	"mode" varchar not null
-{Conformance,rest,resource,searchParam,type}	varchar	"type" varchar not null
-{Observation,status}	varchar	"status" varchar not null
-{OperationOutcome,issue,severity}	varchar	"severity" varchar not null
-{MedicationDispense,dispense,status}	varchar	"status" varchar
-{Conformance,rest,security,certificate,type}	varchar	"type" varchar
-{Encounter,class}	varchar	"class" varchar not null
-{Conformance,rest,resource,type}	varchar	"type" varchar not null
-{ImagingStudy,modality}	varchar	"modality" varchar[]
-{Conformance,rest,resource,operation,code}	varchar	"code" varchar not null
-{Procedure,relatedItem,type}	varchar	"type" varchar
-{MessageHeader,response,code}	varchar	"code" varchar not null
-{CarePlan,status}	varchar	"status" varchar not null
+{Immunization,reaction,reported}	boolean	"reported" boolean
+{MedicationAdministration,status}	varchar	"status" varchar not null
 {Medication,kind}	varchar	"kind" varchar
-{ValueSet,compose,include,filter,op}	varchar	"op" varchar not null
-{Profile,structure,searchParam,type}	varchar	"type" varchar not null
-{Profile,structure,searchParam,target}	varchar	"target" varchar[]
-{Profile,structure,element,definition,constraint,severity}	varchar	"severity" varchar not null
+{ValueSet,status}	varchar	"status" varchar not null
+{Group,type}	varchar	"type" varchar not null
+{ValueSet,define,concept,code}	varchar	"code" varchar not null
+{ImagingStudy,series,modality}	varchar	"modality" varchar not null
 {ImagingStudy,series,availability}	varchar	"availability" varchar
-{Encounter,status}	varchar	"status" varchar not null
+{ValueSet,compose,include,code}	varchar	"code" varchar[]
+{Specimen,source,relationship}	varchar	"relationship" varchar not null
+{ValueSet,compose,include,filter,property}	varchar	"property" varchar not null
+{ValueSet,compose,include,filter,op}	varchar	"op" varchar not null
+{ValueSet,compose,include,filter,value}	varchar	"value" varchar not null
+{ValueSet,expansion,contains,code}	varchar	"code" varchar
 {SecurityEvent,object,lifecycle}	varchar	"lifecycle" varchar
 {SecurityEvent,object,role}	varchar	"role" varchar
-{CarePlan,goal,status}	varchar	"status" varchar
 {SecurityEvent,object,type}	varchar	"type" varchar
-{AllergyIntolerance,status}	varchar	"status" varchar not null
-{DocumentReference,relatesTo,code}	varchar	"code" varchar not null
-{CarePlan,activity,status}	varchar	"status" varchar
-{ConceptMap,concept,code}	varchar	"code" varchar
-{Supply,status}	varchar	"status" varchar
 {SecurityEvent,participant,network,type}	varchar	"type" varchar
-{Profile,extensionDefn,code}	varchar	"code" varchar not null
-{Questionnaire,status}	varchar	"status" varchar not null
 {AdverseReaction,symptom,severity}	varchar	"severity" varchar
-{SecurityEvent,event,outcome}	varchar	"outcome" varchar
-{CarePlan,activity,simple,category}	varchar	"category" varchar not null
-{List,mode}	varchar	"mode" varchar not null
-{ConceptMap,status}	varchar	"status" varchar not null
-{Location,status}	varchar	"status" varchar
-{SecurityEvent,event,action}	varchar	"action" varchar
-{DocumentManifest,status}	varchar	"status" varchar not null
-{DocumentReference,primaryLanguage}	varchar	"primary_language" varchar
-{Location,mode}	varchar	"mode" varchar
-{Profile,structure,element,definition,binding,conformance}	varchar	"conformance" varchar
-{ConceptMap,concept,map,equivalence}	varchar	"equivalence" varchar not null
-{AdverseReaction,exposure,causalityExpectation}	varchar	"causality_expectation" varchar
-{AllergyIntolerance,sensitivityType}	varchar	"sensitivity_type" varchar not null
-{ConceptMap,concept,map,code}	varchar	"code" varchar
-{DiagnosticReport,status}	varchar	"status" varchar not null
-{ValueSet,compose,include,filter,property}	varchar	"property" varchar not null
-{MedicationAdministration,status}	varchar	"status" varchar not null
-{ValueSet,status}	varchar	"status" varchar not null
-{MedicationPrescription,status}	varchar	"status" varchar
-{Query,response,outcome}	varchar	"outcome" varchar not null
-{DocumentReference,status}	varchar	"status" varchar not null
-{ValueSet,compose,include,code}	varchar	"code" varchar[]
-{Alert,status}	varchar	"status" varchar not null
-{Observation,reliability}	varchar	"reliability" varchar not null
-{Profile,extensionDefn,contextType}	varchar	"context_type" varchar not null
-{Composition,status}	varchar	"status" varchar not null
-{DiagnosticOrder,item,status}	varchar	"status" varchar
-{Patient,link,type}	varchar	"type" varchar not null
 {AdverseReaction,exposure,type}	varchar	"type" varchar
-{DiagnosticOrder,event,status}	varchar	"status" varchar not null
-{Specimen,source,relationship}	varchar	"relationship" varchar not null
-{Media,type}	varchar	"type" varchar not null
-{Supply,dispense,status}	varchar	"status" varchar
-{Conformance,messaging,event,focus}	varchar	"focus" varchar not null
-{Observation,related,type}	varchar	"type" varchar
-{ImagingStudy,series,modality}	varchar	"modality" varchar not null
-{Condition,relatedItem,type}	varchar	"type" varchar not null
-{ValueSet,expansion,contains,code}	varchar	"code" varchar
-{Conformance,document,mode}	varchar	"mode" varchar not null
-{ValueSet,compose,include,filter,value}	varchar	"value" varchar not null
+{AdverseReaction,exposure,causalityExpectation}	varchar	"causality_expectation" varchar
+{SecurityEvent,event,outcome}	varchar	"outcome" varchar
+{Alert,status}	varchar	"status" varchar not null
+{SecurityEvent,event,action}	varchar	"action" varchar
+{AllergyIntolerance,criticality}	varchar	"criticality" varchar
+{AllergyIntolerance,sensitivityType}	varchar	"sensitivity_type" varchar not null
+{AllergyIntolerance,status}	varchar	"status" varchar not null
+{CarePlan,status}	varchar	"status" varchar not null
+{CarePlan,goal,status}	varchar	"status" varchar
+{Questionnaire,status}	varchar	"status" varchar not null
+{CarePlan,activity,status}	varchar	"status" varchar
+{Query,response,outcome}	varchar	"outcome" varchar not null
+{Provenance,entity,role}	varchar	"role" varchar not null
+{CarePlan,activity,simple,category}	varchar	"category" varchar not null
+{Profile,extensionDefn,contextType}	varchar	"context_type" varchar not null
+{Profile,extensionDefn,code}	varchar	"code" varchar not null
+{Profile,structure,searchParam,target}	varchar	"target" varchar[]
+{Profile,structure,searchParam,type}	varchar	"type" varchar not null
+{Profile,structure,element,definition,binding,conformance}	varchar	"conformance" varchar
+{Profile,structure,element,definition,constraint,severity}	varchar	"severity" varchar not null
+{Composition,status}	varchar	"status" varchar not null
 {Profile,structure,element,definition,type,aggregation}	varchar	"aggregation" varchar[]
 {Profile,structure,element,definition,type,code}	varchar	"code" varchar not null
-{Conformance,messaging,event,mode}	varchar	"mode" varchar not null
 {Profile,structure,element,slicing,rules}	varchar	"rules" varchar not null
-{AllergyIntolerance,criticality}	varchar	"criticality" varchar
 {ImagingStudy,availability}	varchar	"availability" varchar
-{ValueSet,define,concept,code}	varchar	"code" varchar not null
-{DiagnosticOrder,priority}	varchar	"priority" varchar
-{Condition,status}	varchar	"status" varchar not null
 {Profile,structure,element,representation}	varchar	"representation" varchar[]
-{DiagnosticOrder,status}	varchar	"status" varchar
-{Conformance,messaging,event,category}	varchar	"category" varchar
-{Profile,structure,type}	varchar	"type" varchar not null
-{Conformance,status}	varchar	"status" varchar
-{OrderResponse,code}	varchar	"code" varchar not null
-{Provenance,entity,role}	varchar	"role" varchar not null
-{ConceptMap,concept,dependsOn,code}	varchar	"code" varchar not null
-{Conformance,rest,operation,code}	varchar	"code" varchar not null
-{DocumentReference,mimeType}	varchar	"mime_type" varchar not null
-{Conformance,rest,resource,searchParam,target}	varchar	"target" varchar[]
 {Composition,attester,mode}	varchar	"mode" varchar[] not null
-{MedicationDispense,status}	varchar	"status" varchar
-{Group,type}	varchar	"type" varchar not null
+{Profile,structure,type}	varchar	"type" varchar not null
+{ImagingStudy,modality}	varchar	"modality" varchar[]
+{Supply,dispense,status}	varchar	"status" varchar
+{Profile,status}	varchar	"status" varchar not null
+{Procedure,relatedItem,type}	varchar	"type" varchar
+{ConceptMap,status}	varchar	"status" varchar not null
+{ConceptMap,concept,code}	varchar	"code" varchar
+{ConceptMap,concept,dependsOn,code}	varchar	"code" varchar not null
+{ConceptMap,concept,map,code}	varchar	"code" varchar
+{ConceptMap,concept,map,equivalence}	varchar	"equivalence" varchar not null
+{Patient,link,type}	varchar	"type" varchar not null
+{Condition,status}	varchar	"status" varchar not null
+{Encounter,class}	varchar	"class" varchar not null
+{Condition,relatedItem,type}	varchar	"type" varchar not null
+{Encounter,status}	varchar	"status" varchar not null
+{Supply,status}	varchar	"status" varchar
+{Conformance,status}	varchar	"status" varchar
 {Conformance,format}	varchar	"format" varchar[] not null
-{FamilyHistory,relation,born_date}	date	"born_date" date
-{Condition,abatement_date}	date	"abatement_date" date
+{Conformance,rest,mode}	varchar	"mode" varchar not null
+{OrderResponse,code}	varchar	"code" varchar not null
+{Conformance,rest,security,certificate,type}	varchar	"type" varchar
+{Conformance,rest,resource,type}	varchar	"type" varchar not null
+{Conformance,rest,resource,operation,code}	varchar	"code" varchar not null
+{Conformance,rest,resource,searchParam,type}	varchar	"type" varchar not null
+{Conformance,rest,resource,searchParam,target}	varchar	"target" varchar[]
+{OperationOutcome,issue,severity}	varchar	"severity" varchar not null
+{List,mode}	varchar	"mode" varchar not null
+{Conformance,rest,operation,code}	varchar	"code" varchar not null
+{Observation,related,type}	varchar	"type" varchar
+{DocumentReference,mimeType}	varchar	"mime_type" varchar not null
+{Observation,reliability}	varchar	"reliability" varchar not null
+{Observation,status}	varchar	"status" varchar not null
+{DocumentReference,primaryLanguage}	varchar	"primary_language" varchar
+{Conformance,messaging,event,category}	varchar	"category" varchar
+{Conformance,messaging,event,mode}	varchar	"mode" varchar not null
+{Conformance,messaging,event,focus}	varchar	"focus" varchar not null
+{Conformance,document,mode}	varchar	"mode" varchar not null
+{MessageHeader,response,code}	varchar	"code" varchar not null
+{DocumentReference,relatesTo,code}	varchar	"code" varchar not null
+{DocumentReference,status}	varchar	"status" varchar not null
+{MedicationPrescription,status}	varchar	"status" varchar
+{DiagnosticOrder,status}	varchar	"status" varchar
+{DiagnosticOrder,priority}	varchar	"priority" varchar
+{DiagnosticOrder,event,status}	varchar	"status" varchar not null
+{DiagnosticOrder,item,status}	varchar	"status" varchar
+{DiagnosticReport,status}	varchar	"status" varchar not null
+{MedicationDispense,dispense,status}	varchar	"status" varchar
+{Location,status}	varchar	"status" varchar
+{MedicationDispense,status}	varchar	"status" varchar
+{Location,mode}	varchar	"mode" varchar
+{Media,type}	varchar	"type" varchar not null
+{DocumentManifest,status}	varchar	"status" varchar not null
 {Condition,onset_date}	date	"onset_date" date
-{Condition,dateAsserted}	date	"date_asserted" date
-{Device,expiry}	date	"expiry" date
-{Immunization,expirationDate}	date	"expiration_date" date
 {Questionnaire,group,question,answer_date}	date	"answer_date" date
-{FamilyHistory,relation,deceased_date}	date	"deceased_date" date
 {Other,created}	date	"created" date
-{AdverseReaction,date}	timestamp	"date" timestamp
-{OrderResponse,date}	timestamp	"date" timestamp
-{DiagnosticOrder,event,dateTime}	timestamp	"date_time" timestamp not null
+{Immunization,expirationDate}	date	"expiration_date" date
+{FamilyHistory,relation,deceased_date}	date	"deceased_date" date
+{Condition,abatement_date}	date	"abatement_date" date
+{Condition,dateAsserted}	date	"date_asserted" date
+{FamilyHistory,relation,born_date}	date	"born_date" date
+{Device,expiry}	date	"expiry" date
+{Conformance,date}	timestamp	"date" timestamp not null
+{MedicationAdministration,dosage,timing_dateTime}	timestamp	"timing_date_time" timestamp
+{Specimen,receivedTime}	timestamp	"received_time" timestamp
 {MedicationPrescription,dosageInstruction,timing_dateTime}	timestamp	"timing_date_time" timestamp
-{Patient,birthDate}	timestamp	"birth_date" timestamp
+{CarePlan,modified}	timestamp	"modified" timestamp
+{Composition,attester,time}	timestamp	"time" timestamp
+{Practitioner,birthDate}	timestamp	"birth_date" timestamp
+{Media,dateTime}	timestamp	"date_time" timestamp
+{Questionnaire,authored}	timestamp	"authored" timestamp not null
+{DocumentReference,created}	timestamp	"created" timestamp
+{Immunization,reaction,date}	timestamp	"date" timestamp
 {MedicationDispense,dispense,dosage,timing_dateTime}	timestamp	"timing_date_time" timestamp
+{OrderResponse,date}	timestamp	"date" timestamp
+{Specimen,collection,collected_dateTime}	timestamp	"collected_date_time" timestamp
+{Order,date}	timestamp	"date" timestamp
+{MedicationPrescription,dateWritten}	timestamp	"date_written" timestamp
+{ImmunizationRecommendation,recommendation,dateCriterion,value}	timestamp	"value" timestamp not null
+{List,date}	timestamp	"date" timestamp
+{DiagnosticReport,issued}	timestamp	"issued" timestamp not null
+{Conformance,software,releaseDate}	timestamp	"release_date" timestamp
+{MedicationDispense,dispense,whenHandedOver}	timestamp	"when_handed_over" timestamp
+{Profile,date}	timestamp	"date" timestamp
+{ConceptMap,date}	timestamp	"date" timestamp
+{ValueSet,date}	timestamp	"date" timestamp
 {MedicationDispense,dispense,whenPrepared}	timestamp	"when_prepared" timestamp
+{Patient,birthDate}	timestamp	"birth_date" timestamp
+{Observation,applies_dateTime}	timestamp	"applies_date_time" timestamp
+{ImagingStudy,series,dateTime}	timestamp	"date_time" timestamp
+{Patient,deceased_dateTime}	timestamp	"deceased_date_time" timestamp
 {DocumentManifest,created}	timestamp	"created" timestamp
 {Composition,date}	timestamp	"date" timestamp not null
-{List,date}	timestamp	"date" timestamp
-{MedicationPrescription,dateWritten}	timestamp	"date_written" timestamp
-{DiagnosticReport,issued}	timestamp	"issued" timestamp not null
-{DocumentReference,created}	timestamp	"created" timestamp
-{Order,date}	timestamp	"date" timestamp
-{Profile,date}	timestamp	"date" timestamp
-{Conformance,software,releaseDate}	timestamp	"release_date" timestamp
-{Media,dateTime}	timestamp	"date_time" timestamp
-{ImagingStudy,dateTime}	timestamp	"date_time" timestamp
+{AdverseReaction,date}	timestamp	"date" timestamp
+{DiagnosticOrder,event,dateTime}	timestamp	"date_time" timestamp not null
 {DiagnosticReport,diagnostic_dateTime}	timestamp	"diagnostic_date_time" timestamp not null
-{Questionnaire,group,question,answer_dateTime}	timestamp	"answer_date_time" timestamp
-{List,entry,date}	timestamp	"date" timestamp
-{Conformance,date}	timestamp	"date" timestamp not null
-{ImmunizationRecommendation,recommendation,dateCriterion,value}	timestamp	"value" timestamp not null
-{Practitioner,birthDate}	timestamp	"birth_date" timestamp
-{ImagingStudy,series,dateTime}	timestamp	"date_time" timestamp
-{ConceptMap,date}	timestamp	"date" timestamp
-{Immunization,reaction,date}	timestamp	"date" timestamp
-{CarePlan,modified}	timestamp	"modified" timestamp
-{Observation,applies_dateTime}	timestamp	"applies_date_time" timestamp
-{ImmunizationRecommendation,recommendation,date}	timestamp	"date" timestamp not null
-{Specimen,receivedTime}	timestamp	"received_time" timestamp
-{MedicationDispense,dispense,whenHandedOver}	timestamp	"when_handed_over" timestamp
-{Specimen,collection,collected_dateTime}	timestamp	"collected_date_time" timestamp
-{AdverseReaction,exposure,date}	timestamp	"date" timestamp
-{Questionnaire,authored}	timestamp	"authored" timestamp not null
-{Substance,instance,expiry}	timestamp	"expiry" timestamp
-{Immunization,date}	timestamp	"date" timestamp not null
+{ImagingStudy,dateTime}	timestamp	"date_time" timestamp
 {AllergyIntolerance,recordedDate}	timestamp	"recorded_date" timestamp
-{Composition,attester,time}	timestamp	"time" timestamp
-{MedicationAdministration,dosage,timing_dateTime}	timestamp	"timing_date_time" timestamp
-{Patient,deceased_dateTime}	timestamp	"deceased_date_time" timestamp
-{ValueSet,date}	timestamp	"date" timestamp
-{Location,position,altitude}	decimal	"altitude" decimal
+{Substance,instance,expiry}	timestamp	"expiry" timestamp
+{List,entry,date}	timestamp	"date" timestamp
+{Questionnaire,group,question,answer_dateTime}	timestamp	"answer_date_time" timestamp
+{AdverseReaction,exposure,date}	timestamp	"date" timestamp
+{ImmunizationRecommendation,recommendation,date}	timestamp	"date" timestamp not null
+{Immunization,date}	timestamp	"date" timestamp not null
 {Questionnaire,group,question,answer_decimal}	decimal	"answer_decimal" decimal
-{Location,position,latitude}	decimal	"latitude" decimal not null
 {Location,position,longitude}	decimal	"longitude" decimal not null
-{Conformance,fhirVersion}	varchar	"fhir_version" varchar not null
-{Profile,structure,element,definition,mapping,identity}	varchar	"identity" varchar not null
+{Location,position,latitude}	decimal	"latitude" decimal not null
+{Location,position,altitude}	decimal	"altitude" decimal
 {Profile,structure,element,definition,constraint,key}	varchar	"key" varchar not null
+{Profile,structure,element,definition,mapping,identity}	varchar	"identity" varchar not null
 {Profile,structure,element,definition,condition}	varchar	"condition" varchar[]
 {Profile,structure,element,slicing,discriminator}	varchar	"discriminator" varchar not null
 {Profile,mapping,identity}	varchar	"identity" varchar not null
 {Profile,fhirVersion}	varchar	"fhir_version" varchar
+{Conformance,fhirVersion}	varchar	"fhir_version" varchar not null
 {MessageHeader,response,identifier}	varchar	"identifier" varchar not null
 {MessageHeader,identifier}	varchar	"identifier" varchar not null
-{Observation,issued}	timestamp	"issued" timestamp
-{DeviceObservationReport,instant}	timestamp	"instant" timestamp not null
-{Provenance,recorded}	timestamp	"recorded" timestamp not null
-{Questionnaire,group,question,answer_instant}	timestamp	"answer_instant" timestamp
-{ValueSet,expansion,timestamp}	timestamp	"timestamp" timestamp not null
-{SecurityEvent,event,dateTime}	timestamp	"date_time" timestamp not null
 {MessageHeader,timestamp}	timestamp	"timestamp" timestamp not null
+{SecurityEvent,event,dateTime}	timestamp	"date_time" timestamp not null
+{DeviceObservationReport,instant}	timestamp	"instant" timestamp not null
+{Questionnaire,group,question,answer_instant}	timestamp	"answer_instant" timestamp
 {DocumentReference,indexed}	timestamp	"indexed" timestamp not null
-{Profile,structure,element,definition,min}	integer	"min" integer not null
+{Provenance,recorded}	timestamp	"recorded" timestamp not null
+{ValueSet,expansion,timestamp}	timestamp	"timestamp" timestamp not null
+{Observation,issued}	timestamp	"issued" timestamp
+{ImagingStudy,numberOfSeries}	integer	"number_of_series" integer not null
+{Media,length}	integer	"length" integer
+{Media,frames}	integer	"frames" integer
+{Media,width}	integer	"width" integer
+{Media,height}	integer	"height" integer
+{MedicationPrescription,dispense,numberOfRepeatsAllowed}	integer	"number_of_repeats_allowed" integer
+{Conformance,messaging,reliableCache}	integer	"reliable_cache" integer
+{DocumentReference,size}	integer	"size" integer
+{ImmunizationRecommendation,recommendation,protocol,doseSequence}	integer	"dose_sequence" integer
+{ImmunizationRecommendation,recommendation,doseNumber}	integer	"dose_number" integer
 {Patient,multipleBirth_integer}	integer	"multiple_birth_integer" integer
-{Query,response,total}	integer	"total" integer
-{ImagingStudy,series,number}	integer	"number" integer
+{Profile,structure,element,definition,min}	integer	"min" integer not null
 {Profile,structure,element,definition,maxLength}	integer	"max_length" integer
+{ImagingStudy,numberOfInstances}	integer	"number_of_instances" integer not null
+{Immunization,vaccinationProtocol,seriesDoses}	integer	"series_doses" integer
+{Immunization,vaccinationProtocol,doseSequence}	integer	"dose_sequence" integer not null
+{Query,response,total}	integer	"total" integer
+{Questionnaire,group,question,answer_integer}	integer	"answer_integer" integer
 {ImagingStudy,series,instance,number}	integer	"number" integer
 {ImagingStudy,series,numberOfInstances}	integer	"number_of_instances" integer not null
-{ImmunizationRecommendation,recommendation,doseNumber}	integer	"dose_number" integer
-{Media,width}	integer	"width" integer
-{Media,frames}	integer	"frames" integer
-{Immunization,vaccinationProtocol,doseSequence}	integer	"dose_sequence" integer not null
-{Immunization,vaccinationProtocol,seriesDoses}	integer	"series_doses" integer
-{DocumentReference,size}	integer	"size" integer
-{Conformance,messaging,reliableCache}	integer	"reliable_cache" integer
-{Media,length}	integer	"length" integer
+{ImagingStudy,series,number}	integer	"number" integer
 {Group,quantity}	integer	"quantity" integer
-{Media,height}	integer	"height" integer
-{Questionnaire,group,question,answer_integer}	integer	"answer_integer" integer
-{MedicationPrescription,dispense,numberOfRepeatsAllowed}	integer	"number_of_repeats_allowed" integer
-{ImagingStudy,numberOfSeries}	integer	"number_of_series" integer not null
-{ImagingStudy,numberOfInstances}	integer	"number_of_instances" integer not null
-{ImmunizationRecommendation,recommendation,protocol,doseSequence}	integer	"dose_sequence" integer
 {ImagingStudy,series,instance,sopclass}	varchar	"sopclass" varchar not null
-{ImagingStudy,series,instance,uid}	varchar	"uid" varchar not null
 {ImagingStudy,series,uid}	varchar	"uid" varchar not null
 {ImagingStudy,uid}	varchar	"uid" varchar not null
-{Profile,structure,searchParam,xpath}	varchar	"xpath" varchar
-{Specimen,treatment,description}	varchar	"description" varchar
-{Immunization,lotNumber}	varchar	"lot_number" varchar
-{Profile,extensionDefn,display}	varchar	"display" varchar
-{SecurityEvent,event,outcomeDesc}	varchar	"outcome_desc" varchar
-{Profile,extensionDefn,context}	varchar	"context" varchar[] not null
-{Profile,query,name}	varchar	"name" varchar not null
-{Profile,query,documentation}	varchar	"documentation" varchar not null
-{MedicationPrescription,dosageInstruction,text}	varchar	"text" varchar
-{SecurityEvent,object,name}	varchar	"name" varchar
-{Questionnaire,group,question,answer_string}	varchar	"answer_string" varchar
-{SecurityEvent,object,description}	varchar	"description" varchar
-{DiagnosticOrder,clinicalNotes}	varchar	"clinical_notes" varchar
-{Profile,structure,element,definition,mapping,map}	varchar	"map" varchar not null
-{Immunization,vaccinationProtocol,series}	varchar	"series" varchar
-{Profile,structure,searchParam,name}	varchar	"name" varchar not null
-{Immunization,vaccinationProtocol,description}	varchar	"description" varchar
-{Profile,structure,searchParam,documentation}	varchar	"documentation" varchar not null
-{Profile,structure,element,definition,short}	varchar	"short" varchar not null
-{Substance,description}	varchar	"description" varchar
-{Profile,structure,element,definition,formal}	varchar	"formal" varchar not null
-{Profile,structure,element,definition,comments}	varchar	"comments" varchar
-{Organization,name}	varchar	"name" varchar
-{Profile,structure,element,definition,requirements}	varchar	"requirements" varchar
-{Profile,structure,element,definition,synonym}	varchar	"synonym" varchar[]
-{Specimen,collection,comment}	varchar	"comment" varchar[]
-{Profile,structure,element,definition,max}	varchar	"max" varchar not null
-{Medication,name}	varchar	"name" varchar
-{DiagnosticReport,conclusion}	varchar	"conclusion" varchar
-{DiagnosticReport,image,comment}	varchar	"comment" varchar
-{Media,deviceName}	varchar	"device_name" varchar
-{Profile,structure,element,definition,nameReference}	varchar	"name_reference" varchar
-{ImmunizationRecommendation,recommendation,protocol,series}	varchar	"series" varchar
-{ValueSet,compose,include,version}	varchar	"version" varchar
-{CarePlan,goal,notes}	varchar	"notes" varchar
-{Condition,location,detail}	varchar	"detail" varchar
-{CarePlan,goal,description}	varchar	"description" varchar not null
-{Questionnaire,group,header}	varchar	"header" varchar
-{Profile,structure,element,definition,constraint,name}	varchar	"name" varchar
-{Questionnaire,group,text}	varchar	"text" varchar
-{Profile,structure,element,definition,constraint,human}	varchar	"human" varchar not null
-{Profile,structure,element,definition,constraint,xpath}	varchar	"xpath" varchar not null
-{CarePlan,activity,simple,timing_string}	varchar	"timing_string" varchar
-{Profile,structure,element,definition,binding,name}	varchar	"name" varchar not null
-{Questionnaire,group,question,text}	varchar	"text" varchar
-{ConceptMap,concept,map,comments}	varchar	"comments" varchar
-{Profile,structure,element,definition,binding,description}	varchar	"description" varchar
-{Location,name}	varchar	"name" varchar
-{ImmunizationRecommendation,recommendation,protocol,description}	varchar	"description" varchar
-{ImagingStudy,series,instance,title}	varchar	"title" varchar
-{ImagingStudy,series,instance,type}	varchar	"type" varchar
-{ImagingStudy,series,description}	varchar	"description" varchar
-{ImagingStudy,description}	varchar	"description" varchar
-{ConceptMap,copyright}	varchar	"copyright" varchar
-{ConceptMap,description}	varchar	"description" varchar
-{ImagingStudy,clinicalInformation}	varchar	"clinical_information" varchar
+{ImagingStudy,series,instance,uid}	varchar	"uid" varchar not null
 {ConceptMap,publisher}	varchar	"publisher" varchar
-{Location,description}	varchar	"description" varchar
-{Device,lotNumber}	varchar	"lot_number" varchar
-{ValueSet,define,concept,definition}	varchar	"definition" varchar
-{Device,udi}	varchar	"udi" varchar
-{Device,version}	varchar	"version" varchar
-{Device,model}	varchar	"model" varchar
-{Device,manufacturer}	varchar	"manufacturer" varchar
-{Conformance,document,documentation}	varchar	"documentation" varchar
 {Conformance,messaging,event,documentation}	varchar	"documentation" varchar
-{Group,name}	varchar	"name" varchar
-{ConceptMap,name}	varchar	"name" varchar not null
-{ConceptMap,version}	varchar	"version" varchar
-{FamilyHistory,relation,condition,note}	varchar	"note" varchar
-{FamilyHistory,relation,condition,onset_string}	varchar	"onset_string" varchar
-{FamilyHistory,relation,note}	varchar	"note" varchar
-{FamilyHistory,relation,deceased_string}	varchar	"deceased_string" varchar
-{FamilyHistory,relation,born_string}	varchar	"born_string" varchar
-{FamilyHistory,relation,name}	varchar	"name" varchar
-{FamilyHistory,note}	varchar	"note" varchar
-{Conformance,messaging,documentation}	varchar	"documentation" varchar
-{Provenance,agent,display}	varchar	"display" varchar
-{Specimen,container,description}	varchar	"description" varchar
-{ConceptMap,identifier}	varchar	"identifier" varchar
-{Conformance,rest,query,documentation}	varchar	"documentation" varchar
-{SecurityEvent,participant,userId}	varchar	"user_id" varchar
-{MessageHeader,source,name}	varchar	"name" varchar
-{MessageHeader,source,software}	varchar	"software" varchar not null
-{MessageHeader,source,version}	varchar	"version" varchar
-{ValueSet,define,concept,display}	varchar	"display" varchar
 {MessageHeader,destination,name}	varchar	"name" varchar
-{Conformance,rest,query,name}	varchar	"name" varchar not null
-{Conformance,rest,operation,documentation}	varchar	"documentation" varchar
-{Conformance,rest,resource,searchParam,chain}	varchar	"chain" varchar[]
-{Conformance,rest,resource,searchParam,documentation}	varchar	"documentation" varchar
-{Provenance,entity,display}	varchar	"display" varchar
-{Conformance,rest,resource,searchParam,name}	varchar	"name" varchar not null
-{Provenance,integritySignature}	varchar	"integrity_signature" varchar
-{Procedure,outcome}	varchar	"outcome" varchar
-{SecurityEvent,participant,altId}	varchar	"alt_id" varchar
-{Conformance,rest,resource,searchInclude}	varchar	"search_include" varchar[]
-{Procedure,followUp}	varchar	"follow_up" varchar
-{Conformance,rest,resource,operation,documentation}	varchar	"documentation" varchar
-{DocumentReference,service,parameter,value}	varchar	"value" varchar
-{DocumentReference,service,parameter,name}	varchar	"name" varchar not null
-{DocumentReference,service,address}	varchar	"address" varchar
-{Observation,value_string}	varchar	"value_string" varchar
-{DocumentReference,hash}	varchar	"hash" varchar
-{Observation,comments}	varchar	"comments" varchar
+{Provenance,agent,display}	varchar	"display" varchar
+{FamilyHistory,relation,born_string}	varchar	"born_string" varchar
+{FamilyHistory,relation,deceased_string}	varchar	"deceased_string" varchar
+{ConceptMap,name}	varchar	"name" varchar not null
+{Location,name}	varchar	"name" varchar
+{ConceptMap,version}	varchar	"version" varchar
 {DocumentReference,description}	varchar	"description" varchar
-{SecurityEvent,participant,name}	varchar	"name" varchar
-{Questionnaire,group,question,remarks}	varchar	"remarks" varchar
-{ValueSet,publisher}	varchar	"publisher" varchar
-{SecurityEvent,object,detail,type}	varchar	"type" varchar not null
-{ValueSet,name}	varchar	"name" varchar not null
-{ValueSet,copyright}	varchar	"copyright" varchar
-{Composition,section,title}	varchar	"title" varchar
-{ValueSet,description}	varchar	"description" varchar not null
-{Composition,title}	varchar	"title" varchar
+{ConceptMap,identifier}	varchar	"identifier" varchar
+{ImagingStudy,clinicalInformation}	varchar	"clinical_information" varchar
+{DocumentReference,hash}	varchar	"hash" varchar
+{ConceptMap,concept,map,comments}	varchar	"comments" varchar
+{Questionnaire,group,question,answer_string}	varchar	"answer_string" varchar
+{ImagingStudy,description}	varchar	"description" varchar
+{FamilyHistory,relation,note}	varchar	"note" varchar
+{Specimen,treatment,description}	varchar	"description" varchar
+{Questionnaire,group,question,text}	varchar	"text" varchar
+{Condition,location,detail}	varchar	"detail" varchar
+{Procedure,outcome}	varchar	"outcome" varchar
+{Questionnaire,group,text}	varchar	"text" varchar
+{Condition,notes}	varchar	"notes" varchar
+{Procedure,followUp}	varchar	"follow_up" varchar
+{Location,description}	varchar	"description" varchar
 {Alert,note}	varchar	"note" varchar not null
-{CarePlan,notes}	varchar	"notes" varchar
-{CarePlan,activity,simple,details}	varchar	"details" varchar
-{SecurityEvent,participant,network,identifier}	varchar	"identifier" varchar
-{CarePlan,activity,notes}	varchar	"notes" varchar
-{Procedure,notes}	varchar	"notes" varchar
+{Media,deviceName}	varchar	"device_name" varchar
+{DocumentManifest,description}	varchar	"description" varchar
 {ValueSet,define,version}	varchar	"version" varchar
-{SecurityEvent,source,site}	varchar	"site" varchar
+{Substance,description}	varchar	"description" varchar
+{Conformance,identifier}	varchar	"identifier" varchar
+{Questionnaire,group,question,remarks}	varchar	"remarks" varchar
+{Immunization,lotNumber}	varchar	"lot_number" varchar
+{SecurityEvent,event,outcomeDesc}	varchar	"outcome_desc" varchar
+{Questionnaire,group,header}	varchar	"header" varchar
+{FamilyHistory,note}	varchar	"note" varchar
+{Conformance,version}	varchar	"version" varchar
+{Conformance,name}	varchar	"name" varchar
+{Conformance,publisher}	varchar	"publisher" varchar not null
+{SecurityEvent,participant,userId}	varchar	"user_id" varchar
+{SecurityEvent,participant,altId}	varchar	"alt_id" varchar
+{SecurityEvent,participant,name}	varchar	"name" varchar
+{Procedure,notes}	varchar	"notes" varchar
+{Medication,name}	varchar	"name" varchar
+{Specimen,container,description}	varchar	"description" varchar
+{DocumentReference,service,address}	varchar	"address" varchar
 {Profile,identifier}	varchar	"identifier" varchar
 {Profile,version}	varchar	"version" varchar
 {Profile,name}	varchar	"name" varchar not null
 {Profile,publisher}	varchar	"publisher" varchar
-{OperationOutcome,issue,details}	varchar	"details" varchar
-{OperationOutcome,issue,location}	varchar	"location" varchar[]
-{ValueSet,version}	varchar	"version" varchar
-{Conformance,rest,security,description}	varchar	"description" varchar
+{Composition,section,title}	varchar	"title" varchar
 {Profile,description}	varchar	"description" varchar
-{Conformance,rest,documentation}	varchar	"documentation" varchar
-{DocumentManifest,description}	varchar	"description" varchar
-{SecurityEvent,source,identifier}	varchar	"identifier" varchar not null
-{Conformance,implementation,description}	varchar	"description" varchar not null
-{Profile,requirements}	varchar	"requirements" varchar
-{Conformance,software,version}	varchar	"version" varchar
+{Conformance,description}	varchar	"description" varchar
+{CarePlan,goal,description}	varchar	"description" varchar not null
 {Conformance,software,name}	varchar	"name" varchar not null
+{Conformance,software,version}	varchar	"version" varchar
+{Profile,requirements}	varchar	"requirements" varchar
+{SecurityEvent,participant,network,identifier}	varchar	"identifier" varchar
+{Conformance,implementation,description}	varchar	"description" varchar not null
+{CarePlan,goal,notes}	varchar	"notes" varchar
+{Immunization,vaccinationProtocol,series}	varchar	"series" varchar
 {Profile,mapping,name}	varchar	"name" varchar
 {Profile,mapping,comments}	varchar	"comments" varchar
-{ValueSet,identifier}	varchar	"identifier" varchar
-{Conformance,description}	varchar	"description" varchar
-{ValueSet,expansion,contains,display}	varchar	"display" varchar
+{ImagingStudy,series,instance,type}	varchar	"type" varchar
+{Organization,name}	varchar	"name" varchar
 {Profile,structure,name}	varchar	"name" varchar
-{Conformance,publisher}	varchar	"publisher" varchar not null
+{SecurityEvent,source,site}	varchar	"site" varchar
 {Profile,structure,purpose}	varchar	"purpose" varchar
+{Conformance,rest,documentation}	varchar	"documentation" varchar
 {Profile,structure,element,path}	varchar	"path" varchar not null
-{Conformance,name}	varchar	"name" varchar
+{Group,name}	varchar	"name" varchar
 {Profile,structure,element,name}	varchar	"name" varchar
-{Conformance,version}	varchar	"version" varchar
-{Conformance,identifier}	varchar	"identifier" varchar
-{Condition,notes}	varchar	"notes" varchar
 {OrderResponse,description}	varchar	"description" varchar
-{ImagingStudy,series,instance,url}	varchar	"url" varchar
-{Query,identifier}	varchar	"identifier" varchar not null
-{Provenance,agent,reference}	varchar	"reference" varchar not null
-{ImagingStudy,series,url}	varchar	"url" varchar
-{DocumentReference,policyManager}	varchar	"policy_manager" varchar
-{Query,response,identifier}	varchar	"identifier" varchar not null
-{DocumentManifest,source}	varchar	"source" varchar
-{Conformance,messaging,endpoint}	varchar	"endpoint" varchar
-{Conformance,rest,documentMailbox}	varchar	"document_mailbox" varchar[]
-{ImagingStudy,url}	varchar	"url" varchar
-{ConceptMap,concept,dependsOn,concept}	varchar	"concept" varchar not null
-{ValueSet,compose,import}	varchar	"import" varchar[]
+{SecurityEvent,source,identifier}	varchar	"identifier" varchar not null
+{Conformance,rest,security,description}	varchar	"description" varchar
+{Specimen,collection,comment}	varchar	"comment" varchar[]
+{ImagingStudy,series,description}	varchar	"description" varchar
+{Profile,structure,element,definition,short}	varchar	"short" varchar not null
+{Profile,structure,element,definition,formal}	varchar	"formal" varchar not null
+{Profile,structure,element,definition,comments}	varchar	"comments" varchar
+{Profile,structure,element,definition,requirements}	varchar	"requirements" varchar
+{Profile,structure,element,definition,synonym}	varchar	"synonym" varchar[]
+{FamilyHistory,relation,condition,onset_string}	varchar	"onset_string" varchar
+{Profile,structure,element,definition,max}	varchar	"max" varchar not null
+{ValueSet,compose,include,version}	varchar	"version" varchar
+{ValueSet,copyright}	varchar	"copyright" varchar
+{ConceptMap,copyright}	varchar	"copyright" varchar
+{FamilyHistory,relation,condition,note}	varchar	"note" varchar
+{Profile,structure,element,definition,nameReference}	varchar	"name_reference" varchar
+{FamilyHistory,relation,name}	varchar	"name" varchar
+{Conformance,rest,resource,operation,documentation}	varchar	"documentation" varchar
+{Composition,title}	varchar	"title" varchar
+{Conformance,rest,resource,searchInclude}	varchar	"search_include" varchar[]
+{ValueSet,name}	varchar	"name" varchar not null
+{Profile,structure,element,definition,constraint,name}	varchar	"name" varchar
+{ImmunizationRecommendation,recommendation,protocol,series}	varchar	"series" varchar
+{Profile,structure,element,definition,constraint,human}	varchar	"human" varchar not null
+{Profile,structure,element,definition,constraint,xpath}	varchar	"xpath" varchar not null
+{CarePlan,notes}	varchar	"notes" varchar
+{CarePlan,activity,simple,details}	varchar	"details" varchar
+{CarePlan,activity,notes}	varchar	"notes" varchar
+{Profile,structure,element,definition,binding,name}	varchar	"name" varchar not null
+{ImmunizationRecommendation,recommendation,protocol,description}	varchar	"description" varchar
+{DocumentReference,service,parameter,name}	varchar	"name" varchar not null
+{Profile,structure,element,definition,binding,description}	varchar	"description" varchar
+{ConceptMap,description}	varchar	"description" varchar
+{SecurityEvent,object,name}	varchar	"name" varchar
+{ValueSet,publisher}	varchar	"publisher" varchar
+{SecurityEvent,object,description}	varchar	"description" varchar
+{Profile,structure,element,definition,mapping,map}	varchar	"map" varchar not null
+{Conformance,rest,resource,searchParam,name}	varchar	"name" varchar not null
+{Profile,structure,searchParam,name}	varchar	"name" varchar not null
+{ValueSet,expansion,contains,display}	varchar	"display" varchar
+{Profile,structure,searchParam,documentation}	varchar	"documentation" varchar not null
+{Profile,structure,searchParam,xpath}	varchar	"xpath" varchar
+{DiagnosticReport,conclusion}	varchar	"conclusion" varchar
+{OperationOutcome,issue,location}	varchar	"location" varchar[]
+{SecurityEvent,object,detail,type}	varchar	"type" varchar not null
+{Profile,extensionDefn,display}	varchar	"display" varchar
+{ValueSet,define,concept,display}	varchar	"display" varchar
+{Profile,extensionDefn,context}	varchar	"context" varchar[] not null
+{OperationOutcome,issue,details}	varchar	"details" varchar
+{Conformance,rest,resource,searchParam,documentation}	varchar	"documentation" varchar
+{Profile,query,name}	varchar	"name" varchar not null
+{Profile,query,documentation}	varchar	"documentation" varchar not null
+{Conformance,rest,resource,searchParam,chain}	varchar	"chain" varchar[]
+{DiagnosticReport,image,comment}	varchar	"comment" varchar
+{Conformance,rest,operation,documentation}	varchar	"documentation" varchar
+{ValueSet,identifier}	varchar	"identifier" varchar
+{Immunization,vaccinationProtocol,description}	varchar	"description" varchar
+{ValueSet,description}	varchar	"description" varchar not null
+{Provenance,integritySignature}	varchar	"integrity_signature" varchar
+{ValueSet,define,concept,definition}	varchar	"definition" varchar
+{Provenance,entity,display}	varchar	"display" varchar
+{DocumentReference,service,parameter,value}	varchar	"value" varchar
+{Conformance,rest,query,name}	varchar	"name" varchar not null
+{ImagingStudy,series,instance,title}	varchar	"title" varchar
+{Device,lotNumber}	varchar	"lot_number" varchar
+{Device,udi}	varchar	"udi" varchar
+{Conformance,rest,query,documentation}	varchar	"documentation" varchar
+{Observation,comments}	varchar	"comments" varchar
+{ValueSet,version}	varchar	"version" varchar
+{Device,version}	varchar	"version" varchar
+{MedicationPrescription,dosageInstruction,text}	varchar	"text" varchar
+{Device,model}	varchar	"model" varchar
+{Device,manufacturer}	varchar	"manufacturer" varchar
+{Conformance,messaging,documentation}	varchar	"documentation" varchar
+{DiagnosticOrder,clinicalNotes}	varchar	"clinical_notes" varchar
+{Observation,value_string}	varchar	"value_string" varchar
+{CarePlan,activity,simple,timing_string}	varchar	"timing_string" varchar
+{MessageHeader,source,name}	varchar	"name" varchar
+{MessageHeader,source,software}	varchar	"software" varchar not null
+{MessageHeader,source,version}	varchar	"version" varchar
+{Conformance,document,documentation}	varchar	"documentation" varchar
+{ConceptMap,concept,dependsOn,system}	varchar	"system" varchar not null
+{ConceptMap,concept,system}	varchar	"system" varchar not null
+{DocumentReference,format}	varchar	"format" varchar[]
+{DocumentReference,location}	varchar	"location" varchar
 {ValueSet,define,system}	varchar	"system" varchar not null
+{ImagingStudy,series,url}	varchar	"url" varchar
+{Profile,mapping,uri}	varchar	"uri" varchar
+{Profile,structure,element,definition,type,profile}	varchar	"profile" varchar
+{Profile,structure,element,definition,binding,reference_uri}	varchar	"reference_uri" varchar
+{ValueSet,expansion,contains,system}	varchar	"system" varchar
+{Device,url}	varchar	"url" varchar
+{ImagingStudy,series,instance,url}	varchar	"url" varchar
+{MessageHeader,source,endpoint}	varchar	"endpoint" varchar not null
+{MessageHeader,destination,endpoint}	varchar	"endpoint" varchar not null
+{Provenance,policy}	varchar	"policy" varchar[]
+{Provenance,agent,reference}	varchar	"reference" varchar not null
+{Conformance,messaging,endpoint}	varchar	"endpoint" varchar
+{Provenance,entity,reference}	varchar	"reference" varchar not null
+{Conformance,rest,documentMailbox}	varchar	"document_mailbox" varchar[]
 {Conformance,rest,query,definition}	varchar	"definition" varchar not null
+{Query,identifier}	varchar	"identifier" varchar not null
+{Query,response,identifier}	varchar	"identifier" varchar not null
+{Conformance,rest,resource,searchParam,definition}	varchar	"definition" varchar
+{ImagingStudy,url}	varchar	"url" varchar
 {ValueSet,compose,include,system}	varchar	"system" varchar not null
 {Conformance,implementation,url}	varchar	"url" varchar
-{DocumentReference,location}	varchar	"location" varchar
-{ConceptMap,concept,system}	varchar	"system" varchar not null
-{Provenance,policy}	varchar	"policy" varchar[]
-{MessageHeader,source,endpoint}	varchar	"endpoint" varchar not null
+{DocumentManifest,source}	varchar	"source" varchar
+{ValueSet,compose,import}	varchar	"import" varchar[]
+{DocumentReference,policyManager}	varchar	"policy_manager" varchar
 {ConceptMap,concept,map,system}	varchar	"system" varchar
-{ValueSet,expansion,contains,system}	varchar	"system" varchar
-{MessageHeader,destination,endpoint}	varchar	"endpoint" varchar not null
-{Provenance,entity,reference}	varchar	"reference" varchar not null
-{Device,url}	varchar	"url" varchar
-{ConceptMap,concept,dependsOn,system}	varchar	"system" varchar not null
-{DocumentReference,format}	varchar	"format" varchar[]
-{Profile,structure,element,definition,binding,reference_uri}	varchar	"reference_uri" varchar
-{Profile,mapping,uri}	varchar	"uri" varchar
-{Conformance,rest,resource,searchParam,definition}	varchar	"definition" varchar
-{Profile,structure,element,definition,type,profile}	varchar	"profile" varchar
+{ConceptMap,concept,dependsOn,concept}	varchar	"concept" varchar not null
 \.
 
 
@@ -45439,6 +45389,7 @@ COPY resource_elements (version, path, min, max, type) FROM stdin;
 
 COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {AdverseReaction}	resource	1	1
+{AdverseReaction,NULL}	\N	0	*
 {AdverseReaction,contained}	resource	0	*
 {AdverseReaction,date}	date_time	0	1
 {AdverseReaction,didNotOccurFlag}	boolean	1	1
@@ -45550,7 +45501,9 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {AllergyIntolerance,text}	narrative	0	1
 {AllergyIntolerance,text,div}	text	1	1
 {AllergyIntolerance,text,status}	narrative_status	1	1
+{CarePlan,NULL}	\N	0	*
 {CarePlan}	resource	1	1
+{CarePlan,activity,NULL}	\N	0	1
 {CarePlan,activity,actionResulting}	resource_reference	0	*
 {CarePlan,activity,actionResulting,display}	string	0	1
 {CarePlan,activity,actionResulting,reference}	string	0	1
@@ -45657,6 +45610,8 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {CarePlan,text}	narrative	0	1
 {CarePlan,text,div}	text	1	1
 {CarePlan,text,status}	narrative_status	1	1
+{Composition,NULL}	\N	0	*
+{Composition,NULL}	\N	0	1
 {Composition}	resource	1	1
 {Composition,attester,mode}	code	1	*
 {Composition,attester,party}	resource_reference	0	1
@@ -45722,6 +45677,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Composition,identifier,system}	uri	0	1
 {Composition,identifier,use}	identifier_use	0	1
 {Composition,identifier,value}	string	0	1
+{Composition,section,NULL}	\N	0	*
 {Composition,section,code}	codeable_concept	0	1
 {Composition,section,code,coding}	coding	0	*
 {Composition,section,code,coding,code}	code	0	*
@@ -45760,10 +45716,13 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Composition,type,coding,version}	string	0	*
 {Composition,type,text}	string	0	1
 {ConceptMap}	resource	1	1
+{ConceptMap,NULL}	\N	0	*
+{ConceptMap,concept,NULL}	\N	0	*
 {ConceptMap,concept,code}	code	0	1
 {ConceptMap,concept,dependsOn,code}	code	1	1
 {ConceptMap,concept,dependsOn,concept}	uri	1	1
 {ConceptMap,concept,dependsOn,system}	uri	1	1
+{ConceptMap,concept,map,NULL}	\N	0	*
 {ConceptMap,concept,map,code}	code	0	1
 {ConceptMap,concept,map,comments}	string	0	1
 {ConceptMap,concept,map,equivalence}	code	1	1
@@ -45796,6 +45755,8 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {ConceptMap,text,status}	narrative_status	1	1
 {ConceptMap,version}	string	0	1
 {Condition}	resource	1	1
+{Condition,NULL}	\N	0	*
+{Condition,NULL}	\N	0	1
 {Condition,abatement_Age}	age	0	1
 {Condition,abatement_boolean}	boolean	0	1
 {Condition,abatement_date}	date	0	1
@@ -45927,6 +45888,8 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Condition,text}	narrative	0	1
 {Condition,text,div}	text	1	1
 {Condition,text,status}	narrative_status	1	1
+{Conformance,NULL}	\N	0	*
+{Conformance,NULL}	\N	0	1
 {Conformance}	resource	1	1
 {Conformance,acceptUnknown}	boolean	1	1
 {Conformance,contained}	resource	0	*
@@ -45943,6 +45906,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Conformance,identifier}	string	0	1
 {Conformance,implementation,description}	string	1	1
 {Conformance,implementation,url}	uri	0	1
+{Conformance,messaging,NULL}	\N	1	*
 {Conformance,messaging,documentation}	string	0	1
 {Conformance,messaging,endpoint}	uri	0	1
 {Conformance,messaging,event,category}	code	0	1
@@ -45979,14 +45943,20 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Conformance,profile,display}	string	0	1
 {Conformance,profile,reference}	string	0	1
 {Conformance,publisher}	string	1	1
+{Conformance,rest,NULL}	\N	0	*
+{Conformance,rest,NULL}	\N	0	1
+{Conformance,rest,NULL}	\N	1	*
 {Conformance,rest,documentation}	string	0	1
 {Conformance,rest,documentMailbox}	uri	0	*
 {Conformance,rest,mode}	code	1	1
 {Conformance,rest,operation,code}	code	1	1
 {Conformance,rest,operation,documentation}	string	0	1
+{Conformance,rest,query,NULL}	\N	0	*
 {Conformance,rest,query,definition}	uri	1	1
 {Conformance,rest,query,documentation}	string	0	1
 {Conformance,rest,query,name}	string	1	1
+{Conformance,rest,resource,NULL}	\N	0	*
+{Conformance,rest,resource,NULL}	\N	1	*
 {Conformance,rest,resource,operation,code}	code	1	1
 {Conformance,rest,resource,operation,documentation}	string	0	1
 {Conformance,rest,resource,profile}	resource_reference	0	1
@@ -46002,6 +45972,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Conformance,rest,resource,searchParam,type}	code	1	1
 {Conformance,rest,resource,type}	code	1	1
 {Conformance,rest,resource,updateCreate}	boolean	0	1
+{Conformance,rest,security,NULL}	\N	0	*
 {Conformance,rest,security,certificate,blob}	base64_binary	0	1
 {Conformance,rest,security,certificate,type}	code	0	1
 {Conformance,rest,security,cors}	boolean	0	1
@@ -46060,6 +46031,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Device,manufacturer}	string	0	1
 {Device,model}	string	0	1
 {DeviceObservationReport}	resource	1	1
+{DeviceObservationReport,NULL}	\N	0	*
 {DeviceObservationReport,contained}	resource	0	*
 {DeviceObservationReport,identifier}	identifier	0	1
 {DeviceObservationReport,identifier,assigner}	resource_reference	0	1
@@ -46082,6 +46054,8 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {DeviceObservationReport,text}	narrative	0	1
 {DeviceObservationReport,text,div}	text	1	1
 {DeviceObservationReport,text,status}	narrative_status	1	1
+{DeviceObservationReport,virtualDevice,NULL}	\N	0	*
+{DeviceObservationReport,virtualDevice,channel,NULL}	\N	0	*
 {DeviceObservationReport,virtualDevice,channel,code}	codeable_concept	0	1
 {DeviceObservationReport,virtualDevice,channel,code,coding}	coding	0	*
 {DeviceObservationReport,virtualDevice,channel,code,coding,code}	code	0	*
@@ -46131,6 +46105,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Device,url}	uri	0	1
 {Device,version}	string	0	1
 {DiagnosticOrder}	resource	1	1
+{DiagnosticOrder,NULL}	\N	0	*
 {DiagnosticOrder,clinicalNotes}	string	0	1
 {DiagnosticOrder,contained}	resource	0	*
 {DiagnosticOrder,encounter}	resource_reference	0	1
@@ -46163,6 +46138,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {DiagnosticOrder,identifier,system}	uri	0	1
 {DiagnosticOrder,identifier,use}	identifier_use	0	1
 {DiagnosticOrder,identifier,value}	string	0	1
+{DiagnosticOrder,item,NULL}	\N	0	*
 {DiagnosticOrder,item,bodySite}	codeable_concept	0	1
 {DiagnosticOrder,item,bodySite,coding}	coding	0	*
 {DiagnosticOrder,item,bodySite,coding,code}	code	0	*
@@ -46204,6 +46180,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {DiagnosticOrder,text,div}	text	1	1
 {DiagnosticOrder,text,status}	narrative_status	1	1
 {DiagnosticReport}	resource	1	1
+{DiagnosticReport,NULL}	\N	0	*
 {DiagnosticReport,codedDiagnosis}	codeable_concept	0	*
 {DiagnosticReport,codedDiagnosis,coding}	coding	0	*
 {DiagnosticReport,codedDiagnosis,coding,code}	code	0	*
@@ -46357,6 +46334,8 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {DocumentManifest,type,coding,valueSet,reference}	string	0	*
 {DocumentManifest,type,coding,version}	string	0	*
 {DocumentManifest,type,text}	string	0	1
+{DocumentReference,NULL}	\N	0	*
+{DocumentReference,NULL}	\N	0	1
 {DocumentReference}	resource	1	1
 {DocumentReference,authenticator}	resource_reference	0	1
 {DocumentReference,authenticator,display}	string	0	1
@@ -46461,6 +46440,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {DocumentReference,relatesTo,target}	resource_reference	1	1
 {DocumentReference,relatesTo,target,display}	string	0	1
 {DocumentReference,relatesTo,target,reference}	string	0	1
+{DocumentReference,service,NULL}	\N	0	*
 {DocumentReference,service,address}	string	0	1
 {DocumentReference,service,parameter,name}	string	1	1
 {DocumentReference,service,parameter,value}	string	0	1
@@ -46495,8 +46475,11 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {DocumentReference,type,coding,version}	string	0	*
 {DocumentReference,type,text}	string	0	1
 {Encounter}	resource	1	1
+{Encounter,NULL}	\N	0	*
+{Encounter,NULL}	\N	0	1
 {Encounter,class}	code	1	1
 {Encounter,contained}	resource	0	*
+{Encounter,hospitalization,NULL}	\N	0	*
 {Encounter,hospitalization,accomodation,bed}	resource_reference	0	1
 {Encounter,hospitalization,accomodation,bed,display}	string	0	1
 {Encounter,hospitalization,accomodation,bed,reference}	string	0	1
@@ -46667,6 +46650,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Encounter,type,coding,version}	string	0	*
 {Encounter,type,text}	string	0	1
 {FamilyHistory}	resource	1	1
+{FamilyHistory,NULL}	\N	0	*
 {FamilyHistory,contained}	resource	0	*
 {FamilyHistory,identifier}	identifier	0	*
 {FamilyHistory,identifier,assigner}	resource_reference	0	1
@@ -46680,6 +46664,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {FamilyHistory,identifier,use}	identifier_use	0	1
 {FamilyHistory,identifier,value}	string	0	1
 {FamilyHistory,note}	string	0	1
+{FamilyHistory,relation,NULL}	\N	0	*
 {FamilyHistory,relation,born_date}	date	0	1
 {FamilyHistory,relation,born_Period}	period	0	1
 {FamilyHistory,relation,born_Period,end}	date_time	0	1
@@ -46760,6 +46745,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {FamilyHistory,text,div}	text	1	1
 {FamilyHistory,text,status}	narrative_status	1	1
 {Group}	resource	1	1
+{Group,NULL}	\N	0	*
 {Group,actual}	boolean	1	1
 {Group,characteristic,code}	codeable_concept	1	1
 {Group,characteristic,code,coding}	coding	0	*
@@ -46837,6 +46823,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Group,text,status}	narrative_status	1	1
 {Group,type}	code	1	1
 {ImagingStudy}	resource	1	1
+{ImagingStudy,NULL}	\N	0	*
 {ImagingStudy,accessionNo}	identifier	0	1
 {ImagingStudy,accessionNo,assigner}	resource_reference	0	1
 {ImagingStudy,accessionNo,assigner,display}	string	0	1
@@ -46885,6 +46872,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {ImagingStudy,referrer}	resource_reference	0	1
 {ImagingStudy,referrer,display}	string	0	1
 {ImagingStudy,referrer,reference}	string	0	1
+{ImagingStudy,series,NULL}	\N	1	*
 {ImagingStudy,series,availability}	code	0	1
 {ImagingStudy,series,bodySite}	coding	0	1
 {ImagingStudy,series,bodySite,code}	code	0	1
@@ -46920,6 +46908,8 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {ImagingStudy,uid}	oid	1	1
 {ImagingStudy,url}	uri	0	1
 {Immunization}	resource	1	1
+{Immunization,NULL}	\N	0	*
+{Immunization,NULL}	\N	0	1
 {Immunization,contained}	resource	0	*
 {Immunization,date}	date_time	1	1
 {Immunization,doseQuantity}	quantity	0	1
@@ -46978,6 +46968,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Immunization,reaction,detail,reference}	string	0	1
 {Immunization,reaction,reported}	boolean	0	1
 {ImmunizationRecommendation}	resource	1	1
+{ImmunizationRecommendation,NULL}	\N	1	*
 {ImmunizationRecommendation,contained}	resource	0	*
 {ImmunizationRecommendation,identifier}	identifier	0	*
 {ImmunizationRecommendation,identifier,assigner}	resource_reference	0	1
@@ -46990,6 +46981,8 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {ImmunizationRecommendation,identifier,system}	uri	0	1
 {ImmunizationRecommendation,identifier,use}	identifier_use	0	1
 {ImmunizationRecommendation,identifier,value}	string	0	1
+{ImmunizationRecommendation,recommendation,NULL}	\N	0	*
+{ImmunizationRecommendation,recommendation,NULL}	\N	0	1
 {ImmunizationRecommendation,recommendation,date}	date_time	1	1
 {ImmunizationRecommendation,recommendation,dateCriterion,code}	codeable_concept	1	1
 {ImmunizationRecommendation,recommendation,dateCriterion,code,coding}	coding	0	*
@@ -47129,6 +47122,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Immunization,vaccineType,coding,version}	string	0	*
 {Immunization,vaccineType,text}	string	0	1
 {List}	resource	1	1
+{List,NULL}	\N	0	*
 {List,code}	codeable_concept	0	1
 {List,code,coding}	coding	0	*
 {List,code,coding,code}	code	0	*
@@ -47192,6 +47186,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {List,text,div}	text	1	1
 {List,text,status}	narrative_status	1	1
 {Location}	resource	1	1
+{Location,NULL}	\N	0	1
 {Location,address}	address	0	1
 {Location,address,city}	string	0	1
 {Location,address,country}	string	0	1
@@ -47320,6 +47315,8 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Media,view,text}	string	0	1
 {Media,width}	integer	0	1
 {Medication}	resource	1	1
+{Medication,NULL}	\N	0	1
+{MedicationAdministration,NULL}	\N	0	*
 {MedicationAdministration}	resource	1	1
 {MedicationAdministration,contained}	resource	0	*
 {MedicationAdministration,device}	resource_reference	0	*
@@ -47464,10 +47461,13 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Medication,code,text}	string	0	1
 {Medication,contained}	resource	0	*
 {MedicationDispense}	resource	1	1
+{MedicationDispense,NULL}	\N	0	*
+{MedicationDispense,NULL}	\N	0	1
 {MedicationDispense,authorizingPrescription}	resource_reference	0	*
 {MedicationDispense,authorizingPrescription,display}	string	0	1
 {MedicationDispense,authorizingPrescription,reference}	string	0	1
 {MedicationDispense,contained}	resource	0	*
+{MedicationDispense,dispense,NULL}	\N	0	*
 {MedicationDispense,dispense,destination}	resource_reference	0	1
 {MedicationDispense,dispense,destination,display}	string	0	1
 {MedicationDispense,dispense,destination,reference}	string	0	1
@@ -47663,6 +47663,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Medication,manufacturer,display}	string	0	1
 {Medication,manufacturer,reference}	string	0	1
 {Medication,name}	string	0	1
+{Medication,package,NULL}	\N	0	*
 {Medication,package,container}	codeable_concept	0	1
 {Medication,package,container,coding}	coding	0	*
 {Medication,package,container,coding,code}	code	0	*
@@ -47684,6 +47685,8 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Medication,package,content,item,display}	string	0	1
 {Medication,package,content,item,reference}	string	0	1
 {MedicationPrescription}	resource	1	1
+{MedicationPrescription,NULL}	\N	0	*
+{MedicationPrescription,NULL}	\N	0	1
 {MedicationPrescription,contained}	resource	0	*
 {MedicationPrescription,dateWritten}	date_time	0	1
 {MedicationPrescription,dispense,expectedSupplyDuration}	duration	0	1
@@ -47867,6 +47870,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {MedicationPrescription,text}	narrative	0	1
 {MedicationPrescription,text,div}	text	1	1
 {MedicationPrescription,text,status}	narrative_status	1	1
+{Medication,product,NULL}	\N	0	*
 {Medication,product,form}	codeable_concept	0	1
 {Medication,product,form,coding}	coding	0	*
 {Medication,product,form,coding,code}	code	0	*
@@ -47895,6 +47899,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Medication,product,ingredient,item,display}	string	0	1
 {Medication,product,ingredient,item,reference}	string	0	1
 {MedicationStatement}	resource	1	1
+{MedicationStatement,NULL}	\N	0	*
 {MedicationStatement,contained}	resource	0	*
 {MedicationStatement,device}	resource_reference	0	*
 {MedicationStatement,device,display}	string	0	1
@@ -48026,6 +48031,9 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Medication,text,div}	text	1	1
 {Medication,text,status}	narrative_status	1	1
 {MessageHeader}	resource	1	1
+{MessageHeader,NULL}	\N	0	*
+{MessageHeader,NULL}	\N	0	1
+{MessageHeader,NULL}	\N	1	1
 {MessageHeader,author}	resource_reference	0	1
 {MessageHeader,author,display}	string	0	1
 {MessageHeader,author,reference}	string	0	1
@@ -48089,6 +48097,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {MessageHeader,text,status}	narrative_status	1	1
 {MessageHeader,timestamp}	instant	1	1
 {Observation}	resource	1	1
+{Observation,NULL}	\N	0	*
 {Observation,applies_dateTime}	date_time	0	1
 {Observation,applies_Period}	period	0	1
 {Observation,applies_Period,end}	date_time	0	1
@@ -48261,6 +48270,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Observation,value_SampledData,upperLimit}	decimal	0	1
 {Observation,value_string}	string	0	1
 {OperationOutcome}	resource	1	1
+{OperationOutcome,NULL}	\N	1	*
 {OperationOutcome,contained}	resource	0	*
 {OperationOutcome,issue,details}	string	0	1
 {OperationOutcome,issue,location}	string	0	*
@@ -48278,6 +48288,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {OperationOutcome,text,div}	text	1	1
 {OperationOutcome,text,status}	narrative_status	1	1
 {Order}	resource	1	1
+{Order,NULL}	\N	0	1
 {Order,authority}	resource_reference	0	1
 {Order,authority,display}	string	0	1
 {Order,authority,reference}	string	0	1
@@ -48387,6 +48398,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Order,when,schedule,repeat,frequency}	integer	0	1
 {Order,when,schedule,repeat,units}	units_of_time	0	1
 {Order,when,schedule,repeat,when}	event_timing	0	1
+{Organization,NULL}	\N	0	*
 {Organization}	resource	1	1
 {Organization,active}	boolean	0	1
 {Organization,address}	address	0	*
@@ -48525,6 +48537,8 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Other,text,div}	text	1	1
 {Other,text,status}	narrative_status	1	1
 {Patient}	resource	1	1
+{Patient,NULL}	\N	0	*
+{Patient,NULL}	\N	0	1
 {Patient,active}	boolean	0	1
 {Patient,address}	address	0	*
 {Patient,address,city}	string	0	1
@@ -48712,6 +48726,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Patient,text,div}	text	1	1
 {Patient,text,status}	narrative_status	1	1
 {Practitioner}	resource	1	1
+{Practitioner,NULL}	\N	0	*
 {Practitioner,address}	address	0	1
 {Practitioner,address,city}	string	0	1
 {Practitioner,address,country}	string	0	1
@@ -48835,6 +48850,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Practitioner,text,div}	text	1	1
 {Practitioner,text,status}	narrative_status	1	1
 {Procedure}	resource	1	1
+{Procedure,NULL}	\N	0	*
 {Procedure,bodySite}	codeable_concept	0	*
 {Procedure,bodySite,coding}	coding	0	*
 {Procedure,bodySite,coding,code}	code	0	*
@@ -48928,6 +48944,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Procedure,type,coding,version}	string	0	*
 {Procedure,type,text}	string	0	1
 {Profile}	resource	1	1
+{Profile,NULL}	\N	0	*
 {Profile,code}	coding	0	*
 {Profile,code,code}	code	0	1
 {Profile,code,display}	string	0	1
@@ -48941,6 +48958,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Profile,date}	date_time	0	1
 {Profile,description}	string	0	1
 {Profile,experimental}	boolean	0	1
+{Profile,extensionDefn,NULL}	\N	1	1
 {Profile,extensionDefn,code}	code	1	1
 {Profile,extensionDefn,context}	string	1	*
 {Profile,extensionDefn,contextType}	code	1	1
@@ -48953,10 +48971,15 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Profile,mapping,uri}	uri	0	1
 {Profile,name}	string	1	1
 {Profile,publisher}	string	0	1
+{Profile,query,NULL}	\N	0	*
 {Profile,query,documentation}	string	1	1
 {Profile,query,name}	string	1	1
 {Profile,requirements}	string	0	1
 {Profile,status}	code	1	1
+{Profile,structure,NULL}	\N	0	*
+{Profile,structure,element,NULL}	\N	0	1
+{Profile,structure,element,definition,NULL}	\N	0	1
+{Profile,structure,element,definition,NULL}	\N	0	*
 {Profile,structure,element,definition,binding,conformance}	code	0	1
 {Profile,structure,element,definition,binding,description}	string	0	1
 {Profile,structure,element,definition,binding,isExtensible}	boolean	1	1
@@ -49015,6 +49038,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Profile,text,div}	text	1	1
 {Profile,text,status}	narrative_status	1	1
 {Profile,version}	string	0	1
+{Provenance,NULL}	\N	0	*
 {Provenance}	resource	1	1
 {Provenance,agent,display}	string	0	1
 {Provenance,agent,reference}	uri	1	1
@@ -49037,6 +49061,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Provenance,agent,type,valueSet,reference}	string	0	1
 {Provenance,agent,type,version}	string	0	1
 {Provenance,contained}	resource	0	*
+{Provenance,entity,NULL}	\N	0	1
 {Provenance,entity,display}	string	0	1
 {Provenance,entity,reference}	uri	1	1
 {Provenance,entity,role}	code	1	1
@@ -49076,6 +49101,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Provenance,text,div}	text	1	1
 {Provenance,text,status}	narrative_status	1	1
 {Query}	resource	1	1
+{Query,NULL}	\N	0	1
 {Query,contained}	resource	0	*
 {Query,identifier}	uri	1	1
 {Query,response,identifier}	uri	1	1
@@ -49088,6 +49114,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Query,text,div}	text	1	1
 {Query,text,status}	narrative_status	1	1
 {Questionnaire}	resource	1	1
+{Questionnaire,NULL}	\N	0	1
 {Questionnaire,author}	resource_reference	0	1
 {Questionnaire,author,display}	string	0	1
 {Questionnaire,authored}	date_time	1	1
@@ -49096,6 +49123,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Questionnaire,encounter}	resource_reference	0	1
 {Questionnaire,encounter,display}	string	0	1
 {Questionnaire,encounter,reference}	string	0	1
+{Questionnaire,group,NULL}	\N	0	*
 {Questionnaire,group,header}	string	0	1
 {Questionnaire,group,name}	codeable_concept	0	1
 {Questionnaire,group,name,coding}	coding	0	*
@@ -49108,6 +49136,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Questionnaire,group,name,coding,valueSet,reference}	string	0	*
 {Questionnaire,group,name,coding,version}	string	0	*
 {Questionnaire,group,name,text}	string	0	1
+{Questionnaire,group,question,NULL}	\N	0	*
 {Questionnaire,group,question,answer_boolean}	boolean	0	1
 {Questionnaire,group,question,answer_date}	date	0	1
 {Questionnaire,group,question,answer_dateTime}	date_time	0	1
@@ -49254,7 +49283,10 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {RelatedPerson,text}	narrative	0	1
 {RelatedPerson,text,div}	text	1	1
 {RelatedPerson,text,status}	narrative_status	1	1
+{SecurityEvent,NULL}	\N	1	*
 {SecurityEvent}	resource	1	1
+{SecurityEvent,NULL}	\N	0	*
+{SecurityEvent,NULL}	\N	1	1
 {SecurityEvent,contained}	resource	0	*
 {SecurityEvent,event,action}	code	0	1
 {SecurityEvent,event,dateTime}	instant	1	1
@@ -49282,6 +49314,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {SecurityEvent,event,type,coding,valueSet,reference}	string	0	*
 {SecurityEvent,event,type,coding,version}	string	0	*
 {SecurityEvent,event,type,text}	string	0	1
+{SecurityEvent,object,NULL}	\N	0	*
 {SecurityEvent,object,description}	string	0	1
 {SecurityEvent,object,detail,type}	string	1	1
 {SecurityEvent,object,detail,value}	base64_binary	1	1
@@ -49315,6 +49348,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {SecurityEvent,object,sensitivity,coding,version}	string	0	*
 {SecurityEvent,object,sensitivity,text}	string	0	1
 {SecurityEvent,object,type}	code	0	1
+{SecurityEvent,participant,NULL}	\N	0	1
 {SecurityEvent,participant,altId}	string	0	1
 {SecurityEvent,participant,media}	coding	0	1
 {SecurityEvent,participant,media,code}	code	0	1
@@ -49358,7 +49392,9 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {SecurityEvent,text}	narrative	0	1
 {SecurityEvent,text,div}	text	1	1
 {SecurityEvent,text,status}	narrative_status	1	1
+{Specimen,NULL}	\N	1	1
 {Specimen}	resource	1	1
+{Specimen,NULL}	\N	0	*
 {Specimen,accessionIdentifier}	identifier	0	1
 {Specimen,accessionIdentifier,assigner}	resource_reference	0	1
 {Specimen,accessionIdentifier,assigner,display}	string	0	1
@@ -49493,6 +49529,8 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Specimen,type,coding,valueSet,reference}	string	0	*
 {Specimen,type,coding,version}	string	0	*
 {Specimen,type,text}	string	0	1
+{Substance,NULL}	\N	0	*
+{Substance,NULL}	\N	0	1
 {Substance}	resource	1	1
 {Substance,contained}	resource	0	*
 {Substance,description}	string	0	1
@@ -49545,6 +49583,7 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Substance,type,coding,version}	string	0	*
 {Substance,type,text}	string	0	1
 {Supply}	resource	1	1
+{Supply,NULL}	\N	0	*
 {Supply,contained}	resource	0	*
 {Supply,dispense,destination}	resource_reference	0	1
 {Supply,dispense,destination,display}	string	0	1
@@ -49626,7 +49665,10 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {Supply,text,div}	text	1	1
 {Supply,text,status}	narrative_status	1	1
 {ValueSet}	resource	1	1
+{ValueSet,NULL}	\N	0	1
+{ValueSet,compose,NULL}	\N	0	*
 {ValueSet,compose,import}	uri	0	*
+{ValueSet,compose,include,NULL}	\N	0	*
 {ValueSet,compose,include,code}	code	0	*
 {ValueSet,compose,include,filter,op}	code	1	1
 {ValueSet,compose,include,filter,property}	code	1	1
@@ -49636,7 +49678,9 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {ValueSet,contained}	resource	0	*
 {ValueSet,copyright}	string	0	1
 {ValueSet,date}	date_time	0	1
+{ValueSet,define,NULL}	\N	0	*
 {ValueSet,define,caseSensitive}	boolean	0	1
+{ValueSet,define,concept,NULL}	\N	0	*
 {ValueSet,define,concept,abstract}	boolean	0	1
 {ValueSet,define,concept,code}	code	1	1
 {ValueSet,define,concept,definition}	string	0	1
@@ -49644,6 +49688,8 @@ COPY resource_elements_expanded_with_types (path, type, min, max) FROM stdin;
 {ValueSet,define,system}	uri	1	1
 {ValueSet,define,version}	string	0	1
 {ValueSet,description}	string	1	1
+{ValueSet,expansion,NULL}	\N	0	*
+{ValueSet,expansion,contains,NULL}	\N	0	*
 {ValueSet,expansion,contains,code}	code	0	1
 {ValueSet,expansion,contains,display}	string	0	1
 {ValueSet,expansion,contains,system}	uri	0	1

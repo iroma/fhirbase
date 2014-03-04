@@ -12,22 +12,32 @@ VIEW meta.expanded_resource_elements as (
   FROM (
     SELECT
       path,
-      unnest(type) as type,
+      CASE WHEN array_length(type, 1) is null
+        THEN null
+        ELSE unnest(type)
+      END as type,
       min,
       max
     FROM meta.resource_elements
   ) e
-  WHERE type not in ('Extension', 'contained')
+  WHERE type not in ('Extension', 'contained') OR type is null
 );
 
 -- get all elements wich have a children
 -- all parent path is coumpound (teorema Bodnarchuka)
 CREATE
 VIEW meta.compound_resource_elements as (
-  SELECT DISTINCT
-    array_pop(path) as path
-  FROM meta.expanded_resource_elements
-  WHERE array_length(path,1) > 1
+  SELECT a.*
+         ,ere.min
+         ,ere.max
+    FROM (
+            SELECT DISTINCT
+              array_pop(path) as path
+            FROM meta.expanded_resource_elements
+            WHERE array_length(path,1) > 1
+         ) a
+    LEFT JOIN meta.expanded_resource_elements ere
+    ON ere.path = a.path
 );
 
 -- Two ways of calculate columns:
@@ -61,6 +71,7 @@ VIEW meta.expanded_with_dt_resource_elements as (
 CREATE
 VIEW meta.resource_tables as (
   SELECT
+    path as path,
     table_name(path) as table_name,
     resource_table_name(path) as resource_table_name,
     parent_table_name(path) as parent_table_name,
@@ -73,14 +84,19 @@ VIEW meta.resource_tables as (
         FROM meta.resource_columns rc
        WHERE array_pop(rc.path) = e.path
     ), ARRAY[]::varchar[]) as columns
+    ,min
+    ,max
   FROM meta.compound_resource_elements e
   UNION
   SELECT
-    table_name(path) as table_name,
-    resource_table_name(path) as resource_table_name,
-    parent_table_name(path) as parent_table_name,
-    base_table,
-    array[]::varchar[] as columns
+    path as path
+    ,table_name(path) as table_name
+    ,resource_table_name(path) as resource_table_name
+    ,parent_table_name(path) as parent_table_name
+    ,base_table
+    ,array[]::varchar[] as columns
+    ,'0' as min
+    ,'0' as max
   FROM meta.expanded_with_dt_resource_elements
 );
 
