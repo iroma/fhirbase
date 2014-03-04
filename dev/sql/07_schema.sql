@@ -13,7 +13,7 @@ VIEW meta.expanded_resource_elements as (
     SELECT
       path,
       CASE WHEN array_length(type, 1) is null
-        THEN null
+        THEN '_NestedResource_'
         ELSE unnest(type)
       END as type,
       min,
@@ -95,8 +95,8 @@ VIEW meta.resource_tables as (
     ,parent_table_name(path) as parent_table_name
     ,base_table
     ,array[]::varchar[] as columns
-    ,'0' as min
-    ,'0' as max
+    ,null as min
+    ,null as max
   FROM meta.expanded_with_dt_resource_elements
 );
 

@@ -67,30 +67,13 @@ and array_length(path, 1) > 1
 order by path;
 --}}}
 --{{{
-CREATE OR REPLACE
-VIEW meta.expanded_resource_elements as (
-  SELECT
-    fhir.array_pop(path) || ARRAY[fhir.column_name(fhir.array_last(path), type)] as path,
-    type,
-    min,
-    max
-  FROM (
-    SELECT
-      path,
-      CASE WHEN array_length(type, 1) is null
-        THEN 'UPS'
-        ELSE unnest(type)
-      END as type,
-      min,
-      max
-    FROM meta.resource_elements
-  ) e
-  WHERE type not in ('Extension', 'contained') OR type is null
-);
-  select * FROM meta.resource_tables
-  where path[1] = 'Patient' and path[2]='contact'
-  order by path
-  limit 100;
+select *
+FROM meta.resource_tables e
+where e.path[2] = 'contact'
+and e.path[1] = 'Patient'
+
+--}}}
+
 --}}}
 
 CREATE OR REPLACE
