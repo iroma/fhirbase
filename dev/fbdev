@@ -99,6 +99,7 @@ case "$CMD" in
         BUILD_DB_NAME='fhir_build'
         recreate_db $BUILD_DB_NAME
         install_cmd $BUILD_DB_NAME install.sql
+        exit 0
 
         pg_dump $PSQL_ARGS \
                 --format=plain \

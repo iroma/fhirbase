@@ -44,11 +44,13 @@ VIEW meta.compound_resource_elements as (
 -- 1. OR primitive OR enum (we suggest that no enums in resource elements)
 -- TODO: check invariant
 -- 2. expanded_resource_elements - compound_resource_elements - complex_types - resource_references
-CREATE TABLE meta.resource_columns as (
+CREATE MATERIALIZED VIEW meta.resource_columns as (
     SELECT
       e.path as path,
       tt.pg_type as pg_type,
-      column_ddl(array_last(e.path), tt.pg_type, e.min::varchar, e.max) as column_ddl
+      column_ddl(array_last(e.path), tt.pg_type, e.min::varchar, e.max) as column_ddl,
+      e.min,
+      e.max
     FROM meta.expanded_resource_elements e
     JOIN meta.type_to_pg_type tt ON tt.type = underscore(e.type)
 );
@@ -60,7 +62,14 @@ VIEW meta.expanded_with_dt_resource_elements as (
     SELECT
       e.path || array_tail(t.path) as path,
       table_name(t.path) as base_table,
-      coalesce(t.min, e.min) as min, coalesce(t.max, e.max) as max
+      CASE WHEN array_length(t.path,1) = 1
+        THEN e.min
+        ELSE t.min
+      END AS min,
+      CASE WHEN array_length(t.path,1) = 1
+        THEN e.max
+        ELSE t.max
+      END AS max
     FROM meta.expanded_resource_elements e
     JOIN meta.unified_complex_datatype t
     ON t.path[1] = e.type
