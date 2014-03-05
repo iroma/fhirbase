@@ -59,7 +59,8 @@ CREATE
 VIEW meta.expanded_with_dt_resource_elements as (
     SELECT
       e.path || array_tail(t.path) as path,
-      table_name(t.path) as base_table
+      table_name(t.path) as base_table,
+      coalesce(t.min, e.min) as min, coalesce(t.max, e.max) as max
     FROM meta.expanded_resource_elements e
     JOIN meta.unified_complex_datatype t
     ON t.path[1] = e.type
@@ -95,8 +96,8 @@ VIEW meta.resource_tables as (
     ,parent_table_name(path) as parent_table_name
     ,base_table
     ,array[]::varchar[] as columns
-    ,null as min
-    ,null as max
+    ,min
+    ,max
   FROM meta.expanded_with_dt_resource_elements
 );
 

@@ -1,6 +1,30 @@
---db: fhir_build
+--db: fff
 --{{{
 \set pt_json `cat ../test/fixtures/patient.json`
+set search_path = fhir, pg_catalog;
+
+select path, min, max
+from meta.resource_tables
+order by path;
+
+select path, min, max
+from (
+  SELECT
+    path as path
+    ,table_name(path) as table_name
+    ,resource_table_name(path) as resource_table_name
+    ,parent_table_name(path) as parent_table_name
+    ,base_table
+    ,array[]::varchar[] as columns
+    ,min
+    ,max
+  FROM meta.expanded_with_dt_resource_elements
+) x
+order by path;
+
+set search_path = public, pg_catalog;
+--}}}
+--{{{
 --SELECT :'pt_json'::json#>>'{identifier,0}';
 --SELECT :'pt_json'::json#>>'{name,0, family}';
 
@@ -10,6 +34,12 @@
 --coding -> id(coding) + parent_id(relation)
 --
 --path, values, id, parent_id
+
+SELECT *
+from json_each(:'pt_json'::json);
+
+SELECT *
+from json_array_elements((:'pt_json'::json->'contact'))
 
 WITH contacts AS (
   SELECT uuid_generate_v4() as uuid,

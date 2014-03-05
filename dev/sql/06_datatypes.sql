@@ -53,7 +53,7 @@ CREATE VIEW meta.datatype_unified_elements as (
 
 CREATE VIEW meta.unified_complex_datatype AS (
   SELECT   ue.path as path
-           ,coalesce(tp.type, ue.path[1]) as type
+           ,coalesce(tp.type, ue.path[1]) as type, tp.min, tp.max
      FROM  (
               SELECT array_pop(path)
                   AS path
