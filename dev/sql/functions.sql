@@ -114,7 +114,7 @@ $$ IMMUTABLE;
 
 CREATE FUNCTION merge_json(left JSON, right JSON)
 RETURNS json LANGUAGE plpythonu AS $$
-  import simplejson as json
+  import json
   l, r = json.loads(left), json.loads(right)
   l.update(r)
   j = json.dumps(l)
