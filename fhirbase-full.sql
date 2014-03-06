@@ -560,9 +560,7 @@ CREATE FUNCTION insert_resource(jdata json) RETURNS uuid
     #   log('Skip %s with path %s' % (table_name, pth))
 
   def insert_record(schema, table_name, attrs):
-    import datetime
     attrs['_type'] = table_name
-    attrs['created_at'] = str(datetime.datetime.utcnow())
     query = """
       INSERT INTO %(schema)s.%(table)s
       SELECT * FROM json_populate_recordset(null::%(schema)s.%(table)s, '%(json)s'::json)
@@ -944,8 +942,7 @@ CREATE FUNCTION generate_schema(version text) RETURNS void
       resource_type varchar,
       language VARCHAR,
       container_id UUID REFERENCES fhir.resource (id) ON DELETE CASCADE,
-      contained_id VARCHAR,
-      created_at timestamp DEFAULT now()
+      contained_id VARCHAR
     );
 
     CREATE TABLE fhir.resource_component (
@@ -953,8 +950,7 @@ CREATE FUNCTION generate_schema(version text) RETURNS void
       _type VARCHAR NOT NULL,
       _unknown_attributes json,
       parent_id UUID NOT NULL REFERENCES fhir.resource_component (id) ON DELETE CASCADE,
-      resource_id UUID NOT NULL REFERENCES fhir.resource (id) ON DELETE CASCADE,
-      created_at timestamp DEFAULT now()
+      resource_id UUID NOT NULL REFERENCES fhir.resource (id) ON DELETE CASCADE
     );
     """
   ]
@@ -1035,8 +1031,7 @@ CREATE TABLE resource_component (
     _type character varying NOT NULL,
     _unknown_attributes json,
     parent_id uuid NOT NULL,
-    resource_id uuid NOT NULL,
-    created_at timestamp without time zone DEFAULT now()
+    resource_id uuid NOT NULL
 );
 
 
@@ -1087,8 +1082,7 @@ CREATE TABLE resource (
     resource_type character varying,
     language character varying,
     container_id uuid,
-    contained_id character varying,
-    created_at timestamp without time zone DEFAULT now()
+    contained_id character varying
 );
 
 
@@ -17172,31 +17166,10 @@ UNION
 SET search_path = fhir, pg_catalog;
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY address ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY address_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY adverse_reaction ALTER COLUMN _type SET DEFAULT 'adverse_reaction'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY adverse_reaction ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17207,24 +17180,10 @@ ALTER TABLE ONLY adverse_reaction_exposure ALTER COLUMN _type SET DEFAULT 'adver
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY adverse_reaction_exposure ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY adverse_reaction_exposure_substance ALTER COLUMN _type SET DEFAULT 'adverse_reaction_exposure_substance'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY adverse_reaction_exposure_substance ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17235,24 +17194,10 @@ ALTER TABLE ONLY adverse_reaction_idn ALTER COLUMN _type SET DEFAULT 'adverse_re
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY adverse_reaction_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY adverse_reaction_idn_assigner ALTER COLUMN _type SET DEFAULT 'adverse_reaction_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY adverse_reaction_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17263,24 +17208,10 @@ ALTER TABLE ONLY adverse_reaction_idn_period ALTER COLUMN _type SET DEFAULT 'adv
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY adverse_reaction_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY adverse_reaction_recorder ALTER COLUMN _type SET DEFAULT 'adverse_reaction_recorder'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY adverse_reaction_recorder ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17291,24 +17222,10 @@ ALTER TABLE ONLY adverse_reaction_subject ALTER COLUMN _type SET DEFAULT 'advers
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY adverse_reaction_subject ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY adverse_reaction_symptom ALTER COLUMN _type SET DEFAULT 'adverse_reaction_symptom'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY adverse_reaction_symptom ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17319,24 +17236,10 @@ ALTER TABLE ONLY adverse_reaction_symptom_code ALTER COLUMN _type SET DEFAULT 'a
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY adverse_reaction_symptom_code ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY adverse_reaction_symptom_code_cd ALTER COLUMN _type SET DEFAULT 'adverse_reaction_symptom_code_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY adverse_reaction_symptom_code_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17347,24 +17250,10 @@ ALTER TABLE ONLY adverse_reaction_symptom_code_cd_vs ALTER COLUMN _type SET DEFA
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY adverse_reaction_symptom_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY adverse_reaction_text ALTER COLUMN _type SET DEFAULT 'adverse_reaction_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY adverse_reaction_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17375,24 +17264,10 @@ ALTER TABLE ONLY alert ALTER COLUMN _type SET DEFAULT 'alert'::character varying
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY alert ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY alert_author ALTER COLUMN _type SET DEFAULT 'alert_author'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY alert_author ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17403,24 +17278,10 @@ ALTER TABLE ONLY alert_category ALTER COLUMN _type SET DEFAULT 'alert_category':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY alert_category ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY alert_category_cd ALTER COLUMN _type SET DEFAULT 'alert_category_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY alert_category_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17431,24 +17292,10 @@ ALTER TABLE ONLY alert_category_cd_vs ALTER COLUMN _type SET DEFAULT 'alert_cate
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY alert_category_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY alert_idn ALTER COLUMN _type SET DEFAULT 'alert_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY alert_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17459,24 +17306,10 @@ ALTER TABLE ONLY alert_idn_assigner ALTER COLUMN _type SET DEFAULT 'alert_idn_as
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY alert_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY alert_idn_period ALTER COLUMN _type SET DEFAULT 'alert_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY alert_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17487,24 +17320,10 @@ ALTER TABLE ONLY alert_subject ALTER COLUMN _type SET DEFAULT 'alert_subject'::c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY alert_subject ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY alert_text ALTER COLUMN _type SET DEFAULT 'alert_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY alert_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17515,24 +17334,10 @@ ALTER TABLE ONLY allergy_intolerance ALTER COLUMN _type SET DEFAULT 'allergy_int
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY allergy_intolerance ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY allergy_intolerance_idn ALTER COLUMN _type SET DEFAULT 'allergy_intolerance_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY allergy_intolerance_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17543,24 +17348,10 @@ ALTER TABLE ONLY allergy_intolerance_idn_assigner ALTER COLUMN _type SET DEFAULT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY allergy_intolerance_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY allergy_intolerance_idn_period ALTER COLUMN _type SET DEFAULT 'allergy_intolerance_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY allergy_intolerance_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17571,24 +17362,10 @@ ALTER TABLE ONLY allergy_intolerance_reaction ALTER COLUMN _type SET DEFAULT 'al
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY allergy_intolerance_reaction ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY allergy_intolerance_recorder ALTER COLUMN _type SET DEFAULT 'allergy_intolerance_recorder'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY allergy_intolerance_recorder ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17599,24 +17376,10 @@ ALTER TABLE ONLY allergy_intolerance_sensitivity_test ALTER COLUMN _type SET DEF
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY allergy_intolerance_sensitivity_test ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY allergy_intolerance_subject ALTER COLUMN _type SET DEFAULT 'allergy_intolerance_subject'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY allergy_intolerance_subject ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17627,31 +17390,10 @@ ALTER TABLE ONLY allergy_intolerance_substance ALTER COLUMN _type SET DEFAULT 'a
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY allergy_intolerance_substance ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY allergy_intolerance_text ALTER COLUMN _type SET DEFAULT 'allergy_intolerance_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY allergy_intolerance_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY attachment ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17662,24 +17404,10 @@ ALTER TABLE ONLY care_plan ALTER COLUMN _type SET DEFAULT 'care_plan'::character
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY care_plan_activity ALTER COLUMN _type SET DEFAULT 'care_plan_activity'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17690,24 +17418,10 @@ ALTER TABLE ONLY care_plan_activity_action_resulting ALTER COLUMN _type SET DEFA
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity_action_resulting ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY care_plan_activity_detail ALTER COLUMN _type SET DEFAULT 'care_plan_activity_detail'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity_detail ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17718,24 +17432,10 @@ ALTER TABLE ONLY care_plan_activity_simple ALTER COLUMN _type SET DEFAULT 'care_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity_simple ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_code ALTER COLUMN _type SET DEFAULT 'care_plan_activity_simple_code'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity_simple_code ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17746,24 +17446,10 @@ ALTER TABLE ONLY care_plan_activity_simple_code_cd ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity_simple_code_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_code_cd_vs ALTER COLUMN _type SET DEFAULT 'care_plan_activity_simple_code_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity_simple_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17774,24 +17460,10 @@ ALTER TABLE ONLY care_plan_activity_simple_daily_amount ALTER COLUMN _type SET D
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity_simple_daily_amount ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_loc ALTER COLUMN _type SET DEFAULT 'care_plan_activity_simple_loc'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity_simple_loc ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17802,24 +17474,10 @@ ALTER TABLE ONLY care_plan_activity_simple_performer ALTER COLUMN _type SET DEFA
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity_simple_performer ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_product ALTER COLUMN _type SET DEFAULT 'care_plan_activity_simple_product'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity_simple_product ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17830,24 +17488,10 @@ ALTER TABLE ONLY care_plan_activity_simple_quantity ALTER COLUMN _type SET DEFAU
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity_simple_quantity ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_timing_period ALTER COLUMN _type SET DEFAULT 'care_plan_activity_simple_timing_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity_simple_timing_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17858,24 +17502,10 @@ ALTER TABLE ONLY care_plan_activity_simple_timing_schedule ALTER COLUMN _type SE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity_simple_timing_schedule ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_event ALTER COLUMN _type SET DEFAULT 'care_plan_activity_simple_timing_schedule_event'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_event ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17886,24 +17516,10 @@ ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_repeat ALTER COLUMN _
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_repeat ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY care_plan_concern ALTER COLUMN _type SET DEFAULT 'care_plan_concern'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_concern ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17914,24 +17530,10 @@ ALTER TABLE ONLY care_plan_goal ALTER COLUMN _type SET DEFAULT 'care_plan_goal':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_goal ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY care_plan_goal_concern ALTER COLUMN _type SET DEFAULT 'care_plan_goal_concern'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_goal_concern ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17942,24 +17544,10 @@ ALTER TABLE ONLY care_plan_idn ALTER COLUMN _type SET DEFAULT 'care_plan_idn'::c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY care_plan_idn_assigner ALTER COLUMN _type SET DEFAULT 'care_plan_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17970,24 +17558,10 @@ ALTER TABLE ONLY care_plan_idn_period ALTER COLUMN _type SET DEFAULT 'care_plan_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY care_plan_participant ALTER COLUMN _type SET DEFAULT 'care_plan_participant'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_participant ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -17998,24 +17572,10 @@ ALTER TABLE ONLY care_plan_participant_member ALTER COLUMN _type SET DEFAULT 'ca
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_participant_member ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY care_plan_participant_role ALTER COLUMN _type SET DEFAULT 'care_plan_participant_role'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_participant_role ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18026,24 +17586,10 @@ ALTER TABLE ONLY care_plan_participant_role_cd ALTER COLUMN _type SET DEFAULT 'c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_participant_role_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY care_plan_participant_role_cd_vs ALTER COLUMN _type SET DEFAULT 'care_plan_participant_role_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_participant_role_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18054,24 +17600,10 @@ ALTER TABLE ONLY care_plan_patient ALTER COLUMN _type SET DEFAULT 'care_plan_pat
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_patient ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY care_plan_period ALTER COLUMN _type SET DEFAULT 'care_plan_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18082,59 +17614,10 @@ ALTER TABLE ONLY care_plan_text ALTER COLUMN _type SET DEFAULT 'care_plan_text':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY care_plan_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY cc ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY cc_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY cc_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition ALTER COLUMN _type SET DEFAULT 'composition'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18145,24 +17628,10 @@ ALTER TABLE ONLY composition_attester ALTER COLUMN _type SET DEFAULT 'compositio
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_attester ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition_attester_party ALTER COLUMN _type SET DEFAULT 'composition_attester_party'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_attester_party ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18173,24 +17642,10 @@ ALTER TABLE ONLY composition_author ALTER COLUMN _type SET DEFAULT 'composition_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_author ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition_class ALTER COLUMN _type SET DEFAULT 'composition_class'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_class ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18201,24 +17656,10 @@ ALTER TABLE ONLY composition_class_cd ALTER COLUMN _type SET DEFAULT 'compositio
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_class_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition_class_cd_vs ALTER COLUMN _type SET DEFAULT 'composition_class_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_class_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18229,24 +17670,10 @@ ALTER TABLE ONLY composition_confidentiality ALTER COLUMN _type SET DEFAULT 'com
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_confidentiality ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition_confidentiality_vs ALTER COLUMN _type SET DEFAULT 'composition_confidentiality_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_confidentiality_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18257,24 +17684,10 @@ ALTER TABLE ONLY composition_custodian ALTER COLUMN _type SET DEFAULT 'compositi
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_custodian ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition_encounter ALTER COLUMN _type SET DEFAULT 'composition_encounter'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_encounter ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18285,24 +17698,10 @@ ALTER TABLE ONLY composition_event ALTER COLUMN _type SET DEFAULT 'composition_e
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_event ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition_event_code ALTER COLUMN _type SET DEFAULT 'composition_event_code'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_event_code ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18313,24 +17712,10 @@ ALTER TABLE ONLY composition_event_code_cd ALTER COLUMN _type SET DEFAULT 'compo
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_event_code_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition_event_code_cd_vs ALTER COLUMN _type SET DEFAULT 'composition_event_code_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_event_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18341,24 +17726,10 @@ ALTER TABLE ONLY composition_event_detail ALTER COLUMN _type SET DEFAULT 'compos
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_event_detail ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition_event_period ALTER COLUMN _type SET DEFAULT 'composition_event_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_event_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18369,24 +17740,10 @@ ALTER TABLE ONLY composition_idn ALTER COLUMN _type SET DEFAULT 'composition_idn
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition_idn_assigner ALTER COLUMN _type SET DEFAULT 'composition_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18397,24 +17754,10 @@ ALTER TABLE ONLY composition_idn_period ALTER COLUMN _type SET DEFAULT 'composit
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition_section ALTER COLUMN _type SET DEFAULT 'composition_section'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_section ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18425,24 +17768,10 @@ ALTER TABLE ONLY composition_section_code ALTER COLUMN _type SET DEFAULT 'compos
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_section_code ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition_section_code_cd ALTER COLUMN _type SET DEFAULT 'composition_section_code_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_section_code_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18453,24 +17782,10 @@ ALTER TABLE ONLY composition_section_code_cd_vs ALTER COLUMN _type SET DEFAULT '
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_section_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition_section_content ALTER COLUMN _type SET DEFAULT 'composition_section_content'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_section_content ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18481,24 +17796,10 @@ ALTER TABLE ONLY composition_section_subject ALTER COLUMN _type SET DEFAULT 'com
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_section_subject ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition_subject ALTER COLUMN _type SET DEFAULT 'composition_subject'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_subject ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18509,24 +17810,10 @@ ALTER TABLE ONLY composition_text ALTER COLUMN _type SET DEFAULT 'composition_te
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition_type ALTER COLUMN _type SET DEFAULT 'composition_type'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_type ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18537,24 +17824,10 @@ ALTER TABLE ONLY composition_type_cd ALTER COLUMN _type SET DEFAULT 'composition
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_type_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY composition_type_cd_vs ALTER COLUMN _type SET DEFAULT 'composition_type_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY composition_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18565,24 +17838,10 @@ ALTER TABLE ONLY concept_map ALTER COLUMN _type SET DEFAULT 'concept_map'::chara
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY concept_map ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY concept_map_concept ALTER COLUMN _type SET DEFAULT 'concept_map_concept'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY concept_map_concept ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18593,24 +17852,10 @@ ALTER TABLE ONLY concept_map_concept_depends_on ALTER COLUMN _type SET DEFAULT '
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY concept_map_concept_depends_on ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY concept_map_concept_map ALTER COLUMN _type SET DEFAULT 'concept_map_concept_map'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY concept_map_concept_map ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18621,24 +17866,10 @@ ALTER TABLE ONLY concept_map_source ALTER COLUMN _type SET DEFAULT 'concept_map_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY concept_map_source ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY concept_map_target ALTER COLUMN _type SET DEFAULT 'concept_map_target'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY concept_map_target ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18649,24 +17880,10 @@ ALTER TABLE ONLY concept_map_telecom ALTER COLUMN _type SET DEFAULT 'concept_map
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY concept_map_telecom ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY concept_map_telecom_period ALTER COLUMN _type SET DEFAULT 'concept_map_telecom_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY concept_map_telecom_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18677,24 +17894,10 @@ ALTER TABLE ONLY concept_map_text ALTER COLUMN _type SET DEFAULT 'concept_map_te
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY concept_map_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition ALTER COLUMN _type SET DEFAULT 'condition'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18705,24 +17908,10 @@ ALTER TABLE ONLY condition_asserter ALTER COLUMN _type SET DEFAULT 'condition_as
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_asserter ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_category ALTER COLUMN _type SET DEFAULT 'condition_category'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_category ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18733,24 +17922,10 @@ ALTER TABLE ONLY condition_category_cd ALTER COLUMN _type SET DEFAULT 'condition
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_category_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_category_cd_vs ALTER COLUMN _type SET DEFAULT 'condition_category_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_category_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18761,24 +17936,10 @@ ALTER TABLE ONLY condition_certainty ALTER COLUMN _type SET DEFAULT 'condition_c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_certainty ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_certainty_cd ALTER COLUMN _type SET DEFAULT 'condition_certainty_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_certainty_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18789,24 +17950,10 @@ ALTER TABLE ONLY condition_certainty_cd_vs ALTER COLUMN _type SET DEFAULT 'condi
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_certainty_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_code ALTER COLUMN _type SET DEFAULT 'condition_code'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_code ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18817,24 +17964,10 @@ ALTER TABLE ONLY condition_code_cd ALTER COLUMN _type SET DEFAULT 'condition_cod
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_code_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_code_cd_vs ALTER COLUMN _type SET DEFAULT 'condition_code_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18845,24 +17978,10 @@ ALTER TABLE ONLY condition_encounter ALTER COLUMN _type SET DEFAULT 'condition_e
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_encounter ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_evidence ALTER COLUMN _type SET DEFAULT 'condition_evidence'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_evidence ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18873,24 +17992,10 @@ ALTER TABLE ONLY condition_evidence_code ALTER COLUMN _type SET DEFAULT 'conditi
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_evidence_code ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_evidence_code_cd ALTER COLUMN _type SET DEFAULT 'condition_evidence_code_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_evidence_code_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18901,24 +18006,10 @@ ALTER TABLE ONLY condition_evidence_code_cd_vs ALTER COLUMN _type SET DEFAULT 'c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_evidence_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_evidence_detail ALTER COLUMN _type SET DEFAULT 'condition_evidence_detail'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_evidence_detail ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18929,24 +18020,10 @@ ALTER TABLE ONLY condition_idn ALTER COLUMN _type SET DEFAULT 'condition_idn'::c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_idn_assigner ALTER COLUMN _type SET DEFAULT 'condition_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18957,24 +18034,10 @@ ALTER TABLE ONLY condition_idn_period ALTER COLUMN _type SET DEFAULT 'condition_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_loc ALTER COLUMN _type SET DEFAULT 'condition_loc'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_loc ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -18985,24 +18048,10 @@ ALTER TABLE ONLY condition_loc_code ALTER COLUMN _type SET DEFAULT 'condition_lo
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_loc_code ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_loc_code_cd ALTER COLUMN _type SET DEFAULT 'condition_loc_code_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_loc_code_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19013,24 +18062,10 @@ ALTER TABLE ONLY condition_loc_code_cd_vs ALTER COLUMN _type SET DEFAULT 'condit
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_loc_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_related_item ALTER COLUMN _type SET DEFAULT 'condition_related_item'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_related_item ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19041,24 +18076,10 @@ ALTER TABLE ONLY condition_related_item_code ALTER COLUMN _type SET DEFAULT 'con
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_related_item_code ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_related_item_code_cd ALTER COLUMN _type SET DEFAULT 'condition_related_item_code_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_related_item_code_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19069,24 +18090,10 @@ ALTER TABLE ONLY condition_related_item_code_cd_vs ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_related_item_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_related_item_target ALTER COLUMN _type SET DEFAULT 'condition_related_item_target'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_related_item_target ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19097,24 +18104,10 @@ ALTER TABLE ONLY condition_severity ALTER COLUMN _type SET DEFAULT 'condition_se
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_severity ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_severity_cd ALTER COLUMN _type SET DEFAULT 'condition_severity_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_severity_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19125,24 +18118,10 @@ ALTER TABLE ONLY condition_severity_cd_vs ALTER COLUMN _type SET DEFAULT 'condit
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_severity_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_stage ALTER COLUMN _type SET DEFAULT 'condition_stage'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_stage ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19153,24 +18132,10 @@ ALTER TABLE ONLY condition_stage_assessment ALTER COLUMN _type SET DEFAULT 'cond
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_stage_assessment ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_stage_summary ALTER COLUMN _type SET DEFAULT 'condition_stage_summary'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_stage_summary ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19181,24 +18146,10 @@ ALTER TABLE ONLY condition_stage_summary_cd ALTER COLUMN _type SET DEFAULT 'cond
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_stage_summary_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_stage_summary_cd_vs ALTER COLUMN _type SET DEFAULT 'condition_stage_summary_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_stage_summary_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19209,24 +18160,10 @@ ALTER TABLE ONLY condition_subject ALTER COLUMN _type SET DEFAULT 'condition_sub
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_subject ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY condition_text ALTER COLUMN _type SET DEFAULT 'condition_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY condition_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19237,24 +18174,10 @@ ALTER TABLE ONLY conformance ALTER COLUMN _type SET DEFAULT 'conformance'::chara
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY conformance_document ALTER COLUMN _type SET DEFAULT 'conformance_document'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_document ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19265,24 +18188,10 @@ ALTER TABLE ONLY conformance_document_profile ALTER COLUMN _type SET DEFAULT 'co
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_document_profile ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY conformance_implementation ALTER COLUMN _type SET DEFAULT 'conformance_implementation'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_implementation ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19293,24 +18202,10 @@ ALTER TABLE ONLY conformance_messaging ALTER COLUMN _type SET DEFAULT 'conforman
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_messaging ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY conformance_messaging_event ALTER COLUMN _type SET DEFAULT 'conformance_messaging_event'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_messaging_event ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19321,24 +18216,10 @@ ALTER TABLE ONLY conformance_messaging_event_code ALTER COLUMN _type SET DEFAULT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_messaging_event_code ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY conformance_messaging_event_code_vs ALTER COLUMN _type SET DEFAULT 'conformance_messaging_event_code_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_messaging_event_code_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19349,24 +18230,10 @@ ALTER TABLE ONLY conformance_messaging_event_protocol ALTER COLUMN _type SET DEF
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_messaging_event_protocol ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY conformance_messaging_event_protocol_vs ALTER COLUMN _type SET DEFAULT 'conformance_messaging_event_protocol_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_messaging_event_protocol_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19377,24 +18244,10 @@ ALTER TABLE ONLY conformance_messaging_event_request ALTER COLUMN _type SET DEFA
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_messaging_event_request ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY conformance_messaging_event_response ALTER COLUMN _type SET DEFAULT 'conformance_messaging_event_response'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_messaging_event_response ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19405,24 +18258,10 @@ ALTER TABLE ONLY conformance_profile ALTER COLUMN _type SET DEFAULT 'conformance
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_profile ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY conformance_rest ALTER COLUMN _type SET DEFAULT 'conformance_rest'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_rest ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19433,24 +18272,10 @@ ALTER TABLE ONLY conformance_rest_operation ALTER COLUMN _type SET DEFAULT 'conf
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_rest_operation ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY conformance_rest_query ALTER COLUMN _type SET DEFAULT 'conformance_rest_query'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_rest_query ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19461,24 +18286,10 @@ ALTER TABLE ONLY conformance_rest_resource ALTER COLUMN _type SET DEFAULT 'confo
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_rest_resource ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY conformance_rest_resource_operation ALTER COLUMN _type SET DEFAULT 'conformance_rest_resource_operation'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_rest_resource_operation ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19489,24 +18300,10 @@ ALTER TABLE ONLY conformance_rest_resource_profile ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_rest_resource_profile ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY conformance_rest_resource_search_param ALTER COLUMN _type SET DEFAULT 'conformance_rest_resource_search_param'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_rest_resource_search_param ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19517,24 +18314,10 @@ ALTER TABLE ONLY conformance_rest_security ALTER COLUMN _type SET DEFAULT 'confo
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_rest_security ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY conformance_rest_security_certificate ALTER COLUMN _type SET DEFAULT 'conformance_rest_security_certificate'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_rest_security_certificate ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19545,24 +18328,10 @@ ALTER TABLE ONLY conformance_rest_security_service ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_rest_security_service ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY conformance_rest_security_service_cd ALTER COLUMN _type SET DEFAULT 'conformance_rest_security_service_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_rest_security_service_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19573,24 +18342,10 @@ ALTER TABLE ONLY conformance_rest_security_service_cd_vs ALTER COLUMN _type SET 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_rest_security_service_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY conformance_software ALTER COLUMN _type SET DEFAULT 'conformance_software'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_software ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19601,24 +18356,10 @@ ALTER TABLE ONLY conformance_telecom ALTER COLUMN _type SET DEFAULT 'conformance
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_telecom ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY conformance_telecom_period ALTER COLUMN _type SET DEFAULT 'conformance_telecom_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_telecom_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19629,38 +18370,10 @@ ALTER TABLE ONLY conformance_text ALTER COLUMN _type SET DEFAULT 'conformance_te
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY conformance_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY contact ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY contact_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY device ALTER COLUMN _type SET DEFAULT 'device'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19671,24 +18384,10 @@ ALTER TABLE ONLY device_contact ALTER COLUMN _type SET DEFAULT 'device_contact':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_contact ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY device_contact_period ALTER COLUMN _type SET DEFAULT 'device_contact_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_contact_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19699,24 +18398,10 @@ ALTER TABLE ONLY device_idn ALTER COLUMN _type SET DEFAULT 'device_idn'::charact
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY device_idn_assigner ALTER COLUMN _type SET DEFAULT 'device_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19727,24 +18412,10 @@ ALTER TABLE ONLY device_idn_period ALTER COLUMN _type SET DEFAULT 'device_idn_pe
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY device_loc ALTER COLUMN _type SET DEFAULT 'device_loc'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_loc ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19755,24 +18426,10 @@ ALTER TABLE ONLY device_observation_report ALTER COLUMN _type SET DEFAULT 'devic
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY device_observation_report_idn ALTER COLUMN _type SET DEFAULT 'device_observation_report_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19783,24 +18440,10 @@ ALTER TABLE ONLY device_observation_report_idn_assigner ALTER COLUMN _type SET D
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY device_observation_report_idn_period ALTER COLUMN _type SET DEFAULT 'device_observation_report_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19811,24 +18454,10 @@ ALTER TABLE ONLY device_observation_report_source ALTER COLUMN _type SET DEFAULT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_source ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY device_observation_report_subject ALTER COLUMN _type SET DEFAULT 'device_observation_report_subject'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_subject ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19839,24 +18468,10 @@ ALTER TABLE ONLY device_observation_report_text ALTER COLUMN _type SET DEFAULT '
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device ALTER COLUMN _type SET DEFAULT 'device_observation_report_virtual_device'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_virtual_device ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19867,24 +18482,10 @@ ALTER TABLE ONLY device_observation_report_virtual_device_channel ALTER COLUMN _
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_virtual_device_channel ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_channel_code ALTER COLUMN _type SET DEFAULT 'device_observation_report_virtual_device_channel_code'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_virtual_device_channel_code ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19895,24 +18496,10 @@ ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd ALTER 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd_vs ALTER COLUMN _type SET DEFAULT 'device_observation_report_virtual_device_channel_code_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19923,24 +18510,10 @@ ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric ALTER C
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric_obs ALTER COLUMN _type SET DEFAULT 'device_observation_report_virtual_device_channel_metric_obs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric_obs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19951,24 +18524,10 @@ ALTER TABLE ONLY device_observation_report_virtual_device_code ALTER COLUMN _typ
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_virtual_device_code ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY device_observation_report_virtual_device_code_cd ALTER COLUMN _type SET DEFAULT 'device_observation_report_virtual_device_code_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_virtual_device_code_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -19979,24 +18538,10 @@ ALTER TABLE ONLY device_observation_report_virtual_device_code_cd_vs ALTER COLUM
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_observation_report_virtual_device_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY device_owner ALTER COLUMN _type SET DEFAULT 'device_owner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_owner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20007,24 +18552,10 @@ ALTER TABLE ONLY device_patient ALTER COLUMN _type SET DEFAULT 'device_patient':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_patient ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY device_text ALTER COLUMN _type SET DEFAULT 'device_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20035,24 +18566,10 @@ ALTER TABLE ONLY device_type ALTER COLUMN _type SET DEFAULT 'device_type'::chara
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_type ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY device_type_cd ALTER COLUMN _type SET DEFAULT 'device_type_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_type_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20063,24 +18580,10 @@ ALTER TABLE ONLY device_type_cd_vs ALTER COLUMN _type SET DEFAULT 'device_type_c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY device_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_order ALTER COLUMN _type SET DEFAULT 'diagnostic_order'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20091,24 +18594,10 @@ ALTER TABLE ONLY diagnostic_order_encounter ALTER COLUMN _type SET DEFAULT 'diag
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_encounter ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_order_event ALTER COLUMN _type SET DEFAULT 'diagnostic_order_event'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_event ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20119,24 +18608,10 @@ ALTER TABLE ONLY diagnostic_order_event_actor ALTER COLUMN _type SET DEFAULT 'di
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_event_actor ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_order_event_description ALTER COLUMN _type SET DEFAULT 'diagnostic_order_event_description'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_event_description ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20147,24 +18622,10 @@ ALTER TABLE ONLY diagnostic_order_event_description_cd ALTER COLUMN _type SET DE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_event_description_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_order_event_description_cd_vs ALTER COLUMN _type SET DEFAULT 'diagnostic_order_event_description_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_event_description_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20175,24 +18636,10 @@ ALTER TABLE ONLY diagnostic_order_idn ALTER COLUMN _type SET DEFAULT 'diagnostic
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_order_idn_assigner ALTER COLUMN _type SET DEFAULT 'diagnostic_order_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20203,24 +18650,10 @@ ALTER TABLE ONLY diagnostic_order_idn_period ALTER COLUMN _type SET DEFAULT 'dia
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_order_item ALTER COLUMN _type SET DEFAULT 'diagnostic_order_item'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_item ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20231,24 +18664,10 @@ ALTER TABLE ONLY diagnostic_order_item_body_site ALTER COLUMN _type SET DEFAULT 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_item_body_site ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_order_item_body_site_cd ALTER COLUMN _type SET DEFAULT 'diagnostic_order_item_body_site_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_item_body_site_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20259,24 +18678,10 @@ ALTER TABLE ONLY diagnostic_order_item_body_site_cd_vs ALTER COLUMN _type SET DE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_item_body_site_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_order_item_code ALTER COLUMN _type SET DEFAULT 'diagnostic_order_item_code'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_item_code ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20287,24 +18692,10 @@ ALTER TABLE ONLY diagnostic_order_item_code_cd ALTER COLUMN _type SET DEFAULT 'd
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_item_code_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_order_item_code_cd_vs ALTER COLUMN _type SET DEFAULT 'diagnostic_order_item_code_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_item_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20315,24 +18706,10 @@ ALTER TABLE ONLY diagnostic_order_item_specimen ALTER COLUMN _type SET DEFAULT '
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_item_specimen ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_order_orderer ALTER COLUMN _type SET DEFAULT 'diagnostic_order_orderer'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_orderer ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20343,24 +18720,10 @@ ALTER TABLE ONLY diagnostic_order_specimen ALTER COLUMN _type SET DEFAULT 'diagn
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_specimen ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_order_subject ALTER COLUMN _type SET DEFAULT 'diagnostic_order_subject'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_subject ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20371,24 +18734,10 @@ ALTER TABLE ONLY diagnostic_order_text ALTER COLUMN _type SET DEFAULT 'diagnosti
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_order_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_report ALTER COLUMN _type SET DEFAULT 'diagnostic_report'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20399,24 +18748,10 @@ ALTER TABLE ONLY diagnostic_report_coded_diagnosis ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_coded_diagnosis ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd ALTER COLUMN _type SET DEFAULT 'diagnostic_report_coded_diagnosis_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20427,24 +18762,10 @@ ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd_vs ALTER COLUMN _type SET 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_report_diagnostic_period ALTER COLUMN _type SET DEFAULT 'diagnostic_report_diagnostic_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_diagnostic_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20455,24 +18776,10 @@ ALTER TABLE ONLY diagnostic_report_idn ALTER COLUMN _type SET DEFAULT 'diagnosti
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_report_idn_assigner ALTER COLUMN _type SET DEFAULT 'diagnostic_report_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20483,24 +18790,10 @@ ALTER TABLE ONLY diagnostic_report_idn_period ALTER COLUMN _type SET DEFAULT 'di
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_report_image ALTER COLUMN _type SET DEFAULT 'diagnostic_report_image'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_image ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20511,24 +18804,10 @@ ALTER TABLE ONLY diagnostic_report_image_link ALTER COLUMN _type SET DEFAULT 'di
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_image_link ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_report_imaging_study ALTER COLUMN _type SET DEFAULT 'diagnostic_report_imaging_study'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_imaging_study ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20539,24 +18818,10 @@ ALTER TABLE ONLY diagnostic_report_name ALTER COLUMN _type SET DEFAULT 'diagnost
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_name ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_report_name_cd ALTER COLUMN _type SET DEFAULT 'diagnostic_report_name_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_name_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20567,24 +18832,10 @@ ALTER TABLE ONLY diagnostic_report_name_cd_vs ALTER COLUMN _type SET DEFAULT 'di
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_name_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_report_performer ALTER COLUMN _type SET DEFAULT 'diagnostic_report_performer'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_performer ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20595,24 +18846,10 @@ ALTER TABLE ONLY diagnostic_report_presented_form ALTER COLUMN _type SET DEFAULT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_presented_form ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_report_request_detail ALTER COLUMN _type SET DEFAULT 'diagnostic_report_request_detail'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_request_detail ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20623,24 +18860,10 @@ ALTER TABLE ONLY diagnostic_report_result ALTER COLUMN _type SET DEFAULT 'diagno
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_result ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_report_service_category ALTER COLUMN _type SET DEFAULT 'diagnostic_report_service_category'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_service_category ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20651,24 +18874,10 @@ ALTER TABLE ONLY diagnostic_report_service_category_cd ALTER COLUMN _type SET DE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_service_category_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_report_service_category_cd_vs ALTER COLUMN _type SET DEFAULT 'diagnostic_report_service_category_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_service_category_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20679,24 +18888,10 @@ ALTER TABLE ONLY diagnostic_report_specimen ALTER COLUMN _type SET DEFAULT 'diag
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_specimen ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY diagnostic_report_subject ALTER COLUMN _type SET DEFAULT 'diagnostic_report_subject'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_subject ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20707,24 +18902,10 @@ ALTER TABLE ONLY diagnostic_report_text ALTER COLUMN _type SET DEFAULT 'diagnost
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY diagnostic_report_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_manifest ALTER COLUMN _type SET DEFAULT 'document_manifest'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20735,24 +18916,10 @@ ALTER TABLE ONLY document_manifest_author ALTER COLUMN _type SET DEFAULT 'docume
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_author ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_manifest_confidentiality ALTER COLUMN _type SET DEFAULT 'document_manifest_confidentiality'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_confidentiality ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20763,24 +18930,10 @@ ALTER TABLE ONLY document_manifest_confidentiality_cd ALTER COLUMN _type SET DEF
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_confidentiality_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_manifest_confidentiality_cd_vs ALTER COLUMN _type SET DEFAULT 'document_manifest_confidentiality_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_confidentiality_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20791,24 +18944,10 @@ ALTER TABLE ONLY document_manifest_content ALTER COLUMN _type SET DEFAULT 'docum
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_content ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_manifest_idn ALTER COLUMN _type SET DEFAULT 'document_manifest_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20819,24 +18958,10 @@ ALTER TABLE ONLY document_manifest_idn_assigner ALTER COLUMN _type SET DEFAULT '
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_manifest_idn_period ALTER COLUMN _type SET DEFAULT 'document_manifest_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20847,24 +18972,10 @@ ALTER TABLE ONLY document_manifest_master_identifier ALTER COLUMN _type SET DEFA
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_master_identifier ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_manifest_master_identifier_assigner ALTER COLUMN _type SET DEFAULT 'document_manifest_master_identifier_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_master_identifier_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20875,24 +18986,10 @@ ALTER TABLE ONLY document_manifest_master_identifier_period ALTER COLUMN _type S
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_master_identifier_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_manifest_recipient ALTER COLUMN _type SET DEFAULT 'document_manifest_recipient'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_recipient ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20903,24 +19000,10 @@ ALTER TABLE ONLY document_manifest_subject ALTER COLUMN _type SET DEFAULT 'docum
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_subject ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_manifest_supercedes ALTER COLUMN _type SET DEFAULT 'document_manifest_supercedes'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_supercedes ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20931,24 +19014,10 @@ ALTER TABLE ONLY document_manifest_text ALTER COLUMN _type SET DEFAULT 'document
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_manifest_type ALTER COLUMN _type SET DEFAULT 'document_manifest_type'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_type ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20959,24 +19028,10 @@ ALTER TABLE ONLY document_manifest_type_cd ALTER COLUMN _type SET DEFAULT 'docum
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_type_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_manifest_type_cd_vs ALTER COLUMN _type SET DEFAULT 'document_manifest_type_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_manifest_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -20987,24 +19042,10 @@ ALTER TABLE ONLY document_reference ALTER COLUMN _type SET DEFAULT 'document_ref
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_authenticator ALTER COLUMN _type SET DEFAULT 'document_reference_authenticator'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_authenticator ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21015,24 +19056,10 @@ ALTER TABLE ONLY document_reference_author ALTER COLUMN _type SET DEFAULT 'docum
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_author ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_class ALTER COLUMN _type SET DEFAULT 'document_reference_class'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_class ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21043,24 +19070,10 @@ ALTER TABLE ONLY document_reference_class_cd ALTER COLUMN _type SET DEFAULT 'doc
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_class_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_class_cd_vs ALTER COLUMN _type SET DEFAULT 'document_reference_class_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_class_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21071,24 +19084,10 @@ ALTER TABLE ONLY document_reference_confidentiality ALTER COLUMN _type SET DEFAU
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_confidentiality ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_confidentiality_cd ALTER COLUMN _type SET DEFAULT 'document_reference_confidentiality_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_confidentiality_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21099,24 +19098,10 @@ ALTER TABLE ONLY document_reference_confidentiality_cd_vs ALTER COLUMN _type SET
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_confidentiality_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_context ALTER COLUMN _type SET DEFAULT 'document_reference_context'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_context ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21127,24 +19112,10 @@ ALTER TABLE ONLY document_reference_context_event ALTER COLUMN _type SET DEFAULT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_context_event ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_context_event_cd ALTER COLUMN _type SET DEFAULT 'document_reference_context_event_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_context_event_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21155,24 +19126,10 @@ ALTER TABLE ONLY document_reference_context_event_cd_vs ALTER COLUMN _type SET D
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_context_event_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_context_facility_type ALTER COLUMN _type SET DEFAULT 'document_reference_context_facility_type'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_context_facility_type ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21183,24 +19140,10 @@ ALTER TABLE ONLY document_reference_context_facility_type_cd ALTER COLUMN _type 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_context_facility_type_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_context_facility_type_cd_vs ALTER COLUMN _type SET DEFAULT 'document_reference_context_facility_type_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_context_facility_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21211,24 +19154,10 @@ ALTER TABLE ONLY document_reference_context_period ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_context_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_custodian ALTER COLUMN _type SET DEFAULT 'document_reference_custodian'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_custodian ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21239,24 +19168,10 @@ ALTER TABLE ONLY document_reference_doc_status ALTER COLUMN _type SET DEFAULT 'd
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_doc_status ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_doc_status_cd ALTER COLUMN _type SET DEFAULT 'document_reference_doc_status_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_doc_status_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21267,24 +19182,10 @@ ALTER TABLE ONLY document_reference_doc_status_cd_vs ALTER COLUMN _type SET DEFA
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_doc_status_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_idn ALTER COLUMN _type SET DEFAULT 'document_reference_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21295,24 +19196,10 @@ ALTER TABLE ONLY document_reference_idn_assigner ALTER COLUMN _type SET DEFAULT 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_idn_period ALTER COLUMN _type SET DEFAULT 'document_reference_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21323,24 +19210,10 @@ ALTER TABLE ONLY document_reference_master_identifier ALTER COLUMN _type SET DEF
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_master_identifier ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_master_identifier_assigner ALTER COLUMN _type SET DEFAULT 'document_reference_master_identifier_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_master_identifier_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21351,24 +19224,10 @@ ALTER TABLE ONLY document_reference_master_identifier_period ALTER COLUMN _type 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_master_identifier_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_relates_to ALTER COLUMN _type SET DEFAULT 'document_reference_relates_to'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_relates_to ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21379,24 +19238,10 @@ ALTER TABLE ONLY document_reference_relates_to_target ALTER COLUMN _type SET DEF
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_relates_to_target ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_service ALTER COLUMN _type SET DEFAULT 'document_reference_service'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_service ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21407,24 +19252,10 @@ ALTER TABLE ONLY document_reference_service_parameter ALTER COLUMN _type SET DEF
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_service_parameter ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_service_type ALTER COLUMN _type SET DEFAULT 'document_reference_service_type'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_service_type ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21435,24 +19266,10 @@ ALTER TABLE ONLY document_reference_service_type_cd ALTER COLUMN _type SET DEFAU
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_service_type_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_service_type_cd_vs ALTER COLUMN _type SET DEFAULT 'document_reference_service_type_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_service_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21463,24 +19280,10 @@ ALTER TABLE ONLY document_reference_subject ALTER COLUMN _type SET DEFAULT 'docu
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_subject ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_text ALTER COLUMN _type SET DEFAULT 'document_reference_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21491,24 +19294,10 @@ ALTER TABLE ONLY document_reference_type ALTER COLUMN _type SET DEFAULT 'documen
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_type ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY document_reference_type_cd ALTER COLUMN _type SET DEFAULT 'document_reference_type_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_type_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21519,24 +19308,10 @@ ALTER TABLE ONLY document_reference_type_cd_vs ALTER COLUMN _type SET DEFAULT 'd
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY document_reference_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter ALTER COLUMN _type SET DEFAULT 'encounter'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21547,24 +19322,10 @@ ALTER TABLE ONLY encounter_hospitalization ALTER COLUMN _type SET DEFAULT 'encou
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_hospitalization_accomodation ALTER COLUMN _type SET DEFAULT 'encounter_hospitalization_accomodation'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_accomodation ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21575,24 +19336,10 @@ ALTER TABLE ONLY encounter_hospitalization_accomodation_bed ALTER COLUMN _type S
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_accomodation_bed ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_hospitalization_accomodation_period ALTER COLUMN _type SET DEFAULT 'encounter_hospitalization_accomodation_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_accomodation_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21603,24 +19350,10 @@ ALTER TABLE ONLY encounter_hospitalization_admit_source ALTER COLUMN _type SET D
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_admit_source ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_hospitalization_admit_source_cd ALTER COLUMN _type SET DEFAULT 'encounter_hospitalization_admit_source_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_admit_source_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21631,24 +19364,10 @@ ALTER TABLE ONLY encounter_hospitalization_admit_source_cd_vs ALTER COLUMN _type
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_admit_source_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_hospitalization_destination ALTER COLUMN _type SET DEFAULT 'encounter_hospitalization_destination'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_destination ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21659,24 +19378,10 @@ ALTER TABLE ONLY encounter_hospitalization_diet ALTER COLUMN _type SET DEFAULT '
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_diet ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_hospitalization_diet_cd ALTER COLUMN _type SET DEFAULT 'encounter_hospitalization_diet_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_diet_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21687,24 +19392,10 @@ ALTER TABLE ONLY encounter_hospitalization_diet_cd_vs ALTER COLUMN _type SET DEF
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_diet_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_hospitalization_discharge_diagnosis ALTER COLUMN _type SET DEFAULT 'encounter_hospitalization_discharge_diagnosis'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_discharge_diagnosis ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21715,24 +19406,10 @@ ALTER TABLE ONLY encounter_hospitalization_discharge_disposition ALTER COLUMN _t
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_discharge_disposition ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd ALTER COLUMN _type SET DEFAULT 'encounter_hospitalization_discharge_disposition_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21743,24 +19420,10 @@ ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd_vs ALTER COL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_hospitalization_origin ALTER COLUMN _type SET DEFAULT 'encounter_hospitalization_origin'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_origin ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21771,24 +19434,10 @@ ALTER TABLE ONLY encounter_hospitalization_period ALTER COLUMN _type SET DEFAULT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier ALTER COLUMN _type SET DEFAULT 'encounter_hospitalization_pre_admission_identifier'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21799,24 +19448,10 @@ ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_assigner ALT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_period ALTER COLUMN _type SET DEFAULT 'encounter_hospitalization_pre_admission_identifier_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21827,24 +19462,10 @@ ALTER TABLE ONLY encounter_hospitalization_special_arrangement ALTER COLUMN _typ
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_special_arrangement ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd ALTER COLUMN _type SET DEFAULT 'encounter_hospitalization_special_arrangement_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21855,24 +19476,10 @@ ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd_vs ALTER COLUM
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_hospitalization_special_courtesy ALTER COLUMN _type SET DEFAULT 'encounter_hospitalization_special_courtesy'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_special_courtesy ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21883,24 +19490,10 @@ ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd ALTER COLUMN _typ
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd_vs ALTER COLUMN _type SET DEFAULT 'encounter_hospitalization_special_courtesy_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21911,24 +19504,10 @@ ALTER TABLE ONLY encounter_idn ALTER COLUMN _type SET DEFAULT 'encounter_idn'::c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_idn_assigner ALTER COLUMN _type SET DEFAULT 'encounter_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21939,24 +19518,10 @@ ALTER TABLE ONLY encounter_idn_period ALTER COLUMN _type SET DEFAULT 'encounter_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_indication ALTER COLUMN _type SET DEFAULT 'encounter_indication'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_indication ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21967,24 +19532,10 @@ ALTER TABLE ONLY encounter_loc ALTER COLUMN _type SET DEFAULT 'encounter_loc'::c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_loc ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_loc_loc ALTER COLUMN _type SET DEFAULT 'encounter_loc_loc'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_loc_loc ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -21995,24 +19546,10 @@ ALTER TABLE ONLY encounter_loc_period ALTER COLUMN _type SET DEFAULT 'encounter_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_loc_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_part_of ALTER COLUMN _type SET DEFAULT 'encounter_part_of'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_part_of ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22023,24 +19560,10 @@ ALTER TABLE ONLY encounter_participant ALTER COLUMN _type SET DEFAULT 'encounter
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_participant ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_participant_individual ALTER COLUMN _type SET DEFAULT 'encounter_participant_individual'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_participant_individual ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22051,24 +19574,10 @@ ALTER TABLE ONLY encounter_participant_type ALTER COLUMN _type SET DEFAULT 'enco
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_participant_type ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_participant_type_cd ALTER COLUMN _type SET DEFAULT 'encounter_participant_type_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_participant_type_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22079,24 +19588,10 @@ ALTER TABLE ONLY encounter_participant_type_cd_vs ALTER COLUMN _type SET DEFAULT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_participant_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_period ALTER COLUMN _type SET DEFAULT 'encounter_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22107,24 +19602,10 @@ ALTER TABLE ONLY encounter_priority ALTER COLUMN _type SET DEFAULT 'encounter_pr
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_priority ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_priority_cd ALTER COLUMN _type SET DEFAULT 'encounter_priority_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_priority_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22135,24 +19616,10 @@ ALTER TABLE ONLY encounter_priority_cd_vs ALTER COLUMN _type SET DEFAULT 'encoun
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_priority_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_reason ALTER COLUMN _type SET DEFAULT 'encounter_reason'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_reason ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22163,24 +19630,10 @@ ALTER TABLE ONLY encounter_reason_cd ALTER COLUMN _type SET DEFAULT 'encounter_r
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_reason_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_reason_cd_vs ALTER COLUMN _type SET DEFAULT 'encounter_reason_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_reason_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22191,24 +19644,10 @@ ALTER TABLE ONLY encounter_service_provider ALTER COLUMN _type SET DEFAULT 'enco
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_service_provider ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_subject ALTER COLUMN _type SET DEFAULT 'encounter_subject'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_subject ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22219,24 +19658,10 @@ ALTER TABLE ONLY encounter_text ALTER COLUMN _type SET DEFAULT 'encounter_text':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_type ALTER COLUMN _type SET DEFAULT 'encounter_type'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_type ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22247,24 +19672,10 @@ ALTER TABLE ONLY encounter_type_cd ALTER COLUMN _type SET DEFAULT 'encounter_typ
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_type_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY encounter_type_cd_vs ALTER COLUMN _type SET DEFAULT 'encounter_type_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY encounter_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22275,24 +19686,10 @@ ALTER TABLE ONLY family_history ALTER COLUMN _type SET DEFAULT 'family_history':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY family_history_idn ALTER COLUMN _type SET DEFAULT 'family_history_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22303,24 +19700,10 @@ ALTER TABLE ONLY family_history_idn_assigner ALTER COLUMN _type SET DEFAULT 'fam
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY family_history_idn_period ALTER COLUMN _type SET DEFAULT 'family_history_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22331,24 +19714,10 @@ ALTER TABLE ONLY family_history_relation ALTER COLUMN _type SET DEFAULT 'family_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY family_history_relation_born_period ALTER COLUMN _type SET DEFAULT 'family_history_relation_born_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_born_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22359,24 +19728,10 @@ ALTER TABLE ONLY family_history_relation_condition ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_condition ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY family_history_relation_condition_onset_range ALTER COLUMN _type SET DEFAULT 'family_history_relation_condition_onset_range'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_condition_onset_range ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22387,24 +19742,10 @@ ALTER TABLE ONLY family_history_relation_condition_onset_range_high ALTER COLUMN
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_condition_onset_range_high ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY family_history_relation_condition_onset_range_low ALTER COLUMN _type SET DEFAULT 'family_history_relation_condition_onset_range_low'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_condition_onset_range_low ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22415,24 +19756,10 @@ ALTER TABLE ONLY family_history_relation_condition_outcome ALTER COLUMN _type SE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_condition_outcome ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY family_history_relation_condition_outcome_cd ALTER COLUMN _type SET DEFAULT 'family_history_relation_condition_outcome_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_condition_outcome_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22443,24 +19770,10 @@ ALTER TABLE ONLY family_history_relation_condition_outcome_cd_vs ALTER COLUMN _t
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_condition_outcome_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY family_history_relation_condition_type ALTER COLUMN _type SET DEFAULT 'family_history_relation_condition_type'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_condition_type ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22471,24 +19784,10 @@ ALTER TABLE ONLY family_history_relation_condition_type_cd ALTER COLUMN _type SE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_condition_type_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY family_history_relation_condition_type_cd_vs ALTER COLUMN _type SET DEFAULT 'family_history_relation_condition_type_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_condition_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22499,24 +19798,10 @@ ALTER TABLE ONLY family_history_relation_deceased_range ALTER COLUMN _type SET D
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_deceased_range ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY family_history_relation_deceased_range_high ALTER COLUMN _type SET DEFAULT 'family_history_relation_deceased_range_high'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_deceased_range_high ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22527,24 +19812,10 @@ ALTER TABLE ONLY family_history_relation_deceased_range_low ALTER COLUMN _type S
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_deceased_range_low ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY family_history_relation_relationship ALTER COLUMN _type SET DEFAULT 'family_history_relation_relationship'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_relationship ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22555,24 +19826,10 @@ ALTER TABLE ONLY family_history_relation_relationship_cd ALTER COLUMN _type SET 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_relationship_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY family_history_relation_relationship_cd_vs ALTER COLUMN _type SET DEFAULT 'family_history_relation_relationship_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_relation_relationship_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22583,24 +19840,10 @@ ALTER TABLE ONLY family_history_subject ALTER COLUMN _type SET DEFAULT 'family_h
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_subject ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY family_history_text ALTER COLUMN _type SET DEFAULT 'family_history_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY family_history_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22611,24 +19854,10 @@ ALTER TABLE ONLY "group" ALTER COLUMN _type SET DEFAULT 'group'::character varyi
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY "group" ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY group_characteristic ALTER COLUMN _type SET DEFAULT 'group_characteristic'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_characteristic ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22639,24 +19868,10 @@ ALTER TABLE ONLY group_characteristic_code ALTER COLUMN _type SET DEFAULT 'group
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_characteristic_code ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY group_characteristic_code_cd ALTER COLUMN _type SET DEFAULT 'group_characteristic_code_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_characteristic_code_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22667,24 +19882,10 @@ ALTER TABLE ONLY group_characteristic_code_cd_vs ALTER COLUMN _type SET DEFAULT 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_characteristic_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY group_characteristic_value_codeable_concept ALTER COLUMN _type SET DEFAULT 'group_characteristic_value_codeable_concept'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_characteristic_value_codeable_concept ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22695,24 +19896,10 @@ ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd ALTER COLUMN _ty
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd_vs ALTER COLUMN _type SET DEFAULT 'group_characteristic_value_codeable_concept_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22723,24 +19910,10 @@ ALTER TABLE ONLY group_characteristic_value_quantity ALTER COLUMN _type SET DEFA
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_characteristic_value_quantity ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY group_characteristic_value_range ALTER COLUMN _type SET DEFAULT 'group_characteristic_value_range'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_characteristic_value_range ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22751,24 +19924,10 @@ ALTER TABLE ONLY group_characteristic_value_range_high ALTER COLUMN _type SET DE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_characteristic_value_range_high ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY group_characteristic_value_range_low ALTER COLUMN _type SET DEFAULT 'group_characteristic_value_range_low'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_characteristic_value_range_low ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22779,24 +19938,10 @@ ALTER TABLE ONLY group_code ALTER COLUMN _type SET DEFAULT 'group_code'::charact
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_code ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY group_code_cd ALTER COLUMN _type SET DEFAULT 'group_code_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_code_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22807,24 +19952,10 @@ ALTER TABLE ONLY group_code_cd_vs ALTER COLUMN _type SET DEFAULT 'group_code_cd_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY group_idn ALTER COLUMN _type SET DEFAULT 'group_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22835,24 +19966,10 @@ ALTER TABLE ONLY group_idn_assigner ALTER COLUMN _type SET DEFAULT 'group_idn_as
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY group_idn_period ALTER COLUMN _type SET DEFAULT 'group_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22863,59 +19980,10 @@ ALTER TABLE ONLY group_member ALTER COLUMN _type SET DEFAULT 'group_member'::cha
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_member ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY group_text ALTER COLUMN _type SET DEFAULT 'group_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY group_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY human_name ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY human_name_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22926,24 +19994,10 @@ ALTER TABLE ONLY imaging_study ALTER COLUMN _type SET DEFAULT 'imaging_study'::c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imaging_study_accession_no ALTER COLUMN _type SET DEFAULT 'imaging_study_accession_no'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_accession_no ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22954,24 +20008,10 @@ ALTER TABLE ONLY imaging_study_accession_no_assigner ALTER COLUMN _type SET DEFA
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_accession_no_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imaging_study_accession_no_period ALTER COLUMN _type SET DEFAULT 'imaging_study_accession_no_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_accession_no_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -22982,24 +20022,10 @@ ALTER TABLE ONLY imaging_study_idn ALTER COLUMN _type SET DEFAULT 'imaging_study
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imaging_study_idn_assigner ALTER COLUMN _type SET DEFAULT 'imaging_study_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23010,24 +20036,10 @@ ALTER TABLE ONLY imaging_study_idn_period ALTER COLUMN _type SET DEFAULT 'imagin
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imaging_study_interpreter ALTER COLUMN _type SET DEFAULT 'imaging_study_interpreter'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_interpreter ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23038,24 +20050,10 @@ ALTER TABLE ONLY imaging_study_order ALTER COLUMN _type SET DEFAULT 'imaging_stu
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_order ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imaging_study_procedure ALTER COLUMN _type SET DEFAULT 'imaging_study_procedure'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_procedure ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23066,24 +20064,10 @@ ALTER TABLE ONLY imaging_study_procedure_vs ALTER COLUMN _type SET DEFAULT 'imag
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_procedure_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imaging_study_referrer ALTER COLUMN _type SET DEFAULT 'imaging_study_referrer'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_referrer ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23094,24 +20078,10 @@ ALTER TABLE ONLY imaging_study_series ALTER COLUMN _type SET DEFAULT 'imaging_st
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_series ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imaging_study_series_body_site ALTER COLUMN _type SET DEFAULT 'imaging_study_series_body_site'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_series_body_site ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23122,24 +20092,10 @@ ALTER TABLE ONLY imaging_study_series_body_site_vs ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_series_body_site_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imaging_study_series_instance ALTER COLUMN _type SET DEFAULT 'imaging_study_series_instance'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_series_instance ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23150,24 +20106,10 @@ ALTER TABLE ONLY imaging_study_series_instance_attachment ALTER COLUMN _type SET
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_series_instance_attachment ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imaging_study_subject ALTER COLUMN _type SET DEFAULT 'imaging_study_subject'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_subject ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23178,24 +20120,10 @@ ALTER TABLE ONLY imaging_study_text ALTER COLUMN _type SET DEFAULT 'imaging_stud
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imaging_study_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm ALTER COLUMN _type SET DEFAULT 'imm'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23206,24 +20134,10 @@ ALTER TABLE ONLY imm_dose_quantity ALTER COLUMN _type SET DEFAULT 'imm_dose_quan
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_dose_quantity ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_explanation ALTER COLUMN _type SET DEFAULT 'imm_explanation'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_explanation ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23234,24 +20148,10 @@ ALTER TABLE ONLY imm_explanation_reason ALTER COLUMN _type SET DEFAULT 'imm_expl
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_explanation_reason ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_explanation_reason_cd ALTER COLUMN _type SET DEFAULT 'imm_explanation_reason_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_explanation_reason_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23262,24 +20162,10 @@ ALTER TABLE ONLY imm_explanation_reason_cd_vs ALTER COLUMN _type SET DEFAULT 'im
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_explanation_reason_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_explanation_refusal_reason ALTER COLUMN _type SET DEFAULT 'imm_explanation_refusal_reason'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_explanation_refusal_reason ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23290,24 +20176,10 @@ ALTER TABLE ONLY imm_explanation_refusal_reason_cd ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_explanation_refusal_reason_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_explanation_refusal_reason_cd_vs ALTER COLUMN _type SET DEFAULT 'imm_explanation_refusal_reason_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_explanation_refusal_reason_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23318,24 +20190,10 @@ ALTER TABLE ONLY imm_idn ALTER COLUMN _type SET DEFAULT 'imm_idn'::character var
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_idn_assigner ALTER COLUMN _type SET DEFAULT 'imm_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23346,24 +20204,10 @@ ALTER TABLE ONLY imm_idn_period ALTER COLUMN _type SET DEFAULT 'imm_idn_period':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_loc ALTER COLUMN _type SET DEFAULT 'imm_loc'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_loc ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23374,24 +20218,10 @@ ALTER TABLE ONLY imm_manufacturer ALTER COLUMN _type SET DEFAULT 'imm_manufactur
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_manufacturer ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_performer ALTER COLUMN _type SET DEFAULT 'imm_performer'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_performer ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23402,24 +20232,10 @@ ALTER TABLE ONLY imm_reaction ALTER COLUMN _type SET DEFAULT 'imm_reaction'::cha
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_reaction ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_reaction_detail ALTER COLUMN _type SET DEFAULT 'imm_reaction_detail'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_reaction_detail ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23430,24 +20246,10 @@ ALTER TABLE ONLY imm_rec ALTER COLUMN _type SET DEFAULT 'imm_rec'::character var
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_rec_idn ALTER COLUMN _type SET DEFAULT 'imm_rec_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23458,24 +20260,10 @@ ALTER TABLE ONLY imm_rec_idn_assigner ALTER COLUMN _type SET DEFAULT 'imm_rec_id
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_rec_idn_period ALTER COLUMN _type SET DEFAULT 'imm_rec_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23486,24 +20274,10 @@ ALTER TABLE ONLY imm_rec_recommendation ALTER COLUMN _type SET DEFAULT 'imm_rec_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_recommendation ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_date_criterion ALTER COLUMN _type SET DEFAULT 'imm_rec_recommendation_date_criterion'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_recommendation_date_criterion ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23514,24 +20288,10 @@ ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code ALTER COLUMN _type S
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd ALTER COLUMN _type SET DEFAULT 'imm_rec_recommendation_date_criterion_code_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23542,24 +20302,10 @@ ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd_vs ALTER COLUMN _
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_forecast_status ALTER COLUMN _type SET DEFAULT 'imm_rec_recommendation_forecast_status'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_recommendation_forecast_status ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23570,24 +20316,10 @@ ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd ALTER COLUMN _type SE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd_vs ALTER COLUMN _type SET DEFAULT 'imm_rec_recommendation_forecast_status_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23598,24 +20330,10 @@ ALTER TABLE ONLY imm_rec_recommendation_protocol ALTER COLUMN _type SET DEFAULT 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_recommendation_protocol ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_protocol_authority ALTER COLUMN _type SET DEFAULT 'imm_rec_recommendation_protocol_authority'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_recommendation_protocol_authority ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23626,24 +20344,10 @@ ALTER TABLE ONLY imm_rec_recommendation_supporting_immunization ALTER COLUMN _ty
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_recommendation_supporting_immunization ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_supporting_patient_information ALTER COLUMN _type SET DEFAULT 'imm_rec_recommendation_supporting_patient_information'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_recommendation_supporting_patient_information ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23654,24 +20358,10 @@ ALTER TABLE ONLY imm_rec_recommendation_vaccine_type ALTER COLUMN _type SET DEFA
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_recommendation_vaccine_type ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd ALTER COLUMN _type SET DEFAULT 'imm_rec_recommendation_vaccine_type_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23682,24 +20372,10 @@ ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd_vs ALTER COLUMN _type SE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_rec_subject ALTER COLUMN _type SET DEFAULT 'imm_rec_subject'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_subject ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23710,24 +20386,10 @@ ALTER TABLE ONLY imm_rec_text ALTER COLUMN _type SET DEFAULT 'imm_rec_text'::cha
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_rec_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_requester ALTER COLUMN _type SET DEFAULT 'imm_requester'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_requester ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23738,24 +20400,10 @@ ALTER TABLE ONLY imm_route ALTER COLUMN _type SET DEFAULT 'imm_route'::character
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_route ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_route_cd ALTER COLUMN _type SET DEFAULT 'imm_route_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_route_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23766,24 +20414,10 @@ ALTER TABLE ONLY imm_route_cd_vs ALTER COLUMN _type SET DEFAULT 'imm_route_cd_vs
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_route_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_site ALTER COLUMN _type SET DEFAULT 'imm_site'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_site ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23794,24 +20428,10 @@ ALTER TABLE ONLY imm_site_cd ALTER COLUMN _type SET DEFAULT 'imm_site_cd'::chara
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_site_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_site_cd_vs ALTER COLUMN _type SET DEFAULT 'imm_site_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_site_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23822,24 +20442,10 @@ ALTER TABLE ONLY imm_subject ALTER COLUMN _type SET DEFAULT 'imm_subject'::chara
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_subject ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_text ALTER COLUMN _type SET DEFAULT 'imm_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23850,24 +20456,10 @@ ALTER TABLE ONLY imm_vaccination_protocol ALTER COLUMN _type SET DEFAULT 'imm_va
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_vaccination_protocol ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_authority ALTER COLUMN _type SET DEFAULT 'imm_vaccination_protocol_authority'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_vaccination_protocol_authority ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23878,24 +20470,10 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_status ALTER COLUMN _type SET DEF
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_vaccination_protocol_dose_status ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd ALTER COLUMN _type SET DEFAULT 'imm_vaccination_protocol_dose_status_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23906,24 +20484,10 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd_vs ALTER COLUMN _type S
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason ALTER COLUMN _type SET DEFAULT 'imm_vaccination_protocol_dose_status_reason'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23934,24 +20498,10 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd ALTER COLUMN _ty
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd_vs ALTER COLUMN _type SET DEFAULT 'imm_vaccination_protocol_dose_status_reason_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23962,24 +20512,10 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_target ALTER COLUMN _type SET DEF
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_vaccination_protocol_dose_target ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd ALTER COLUMN _type SET DEFAULT 'imm_vaccination_protocol_dose_target_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -23990,24 +20526,10 @@ ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd_vs ALTER COLUMN _type S
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_vaccine_type ALTER COLUMN _type SET DEFAULT 'imm_vaccine_type'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_vaccine_type ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24018,24 +20540,10 @@ ALTER TABLE ONLY imm_vaccine_type_cd ALTER COLUMN _type SET DEFAULT 'imm_vaccine
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_vaccine_type_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY imm_vaccine_type_cd_vs ALTER COLUMN _type SET DEFAULT 'imm_vaccine_type_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY imm_vaccine_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24046,24 +20554,10 @@ ALTER TABLE ONLY list ALTER COLUMN _type SET DEFAULT 'list'::character varying;
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY list_code ALTER COLUMN _type SET DEFAULT 'list_code'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_code ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24074,24 +20568,10 @@ ALTER TABLE ONLY list_code_cd ALTER COLUMN _type SET DEFAULT 'list_code_cd'::cha
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_code_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY list_code_cd_vs ALTER COLUMN _type SET DEFAULT 'list_code_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24102,24 +20582,10 @@ ALTER TABLE ONLY list_empty_reason ALTER COLUMN _type SET DEFAULT 'list_empty_re
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_empty_reason ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY list_empty_reason_cd ALTER COLUMN _type SET DEFAULT 'list_empty_reason_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_empty_reason_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24130,24 +20596,10 @@ ALTER TABLE ONLY list_empty_reason_cd_vs ALTER COLUMN _type SET DEFAULT 'list_em
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_empty_reason_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY list_entry ALTER COLUMN _type SET DEFAULT 'list_entry'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_entry ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24158,24 +20610,10 @@ ALTER TABLE ONLY list_entry_flag ALTER COLUMN _type SET DEFAULT 'list_entry_flag
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_entry_flag ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY list_entry_flag_cd ALTER COLUMN _type SET DEFAULT 'list_entry_flag_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_entry_flag_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24186,24 +20624,10 @@ ALTER TABLE ONLY list_entry_flag_cd_vs ALTER COLUMN _type SET DEFAULT 'list_entr
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_entry_flag_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY list_entry_item ALTER COLUMN _type SET DEFAULT 'list_entry_item'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_entry_item ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24214,24 +20638,10 @@ ALTER TABLE ONLY list_idn ALTER COLUMN _type SET DEFAULT 'list_idn'::character v
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY list_idn_assigner ALTER COLUMN _type SET DEFAULT 'list_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24242,24 +20652,10 @@ ALTER TABLE ONLY list_idn_period ALTER COLUMN _type SET DEFAULT 'list_idn_period
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY list_source ALTER COLUMN _type SET DEFAULT 'list_source'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_source ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24270,24 +20666,10 @@ ALTER TABLE ONLY list_subject ALTER COLUMN _type SET DEFAULT 'list_subject'::cha
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_subject ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY list_text ALTER COLUMN _type SET DEFAULT 'list_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY list_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24298,24 +20680,10 @@ ALTER TABLE ONLY loc ALTER COLUMN _type SET DEFAULT 'loc'::character varying;
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY loc_address ALTER COLUMN _type SET DEFAULT 'loc_address'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_address ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24326,24 +20694,10 @@ ALTER TABLE ONLY loc_address_period ALTER COLUMN _type SET DEFAULT 'loc_address_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_address_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY loc_idn ALTER COLUMN _type SET DEFAULT 'loc_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24354,24 +20708,10 @@ ALTER TABLE ONLY loc_idn_assigner ALTER COLUMN _type SET DEFAULT 'loc_idn_assign
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY loc_idn_period ALTER COLUMN _type SET DEFAULT 'loc_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24382,24 +20722,10 @@ ALTER TABLE ONLY loc_managing_organization ALTER COLUMN _type SET DEFAULT 'loc_m
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_managing_organization ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY loc_part_of ALTER COLUMN _type SET DEFAULT 'loc_part_of'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_part_of ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24410,24 +20736,10 @@ ALTER TABLE ONLY loc_physical_type ALTER COLUMN _type SET DEFAULT 'loc_physical_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_physical_type ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY loc_physical_type_cd ALTER COLUMN _type SET DEFAULT 'loc_physical_type_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_physical_type_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24438,24 +20750,10 @@ ALTER TABLE ONLY loc_physical_type_cd_vs ALTER COLUMN _type SET DEFAULT 'loc_phy
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_physical_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY loc_position ALTER COLUMN _type SET DEFAULT 'loc_position'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_position ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24466,24 +20764,10 @@ ALTER TABLE ONLY loc_telecom ALTER COLUMN _type SET DEFAULT 'loc_telecom'::chara
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_telecom ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY loc_telecom_period ALTER COLUMN _type SET DEFAULT 'loc_telecom_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_telecom_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24494,24 +20778,10 @@ ALTER TABLE ONLY loc_text ALTER COLUMN _type SET DEFAULT 'loc_text'::character v
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY loc_type ALTER COLUMN _type SET DEFAULT 'loc_type'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_type ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24522,24 +20792,10 @@ ALTER TABLE ONLY loc_type_cd ALTER COLUMN _type SET DEFAULT 'loc_type_cd'::chara
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_type_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY loc_type_cd_vs ALTER COLUMN _type SET DEFAULT 'loc_type_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY loc_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24550,24 +20806,10 @@ ALTER TABLE ONLY med ALTER COLUMN _type SET DEFAULT 'med'::character varying;
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm ALTER COLUMN _type SET DEFAULT 'med_adm'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24578,24 +20820,10 @@ ALTER TABLE ONLY med_adm_device ALTER COLUMN _type SET DEFAULT 'med_adm_device':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_device ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_dosage ALTER COLUMN _type SET DEFAULT 'med_adm_dosage'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24606,24 +20834,10 @@ ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept ALTER COLUMN _type SE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd ALTER COLUMN _type SET DEFAULT 'med_adm_dosage_as_needed_codeable_concept_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24634,24 +20848,10 @@ ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd_vs ALTER COLUMN _t
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_dosage_max_dose_per_period ALTER COLUMN _type SET DEFAULT 'med_adm_dosage_max_dose_per_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_max_dose_per_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24662,24 +20862,10 @@ ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_denominator ALTER COLUMN _ty
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_denominator ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_numerator ALTER COLUMN _type SET DEFAULT 'med_adm_dosage_max_dose_per_period_numerator'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_numerator ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24690,24 +20876,10 @@ ALTER TABLE ONLY med_adm_dosage_method ALTER COLUMN _type SET DEFAULT 'med_adm_d
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_method ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_dosage_method_cd ALTER COLUMN _type SET DEFAULT 'med_adm_dosage_method_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_method_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24718,24 +20890,10 @@ ALTER TABLE ONLY med_adm_dosage_method_cd_vs ALTER COLUMN _type SET DEFAULT 'med
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_method_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_dosage_quantity ALTER COLUMN _type SET DEFAULT 'med_adm_dosage_quantity'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_quantity ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24746,24 +20904,10 @@ ALTER TABLE ONLY med_adm_dosage_rate ALTER COLUMN _type SET DEFAULT 'med_adm_dos
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_rate ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_dosage_rate_denominator ALTER COLUMN _type SET DEFAULT 'med_adm_dosage_rate_denominator'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_rate_denominator ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24774,24 +20918,10 @@ ALTER TABLE ONLY med_adm_dosage_rate_numerator ALTER COLUMN _type SET DEFAULT 'm
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_rate_numerator ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_dosage_route ALTER COLUMN _type SET DEFAULT 'med_adm_dosage_route'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_route ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24802,24 +20932,10 @@ ALTER TABLE ONLY med_adm_dosage_route_cd ALTER COLUMN _type SET DEFAULT 'med_adm
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_route_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_dosage_route_cd_vs ALTER COLUMN _type SET DEFAULT 'med_adm_dosage_route_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_route_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24830,24 +20946,10 @@ ALTER TABLE ONLY med_adm_dosage_site ALTER COLUMN _type SET DEFAULT 'med_adm_dos
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_site ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_dosage_site_cd ALTER COLUMN _type SET DEFAULT 'med_adm_dosage_site_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_site_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24858,24 +20960,10 @@ ALTER TABLE ONLY med_adm_dosage_site_cd_vs ALTER COLUMN _type SET DEFAULT 'med_a
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_site_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_dosage_timing_period ALTER COLUMN _type SET DEFAULT 'med_adm_dosage_timing_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_dosage_timing_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24886,24 +20974,10 @@ ALTER TABLE ONLY med_adm_encounter ALTER COLUMN _type SET DEFAULT 'med_adm_encou
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_encounter ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_idn ALTER COLUMN _type SET DEFAULT 'med_adm_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24914,24 +20988,10 @@ ALTER TABLE ONLY med_adm_idn_assigner ALTER COLUMN _type SET DEFAULT 'med_adm_id
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_idn_period ALTER COLUMN _type SET DEFAULT 'med_adm_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24942,24 +21002,10 @@ ALTER TABLE ONLY med_adm_med ALTER COLUMN _type SET DEFAULT 'med_adm_med'::chara
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_med ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_patient ALTER COLUMN _type SET DEFAULT 'med_adm_patient'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_patient ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24970,24 +21016,10 @@ ALTER TABLE ONLY med_adm_practitioner ALTER COLUMN _type SET DEFAULT 'med_adm_pr
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_practitioner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_prs ALTER COLUMN _type SET DEFAULT 'med_adm_prs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_prs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -24998,24 +21030,10 @@ ALTER TABLE ONLY med_adm_reason_not_given ALTER COLUMN _type SET DEFAULT 'med_ad
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_reason_not_given ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_reason_not_given_cd ALTER COLUMN _type SET DEFAULT 'med_adm_reason_not_given_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_reason_not_given_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25026,24 +21044,10 @@ ALTER TABLE ONLY med_adm_reason_not_given_cd_vs ALTER COLUMN _type SET DEFAULT '
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_reason_not_given_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_adm_text ALTER COLUMN _type SET DEFAULT 'med_adm_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25054,24 +21058,10 @@ ALTER TABLE ONLY med_adm_when_given ALTER COLUMN _type SET DEFAULT 'med_adm_when
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_adm_when_given ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_code ALTER COLUMN _type SET DEFAULT 'med_code'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_code ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25082,24 +21072,10 @@ ALTER TABLE ONLY med_code_cd ALTER COLUMN _type SET DEFAULT 'med_code_cd'::chara
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_code_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_code_cd_vs ALTER COLUMN _type SET DEFAULT 'med_code_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25110,24 +21086,10 @@ ALTER TABLE ONLY med_disp ALTER COLUMN _type SET DEFAULT 'med_disp'::character v
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_authorizing_prescription ALTER COLUMN _type SET DEFAULT 'med_disp_authorizing_prescription'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_authorizing_prescription ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25138,24 +21100,10 @@ ALTER TABLE ONLY med_disp_dispense ALTER COLUMN _type SET DEFAULT 'med_disp_disp
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_destination ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_destination'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_destination ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25166,24 +21114,10 @@ ALTER TABLE ONLY med_disp_dispense_dosage ALTER COLUMN _type SET DEFAULT 'med_di
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_dosage_additional_instructions'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25194,24 +21128,10 @@ ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd ALTER COLUM
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd_vs ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_dosage_additional_instructions_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25222,24 +21142,10 @@ ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept ALTER COLUM
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_dosage_as_needed_codeable_concept_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25250,24 +21156,10 @@ ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd_vs ALTER
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_dosage_max_dose_per_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25278,24 +21170,10 @@ ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_denominator ALTER 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_denominator ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_numerator ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_dosage_max_dose_per_period_numerator'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_numerator ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25306,24 +21184,10 @@ ALTER TABLE ONLY med_disp_dispense_dosage_method ALTER COLUMN _type SET DEFAULT 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_method ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_method_cd ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_dosage_method_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_method_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25334,24 +21198,10 @@ ALTER TABLE ONLY med_disp_dispense_dosage_method_cd_vs ALTER COLUMN _type SET DE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_method_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_quantity ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_dosage_quantity'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_quantity ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25362,24 +21212,10 @@ ALTER TABLE ONLY med_disp_dispense_dosage_rate ALTER COLUMN _type SET DEFAULT 'm
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_rate ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_rate_denominator ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_dosage_rate_denominator'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_rate_denominator ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25390,24 +21226,10 @@ ALTER TABLE ONLY med_disp_dispense_dosage_rate_numerator ALTER COLUMN _type SET 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_rate_numerator ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_route ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_dosage_route'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_route ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25418,24 +21240,10 @@ ALTER TABLE ONLY med_disp_dispense_dosage_route_cd ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_route_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_route_cd_vs ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_dosage_route_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_route_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25446,24 +21254,10 @@ ALTER TABLE ONLY med_disp_dispense_dosage_site ALTER COLUMN _type SET DEFAULT 'm
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_site ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_site_cd ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_dosage_site_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_site_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25474,24 +21268,10 @@ ALTER TABLE ONLY med_disp_dispense_dosage_site_cd_vs ALTER COLUMN _type SET DEFA
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_site_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_timing_period ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_dosage_timing_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_timing_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25502,24 +21282,10 @@ ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule ALTER COLUMN _type SET
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_event ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_dosage_timing_schedule_event'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_event ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25530,24 +21296,10 @@ ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_repeat ALTER COLUMN _t
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_repeat ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_idn ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25558,24 +21310,10 @@ ALTER TABLE ONLY med_disp_dispense_idn_assigner ALTER COLUMN _type SET DEFAULT '
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_idn_period ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25586,24 +21324,10 @@ ALTER TABLE ONLY med_disp_dispense_med ALTER COLUMN _type SET DEFAULT 'med_disp_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_med ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_quantity ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_quantity'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_quantity ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25614,24 +21338,10 @@ ALTER TABLE ONLY med_disp_dispense_receiver ALTER COLUMN _type SET DEFAULT 'med_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_receiver ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_type ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_type'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_type ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25642,24 +21352,10 @@ ALTER TABLE ONLY med_disp_dispense_type_cd ALTER COLUMN _type SET DEFAULT 'med_d
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_type_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_dispense_type_cd_vs ALTER COLUMN _type SET DEFAULT 'med_disp_dispense_type_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispense_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25670,24 +21366,10 @@ ALTER TABLE ONLY med_disp_dispenser ALTER COLUMN _type SET DEFAULT 'med_disp_dis
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_dispenser ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_idn ALTER COLUMN _type SET DEFAULT 'med_disp_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25698,24 +21380,10 @@ ALTER TABLE ONLY med_disp_idn_assigner ALTER COLUMN _type SET DEFAULT 'med_disp_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_idn_period ALTER COLUMN _type SET DEFAULT 'med_disp_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25726,24 +21394,10 @@ ALTER TABLE ONLY med_disp_patient ALTER COLUMN _type SET DEFAULT 'med_disp_patie
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_patient ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_substitution ALTER COLUMN _type SET DEFAULT 'med_disp_substitution'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_substitution ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25754,24 +21408,10 @@ ALTER TABLE ONLY med_disp_substitution_reason ALTER COLUMN _type SET DEFAULT 'me
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_substitution_reason ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_substitution_reason_cd ALTER COLUMN _type SET DEFAULT 'med_disp_substitution_reason_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_substitution_reason_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25782,24 +21422,10 @@ ALTER TABLE ONLY med_disp_substitution_reason_cd_vs ALTER COLUMN _type SET DEFAU
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_substitution_reason_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_substitution_responsible_party ALTER COLUMN _type SET DEFAULT 'med_disp_substitution_responsible_party'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_substitution_responsible_party ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25810,24 +21436,10 @@ ALTER TABLE ONLY med_disp_substitution_type ALTER COLUMN _type SET DEFAULT 'med_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_substitution_type ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_substitution_type_cd ALTER COLUMN _type SET DEFAULT 'med_disp_substitution_type_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_substitution_type_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25838,24 +21450,10 @@ ALTER TABLE ONLY med_disp_substitution_type_cd_vs ALTER COLUMN _type SET DEFAULT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_substitution_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_disp_text ALTER COLUMN _type SET DEFAULT 'med_disp_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_disp_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25866,24 +21464,10 @@ ALTER TABLE ONLY med_manufacturer ALTER COLUMN _type SET DEFAULT 'med_manufactur
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_manufacturer ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_package ALTER COLUMN _type SET DEFAULT 'med_package'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_package ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25894,24 +21478,10 @@ ALTER TABLE ONLY med_package_container ALTER COLUMN _type SET DEFAULT 'med_packa
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_package_container ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_package_container_cd ALTER COLUMN _type SET DEFAULT 'med_package_container_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_package_container_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25922,24 +21492,10 @@ ALTER TABLE ONLY med_package_container_cd_vs ALTER COLUMN _type SET DEFAULT 'med
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_package_container_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_package_content ALTER COLUMN _type SET DEFAULT 'med_package_content'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_package_content ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25950,24 +21506,10 @@ ALTER TABLE ONLY med_package_content_amount ALTER COLUMN _type SET DEFAULT 'med_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_package_content_amount ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_package_content_item ALTER COLUMN _type SET DEFAULT 'med_package_content_item'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_package_content_item ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -25978,24 +21520,10 @@ ALTER TABLE ONLY med_product ALTER COLUMN _type SET DEFAULT 'med_product'::chara
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_product ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_product_form ALTER COLUMN _type SET DEFAULT 'med_product_form'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_product_form ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26006,24 +21534,10 @@ ALTER TABLE ONLY med_product_form_cd ALTER COLUMN _type SET DEFAULT 'med_product
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_product_form_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_product_form_cd_vs ALTER COLUMN _type SET DEFAULT 'med_product_form_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_product_form_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26034,24 +21548,10 @@ ALTER TABLE ONLY med_product_ingredient ALTER COLUMN _type SET DEFAULT 'med_prod
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_product_ingredient ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_product_ingredient_amount ALTER COLUMN _type SET DEFAULT 'med_product_ingredient_amount'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_product_ingredient_amount ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26062,24 +21562,10 @@ ALTER TABLE ONLY med_product_ingredient_amount_denominator ALTER COLUMN _type SE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_product_ingredient_amount_denominator ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_product_ingredient_amount_numerator ALTER COLUMN _type SET DEFAULT 'med_product_ingredient_amount_numerator'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_product_ingredient_amount_numerator ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26090,24 +21576,10 @@ ALTER TABLE ONLY med_product_ingredient_item ALTER COLUMN _type SET DEFAULT 'med
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_product_ingredient_item ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs ALTER COLUMN _type SET DEFAULT 'med_prs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26118,24 +21590,10 @@ ALTER TABLE ONLY med_prs_dispense ALTER COLUMN _type SET DEFAULT 'med_prs_dispen
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dispense ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_dispense_med ALTER COLUMN _type SET DEFAULT 'med_prs_dispense_med'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dispense_med ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26146,24 +21604,10 @@ ALTER TABLE ONLY med_prs_dispense_quantity ALTER COLUMN _type SET DEFAULT 'med_p
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dispense_quantity ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_dispense_validity_period ALTER COLUMN _type SET DEFAULT 'med_prs_dispense_validity_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dispense_validity_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26174,24 +21618,10 @@ ALTER TABLE ONLY med_prs_dosage_instruction ALTER COLUMN _type SET DEFAULT 'med_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions ALTER COLUMN _type SET DEFAULT 'med_prs_dosage_instruction_additional_instructions'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26202,24 +21632,10 @@ ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd ALTER COL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd_vs ALTER COLUMN _type SET DEFAULT 'med_prs_dosage_instruction_additional_instructions_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26230,24 +21646,10 @@ ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept ALTER COL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd ALTER COLUMN _type SET DEFAULT 'med_prs_dosage_instruction_as_needed_codeable_concept_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26258,24 +21660,10 @@ ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd_vs ALT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_dose_quantity ALTER COLUMN _type SET DEFAULT 'med_prs_dosage_instruction_dose_quantity'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_dose_quantity ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26286,24 +21674,10 @@ ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period ALTER COLUMN _ty
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_denominator ALTER COLUMN _type SET DEFAULT 'med_prs_dosage_instruction_max_dose_per_period_denominator'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_denominator ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26314,24 +21688,10 @@ ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_numerator ALTER 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_numerator ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_method ALTER COLUMN _type SET DEFAULT 'med_prs_dosage_instruction_method'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_method ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26342,24 +21702,10 @@ ALTER TABLE ONLY med_prs_dosage_instruction_method_cd ALTER COLUMN _type SET DEF
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_method_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_method_cd_vs ALTER COLUMN _type SET DEFAULT 'med_prs_dosage_instruction_method_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_method_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26370,24 +21716,10 @@ ALTER TABLE ONLY med_prs_dosage_instruction_rate ALTER COLUMN _type SET DEFAULT 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_rate ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_rate_denominator ALTER COLUMN _type SET DEFAULT 'med_prs_dosage_instruction_rate_denominator'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_rate_denominator ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26398,24 +21730,10 @@ ALTER TABLE ONLY med_prs_dosage_instruction_rate_numerator ALTER COLUMN _type SE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_rate_numerator ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_route ALTER COLUMN _type SET DEFAULT 'med_prs_dosage_instruction_route'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_route ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26426,24 +21744,10 @@ ALTER TABLE ONLY med_prs_dosage_instruction_route_cd ALTER COLUMN _type SET DEFA
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_route_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_route_cd_vs ALTER COLUMN _type SET DEFAULT 'med_prs_dosage_instruction_route_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_route_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26454,24 +21758,10 @@ ALTER TABLE ONLY med_prs_dosage_instruction_site ALTER COLUMN _type SET DEFAULT 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_site ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_site_cd ALTER COLUMN _type SET DEFAULT 'med_prs_dosage_instruction_site_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_site_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26482,24 +21772,10 @@ ALTER TABLE ONLY med_prs_dosage_instruction_site_cd_vs ALTER COLUMN _type SET DE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_site_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_timing_period ALTER COLUMN _type SET DEFAULT 'med_prs_dosage_instruction_timing_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_timing_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26510,24 +21786,10 @@ ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule ALTER COLUMN _type S
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_event ALTER COLUMN _type SET DEFAULT 'med_prs_dosage_instruction_timing_schedule_event'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_event ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26538,24 +21800,10 @@ ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_repeat ALTER COLUMN 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_repeat ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_encounter ALTER COLUMN _type SET DEFAULT 'med_prs_encounter'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_encounter ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26566,24 +21814,10 @@ ALTER TABLE ONLY med_prs_idn ALTER COLUMN _type SET DEFAULT 'med_prs_idn'::chara
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_idn_assigner ALTER COLUMN _type SET DEFAULT 'med_prs_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26594,24 +21828,10 @@ ALTER TABLE ONLY med_prs_idn_period ALTER COLUMN _type SET DEFAULT 'med_prs_idn_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_med ALTER COLUMN _type SET DEFAULT 'med_prs_med'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_med ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26622,24 +21842,10 @@ ALTER TABLE ONLY med_prs_patient ALTER COLUMN _type SET DEFAULT 'med_prs_patient
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_patient ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_prescriber ALTER COLUMN _type SET DEFAULT 'med_prs_prescriber'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_prescriber ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26650,24 +21856,10 @@ ALTER TABLE ONLY med_prs_reason_codeable_concept ALTER COLUMN _type SET DEFAULT 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_reason_codeable_concept ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_reason_codeable_concept_cd ALTER COLUMN _type SET DEFAULT 'med_prs_reason_codeable_concept_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_reason_codeable_concept_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26678,24 +21870,10 @@ ALTER TABLE ONLY med_prs_reason_codeable_concept_cd_vs ALTER COLUMN _type SET DE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_reason_codeable_concept_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_reason_resource_reference ALTER COLUMN _type SET DEFAULT 'med_prs_reason_resource_reference'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_reason_resource_reference ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26706,24 +21884,10 @@ ALTER TABLE ONLY med_prs_substitution ALTER COLUMN _type SET DEFAULT 'med_prs_su
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_substitution ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_substitution_reason ALTER COLUMN _type SET DEFAULT 'med_prs_substitution_reason'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_substitution_reason ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26734,24 +21898,10 @@ ALTER TABLE ONLY med_prs_substitution_reason_cd ALTER COLUMN _type SET DEFAULT '
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_substitution_reason_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_substitution_reason_cd_vs ALTER COLUMN _type SET DEFAULT 'med_prs_substitution_reason_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_substitution_reason_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26762,24 +21912,10 @@ ALTER TABLE ONLY med_prs_substitution_type ALTER COLUMN _type SET DEFAULT 'med_p
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_substitution_type ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_substitution_type_cd ALTER COLUMN _type SET DEFAULT 'med_prs_substitution_type_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_substitution_type_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26790,24 +21926,10 @@ ALTER TABLE ONLY med_prs_substitution_type_cd_vs ALTER COLUMN _type SET DEFAULT 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_substitution_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_prs_text ALTER COLUMN _type SET DEFAULT 'med_prs_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_prs_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26818,24 +21940,10 @@ ALTER TABLE ONLY med_st ALTER COLUMN _type SET DEFAULT 'med_st'::character varyi
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_device ALTER COLUMN _type SET DEFAULT 'med_st_device'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_device ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26846,24 +21954,10 @@ ALTER TABLE ONLY med_st_dosage ALTER COLUMN _type SET DEFAULT 'med_st_dosage'::c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept ALTER COLUMN _type SET DEFAULT 'med_st_dosage_as_needed_codeable_concept'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26874,24 +21968,10 @@ ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd ALTER COLUMN _type 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd_vs ALTER COLUMN _type SET DEFAULT 'med_st_dosage_as_needed_codeable_concept_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26902,24 +21982,10 @@ ALTER TABLE ONLY med_st_dosage_max_dose_per_period ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_max_dose_per_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_dosage_max_dose_per_period_denominator ALTER COLUMN _type SET DEFAULT 'med_st_dosage_max_dose_per_period_denominator'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_max_dose_per_period_denominator ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26930,24 +21996,10 @@ ALTER TABLE ONLY med_st_dosage_max_dose_per_period_numerator ALTER COLUMN _type 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_max_dose_per_period_numerator ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_dosage_method ALTER COLUMN _type SET DEFAULT 'med_st_dosage_method'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_method ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26958,24 +22010,10 @@ ALTER TABLE ONLY med_st_dosage_method_cd ALTER COLUMN _type SET DEFAULT 'med_st_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_method_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_dosage_method_cd_vs ALTER COLUMN _type SET DEFAULT 'med_st_dosage_method_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_method_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -26986,24 +22024,10 @@ ALTER TABLE ONLY med_st_dosage_quantity ALTER COLUMN _type SET DEFAULT 'med_st_d
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_quantity ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_dosage_rate ALTER COLUMN _type SET DEFAULT 'med_st_dosage_rate'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_rate ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27014,24 +22038,10 @@ ALTER TABLE ONLY med_st_dosage_rate_denominator ALTER COLUMN _type SET DEFAULT '
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_rate_denominator ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_dosage_rate_numerator ALTER COLUMN _type SET DEFAULT 'med_st_dosage_rate_numerator'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_rate_numerator ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27042,24 +22052,10 @@ ALTER TABLE ONLY med_st_dosage_route ALTER COLUMN _type SET DEFAULT 'med_st_dosa
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_route ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_dosage_route_cd ALTER COLUMN _type SET DEFAULT 'med_st_dosage_route_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_route_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27070,24 +22066,10 @@ ALTER TABLE ONLY med_st_dosage_route_cd_vs ALTER COLUMN _type SET DEFAULT 'med_s
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_route_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_dosage_site ALTER COLUMN _type SET DEFAULT 'med_st_dosage_site'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_site ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27098,24 +22080,10 @@ ALTER TABLE ONLY med_st_dosage_site_cd ALTER COLUMN _type SET DEFAULT 'med_st_do
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_site_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_dosage_site_cd_vs ALTER COLUMN _type SET DEFAULT 'med_st_dosage_site_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_site_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27126,24 +22094,10 @@ ALTER TABLE ONLY med_st_dosage_timing ALTER COLUMN _type SET DEFAULT 'med_st_dos
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_timing ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_dosage_timing_event ALTER COLUMN _type SET DEFAULT 'med_st_dosage_timing_event'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_timing_event ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27154,24 +22108,10 @@ ALTER TABLE ONLY med_st_dosage_timing_repeat ALTER COLUMN _type SET DEFAULT 'med
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_dosage_timing_repeat ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_idn ALTER COLUMN _type SET DEFAULT 'med_st_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27182,24 +22122,10 @@ ALTER TABLE ONLY med_st_idn_assigner ALTER COLUMN _type SET DEFAULT 'med_st_idn_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_idn_period ALTER COLUMN _type SET DEFAULT 'med_st_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27210,24 +22136,10 @@ ALTER TABLE ONLY med_st_med ALTER COLUMN _type SET DEFAULT 'med_st_med'::charact
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_med ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_patient ALTER COLUMN _type SET DEFAULT 'med_st_patient'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_patient ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27238,24 +22150,10 @@ ALTER TABLE ONLY med_st_reason_not_given ALTER COLUMN _type SET DEFAULT 'med_st_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_reason_not_given ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_reason_not_given_cd ALTER COLUMN _type SET DEFAULT 'med_st_reason_not_given_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_reason_not_given_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27266,24 +22164,10 @@ ALTER TABLE ONLY med_st_reason_not_given_cd_vs ALTER COLUMN _type SET DEFAULT 'm
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_reason_not_given_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_st_text ALTER COLUMN _type SET DEFAULT 'med_st_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27294,24 +22178,10 @@ ALTER TABLE ONLY med_st_when_given ALTER COLUMN _type SET DEFAULT 'med_st_when_g
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_st_when_given ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY med_text ALTER COLUMN _type SET DEFAULT 'med_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY med_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27322,24 +22192,10 @@ ALTER TABLE ONLY media ALTER COLUMN _type SET DEFAULT 'media'::character varying
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY media ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY media_content ALTER COLUMN _type SET DEFAULT 'media_content'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY media_content ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27350,24 +22206,10 @@ ALTER TABLE ONLY media_idn ALTER COLUMN _type SET DEFAULT 'media_idn'::character
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY media_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY media_idn_assigner ALTER COLUMN _type SET DEFAULT 'media_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY media_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27378,24 +22220,10 @@ ALTER TABLE ONLY media_idn_period ALTER COLUMN _type SET DEFAULT 'media_idn_peri
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY media_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY media_operator ALTER COLUMN _type SET DEFAULT 'media_operator'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY media_operator ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27406,24 +22234,10 @@ ALTER TABLE ONLY media_subject ALTER COLUMN _type SET DEFAULT 'media_subject'::c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY media_subject ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY media_subtype ALTER COLUMN _type SET DEFAULT 'media_subtype'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY media_subtype ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27434,24 +22248,10 @@ ALTER TABLE ONLY media_subtype_cd ALTER COLUMN _type SET DEFAULT 'media_subtype_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY media_subtype_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY media_subtype_cd_vs ALTER COLUMN _type SET DEFAULT 'media_subtype_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY media_subtype_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27462,24 +22262,10 @@ ALTER TABLE ONLY media_text ALTER COLUMN _type SET DEFAULT 'media_text'::charact
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY media_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY media_view ALTER COLUMN _type SET DEFAULT 'media_view'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY media_view ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27490,24 +22276,10 @@ ALTER TABLE ONLY media_view_cd ALTER COLUMN _type SET DEFAULT 'media_view_cd'::c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY media_view_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY media_view_cd_vs ALTER COLUMN _type SET DEFAULT 'media_view_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY media_view_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27518,24 +22290,10 @@ ALTER TABLE ONLY message_header ALTER COLUMN _type SET DEFAULT 'message_header':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY message_header_author ALTER COLUMN _type SET DEFAULT 'message_header_author'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_author ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27546,24 +22304,10 @@ ALTER TABLE ONLY message_header_data ALTER COLUMN _type SET DEFAULT 'message_hea
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_data ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY message_header_destination ALTER COLUMN _type SET DEFAULT 'message_header_destination'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_destination ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27574,24 +22318,10 @@ ALTER TABLE ONLY message_header_destination_target ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_destination_target ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY message_header_enterer ALTER COLUMN _type SET DEFAULT 'message_header_enterer'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_enterer ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27602,24 +22332,10 @@ ALTER TABLE ONLY message_header_event ALTER COLUMN _type SET DEFAULT 'message_he
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_event ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY message_header_event_vs ALTER COLUMN _type SET DEFAULT 'message_header_event_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_event_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27630,24 +22346,10 @@ ALTER TABLE ONLY message_header_reason ALTER COLUMN _type SET DEFAULT 'message_h
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_reason ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY message_header_reason_cd ALTER COLUMN _type SET DEFAULT 'message_header_reason_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_reason_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27658,24 +22360,10 @@ ALTER TABLE ONLY message_header_reason_cd_vs ALTER COLUMN _type SET DEFAULT 'mes
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_reason_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY message_header_receiver ALTER COLUMN _type SET DEFAULT 'message_header_receiver'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_receiver ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27686,24 +22374,10 @@ ALTER TABLE ONLY message_header_response ALTER COLUMN _type SET DEFAULT 'message
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_response ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY message_header_response_details ALTER COLUMN _type SET DEFAULT 'message_header_response_details'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_response_details ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27714,24 +22388,10 @@ ALTER TABLE ONLY message_header_responsible ALTER COLUMN _type SET DEFAULT 'mess
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_responsible ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY message_header_source ALTER COLUMN _type SET DEFAULT 'message_header_source'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_source ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27742,24 +22402,10 @@ ALTER TABLE ONLY message_header_source_contact ALTER COLUMN _type SET DEFAULT 'm
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_source_contact ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY message_header_source_contact_period ALTER COLUMN _type SET DEFAULT 'message_header_source_contact_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_source_contact_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27770,31 +22416,10 @@ ALTER TABLE ONLY message_header_text ALTER COLUMN _type SET DEFAULT 'message_hea
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY message_header_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY narrative ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs ALTER COLUMN _type SET DEFAULT 'obs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27805,24 +22430,10 @@ ALTER TABLE ONLY obs_applies_period ALTER COLUMN _type SET DEFAULT 'obs_applies_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_applies_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_body_site ALTER COLUMN _type SET DEFAULT 'obs_body_site'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_body_site ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27833,24 +22444,10 @@ ALTER TABLE ONLY obs_body_site_cd ALTER COLUMN _type SET DEFAULT 'obs_body_site_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_body_site_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_body_site_cd_vs ALTER COLUMN _type SET DEFAULT 'obs_body_site_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_body_site_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27861,24 +22458,10 @@ ALTER TABLE ONLY obs_idn ALTER COLUMN _type SET DEFAULT 'obs_idn'::character var
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_idn_assigner ALTER COLUMN _type SET DEFAULT 'obs_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27889,24 +22472,10 @@ ALTER TABLE ONLY obs_idn_period ALTER COLUMN _type SET DEFAULT 'obs_idn_period':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_interpretation ALTER COLUMN _type SET DEFAULT 'obs_interpretation'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_interpretation ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27917,24 +22486,10 @@ ALTER TABLE ONLY obs_interpretation_cd ALTER COLUMN _type SET DEFAULT 'obs_inter
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_interpretation_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_interpretation_cd_vs ALTER COLUMN _type SET DEFAULT 'obs_interpretation_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_interpretation_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27945,24 +22500,10 @@ ALTER TABLE ONLY obs_method ALTER COLUMN _type SET DEFAULT 'obs_method'::charact
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_method ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_method_cd ALTER COLUMN _type SET DEFAULT 'obs_method_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_method_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -27973,24 +22514,10 @@ ALTER TABLE ONLY obs_method_cd_vs ALTER COLUMN _type SET DEFAULT 'obs_method_cd_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_method_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_name ALTER COLUMN _type SET DEFAULT 'obs_name'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_name ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28001,24 +22528,10 @@ ALTER TABLE ONLY obs_name_cd ALTER COLUMN _type SET DEFAULT 'obs_name_cd'::chara
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_name_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_name_cd_vs ALTER COLUMN _type SET DEFAULT 'obs_name_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_name_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28029,24 +22542,10 @@ ALTER TABLE ONLY obs_performer ALTER COLUMN _type SET DEFAULT 'obs_performer'::c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_performer ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_reference_range ALTER COLUMN _type SET DEFAULT 'obs_reference_range'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_reference_range ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28057,24 +22556,10 @@ ALTER TABLE ONLY obs_reference_range_age ALTER COLUMN _type SET DEFAULT 'obs_ref
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_reference_range_age ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_reference_range_age_high ALTER COLUMN _type SET DEFAULT 'obs_reference_range_age_high'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_reference_range_age_high ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28085,24 +22570,10 @@ ALTER TABLE ONLY obs_reference_range_age_low ALTER COLUMN _type SET DEFAULT 'obs
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_reference_range_age_low ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_reference_range_high ALTER COLUMN _type SET DEFAULT 'obs_reference_range_high'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_reference_range_high ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28113,24 +22584,10 @@ ALTER TABLE ONLY obs_reference_range_low ALTER COLUMN _type SET DEFAULT 'obs_ref
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_reference_range_low ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_reference_range_meaning ALTER COLUMN _type SET DEFAULT 'obs_reference_range_meaning'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_reference_range_meaning ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28141,24 +22598,10 @@ ALTER TABLE ONLY obs_reference_range_meaning_cd ALTER COLUMN _type SET DEFAULT '
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_reference_range_meaning_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_reference_range_meaning_cd_vs ALTER COLUMN _type SET DEFAULT 'obs_reference_range_meaning_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_reference_range_meaning_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28169,24 +22612,10 @@ ALTER TABLE ONLY obs_related ALTER COLUMN _type SET DEFAULT 'obs_related'::chara
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_related ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_related_target ALTER COLUMN _type SET DEFAULT 'obs_related_target'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_related_target ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28197,24 +22626,10 @@ ALTER TABLE ONLY obs_specimen ALTER COLUMN _type SET DEFAULT 'obs_specimen'::cha
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_specimen ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_subject ALTER COLUMN _type SET DEFAULT 'obs_subject'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_subject ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28225,24 +22640,10 @@ ALTER TABLE ONLY obs_text ALTER COLUMN _type SET DEFAULT 'obs_text'::character v
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_value_attachment ALTER COLUMN _type SET DEFAULT 'obs_value_attachment'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_value_attachment ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28253,24 +22654,10 @@ ALTER TABLE ONLY obs_value_codeable_concept ALTER COLUMN _type SET DEFAULT 'obs_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_value_codeable_concept ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_value_codeable_concept_cd ALTER COLUMN _type SET DEFAULT 'obs_value_codeable_concept_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_value_codeable_concept_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28281,24 +22668,10 @@ ALTER TABLE ONLY obs_value_codeable_concept_cd_vs ALTER COLUMN _type SET DEFAULT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_value_codeable_concept_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_value_period ALTER COLUMN _type SET DEFAULT 'obs_value_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_value_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28309,24 +22682,10 @@ ALTER TABLE ONLY obs_value_quantity ALTER COLUMN _type SET DEFAULT 'obs_value_qu
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_value_quantity ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_value_ratio ALTER COLUMN _type SET DEFAULT 'obs_value_ratio'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_value_ratio ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28337,24 +22696,10 @@ ALTER TABLE ONLY obs_value_ratio_denominator ALTER COLUMN _type SET DEFAULT 'obs
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_value_ratio_denominator ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_value_ratio_numerator ALTER COLUMN _type SET DEFAULT 'obs_value_ratio_numerator'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_value_ratio_numerator ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28365,24 +22710,10 @@ ALTER TABLE ONLY obs_value_sampled_data ALTER COLUMN _type SET DEFAULT 'obs_valu
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_value_sampled_data ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY obs_value_sampled_data_origin ALTER COLUMN _type SET DEFAULT 'obs_value_sampled_data_origin'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY obs_value_sampled_data_origin ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28393,24 +22724,10 @@ ALTER TABLE ONLY operation_outcome ALTER COLUMN _type SET DEFAULT 'operation_out
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY operation_outcome ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY operation_outcome_issue ALTER COLUMN _type SET DEFAULT 'operation_outcome_issue'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY operation_outcome_issue ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28421,24 +22738,10 @@ ALTER TABLE ONLY operation_outcome_issue_type ALTER COLUMN _type SET DEFAULT 'op
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY operation_outcome_issue_type ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY operation_outcome_issue_type_vs ALTER COLUMN _type SET DEFAULT 'operation_outcome_issue_type_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY operation_outcome_issue_type_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28449,24 +22752,10 @@ ALTER TABLE ONLY operation_outcome_text ALTER COLUMN _type SET DEFAULT 'operatio
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY operation_outcome_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY "order" ALTER COLUMN _type SET DEFAULT 'order'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY "order" ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28477,24 +22766,10 @@ ALTER TABLE ONLY order_authority ALTER COLUMN _type SET DEFAULT 'order_authority
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_authority ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_detail ALTER COLUMN _type SET DEFAULT 'order_detail'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_detail ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28505,24 +22780,10 @@ ALTER TABLE ONLY order_idn ALTER COLUMN _type SET DEFAULT 'order_idn'::character
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_idn_assigner ALTER COLUMN _type SET DEFAULT 'order_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28533,24 +22794,10 @@ ALTER TABLE ONLY order_idn_period ALTER COLUMN _type SET DEFAULT 'order_idn_peri
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_reason_codeable_concept ALTER COLUMN _type SET DEFAULT 'order_reason_codeable_concept'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_reason_codeable_concept ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28561,24 +22808,10 @@ ALTER TABLE ONLY order_reason_codeable_concept_cd ALTER COLUMN _type SET DEFAULT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_reason_codeable_concept_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_reason_codeable_concept_cd_vs ALTER COLUMN _type SET DEFAULT 'order_reason_codeable_concept_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_reason_codeable_concept_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28589,24 +22822,10 @@ ALTER TABLE ONLY order_reason_resource_reference ALTER COLUMN _type SET DEFAULT 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_reason_resource_reference ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_response ALTER COLUMN _type SET DEFAULT 'order_response'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_response ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28617,24 +22836,10 @@ ALTER TABLE ONLY order_response_authority_codeable_concept ALTER COLUMN _type SE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_response_authority_codeable_concept ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_response_authority_codeable_concept_cd ALTER COLUMN _type SET DEFAULT 'order_response_authority_codeable_concept_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_response_authority_codeable_concept_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28645,24 +22850,10 @@ ALTER TABLE ONLY order_response_authority_codeable_concept_cd_vs ALTER COLUMN _t
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_response_authority_codeable_concept_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_response_authority_resource_reference ALTER COLUMN _type SET DEFAULT 'order_response_authority_resource_reference'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_response_authority_resource_reference ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28673,24 +22864,10 @@ ALTER TABLE ONLY order_response_fulfillment ALTER COLUMN _type SET DEFAULT 'orde
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_response_fulfillment ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_response_idn ALTER COLUMN _type SET DEFAULT 'order_response_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_response_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28701,24 +22878,10 @@ ALTER TABLE ONLY order_response_idn_assigner ALTER COLUMN _type SET DEFAULT 'ord
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_response_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_response_idn_period ALTER COLUMN _type SET DEFAULT 'order_response_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_response_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28729,24 +22892,10 @@ ALTER TABLE ONLY order_response_request ALTER COLUMN _type SET DEFAULT 'order_re
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_response_request ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_response_text ALTER COLUMN _type SET DEFAULT 'order_response_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_response_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28757,24 +22906,10 @@ ALTER TABLE ONLY order_response_who ALTER COLUMN _type SET DEFAULT 'order_respon
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_response_who ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_source ALTER COLUMN _type SET DEFAULT 'order_source'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_source ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28785,24 +22920,10 @@ ALTER TABLE ONLY order_subject ALTER COLUMN _type SET DEFAULT 'order_subject'::c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_subject ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_target ALTER COLUMN _type SET DEFAULT 'order_target'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_target ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28813,24 +22934,10 @@ ALTER TABLE ONLY order_text ALTER COLUMN _type SET DEFAULT 'order_text'::charact
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_when ALTER COLUMN _type SET DEFAULT 'order_when'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_when ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28841,24 +22948,10 @@ ALTER TABLE ONLY order_when_code ALTER COLUMN _type SET DEFAULT 'order_when_code
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_when_code ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_when_code_cd ALTER COLUMN _type SET DEFAULT 'order_when_code_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_when_code_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28869,24 +22962,10 @@ ALTER TABLE ONLY order_when_code_cd_vs ALTER COLUMN _type SET DEFAULT 'order_whe
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_when_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_when_schedule ALTER COLUMN _type SET DEFAULT 'order_when_schedule'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_when_schedule ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28897,24 +22976,10 @@ ALTER TABLE ONLY order_when_schedule_event ALTER COLUMN _type SET DEFAULT 'order
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_when_schedule_event ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY order_when_schedule_repeat ALTER COLUMN _type SET DEFAULT 'order_when_schedule_repeat'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY order_when_schedule_repeat ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28925,24 +22990,10 @@ ALTER TABLE ONLY organization ALTER COLUMN _type SET DEFAULT 'organization'::cha
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY organization_address ALTER COLUMN _type SET DEFAULT 'organization_address'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_address ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28953,24 +23004,10 @@ ALTER TABLE ONLY organization_address_period ALTER COLUMN _type SET DEFAULT 'org
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_address_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY organization_contact ALTER COLUMN _type SET DEFAULT 'organization_contact'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_contact ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -28981,24 +23018,10 @@ ALTER TABLE ONLY organization_contact_address ALTER COLUMN _type SET DEFAULT 'or
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_contact_address ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY organization_contact_address_period ALTER COLUMN _type SET DEFAULT 'organization_contact_address_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_contact_address_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29009,24 +23032,10 @@ ALTER TABLE ONLY organization_contact_gender ALTER COLUMN _type SET DEFAULT 'org
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_contact_gender ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY organization_contact_gender_cd ALTER COLUMN _type SET DEFAULT 'organization_contact_gender_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_contact_gender_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29037,24 +23046,10 @@ ALTER TABLE ONLY organization_contact_gender_cd_vs ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_contact_gender_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY organization_contact_name ALTER COLUMN _type SET DEFAULT 'organization_contact_name'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_contact_name ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29065,24 +23060,10 @@ ALTER TABLE ONLY organization_contact_name_period ALTER COLUMN _type SET DEFAULT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_contact_name_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY organization_contact_purpose ALTER COLUMN _type SET DEFAULT 'organization_contact_purpose'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_contact_purpose ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29093,24 +23074,10 @@ ALTER TABLE ONLY organization_contact_purpose_cd ALTER COLUMN _type SET DEFAULT 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_contact_purpose_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY organization_contact_purpose_cd_vs ALTER COLUMN _type SET DEFAULT 'organization_contact_purpose_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_contact_purpose_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29121,24 +23088,10 @@ ALTER TABLE ONLY organization_contact_telecom ALTER COLUMN _type SET DEFAULT 'or
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_contact_telecom ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY organization_contact_telecom_period ALTER COLUMN _type SET DEFAULT 'organization_contact_telecom_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_contact_telecom_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29149,24 +23102,10 @@ ALTER TABLE ONLY organization_idn ALTER COLUMN _type SET DEFAULT 'organization_i
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY organization_idn_assigner ALTER COLUMN _type SET DEFAULT 'organization_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29177,24 +23116,10 @@ ALTER TABLE ONLY organization_idn_period ALTER COLUMN _type SET DEFAULT 'organiz
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY organization_loc ALTER COLUMN _type SET DEFAULT 'organization_loc'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_loc ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29205,24 +23130,10 @@ ALTER TABLE ONLY organization_part_of ALTER COLUMN _type SET DEFAULT 'organizati
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_part_of ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY organization_telecom ALTER COLUMN _type SET DEFAULT 'organization_telecom'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_telecom ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29233,24 +23144,10 @@ ALTER TABLE ONLY organization_telecom_period ALTER COLUMN _type SET DEFAULT 'org
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_telecom_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY organization_text ALTER COLUMN _type SET DEFAULT 'organization_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29261,24 +23158,10 @@ ALTER TABLE ONLY organization_type ALTER COLUMN _type SET DEFAULT 'organization_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_type ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY organization_type_cd ALTER COLUMN _type SET DEFAULT 'organization_type_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_type_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29289,24 +23172,10 @@ ALTER TABLE ONLY organization_type_cd_vs ALTER COLUMN _type SET DEFAULT 'organiz
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY organization_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY other ALTER COLUMN _type SET DEFAULT 'other'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY other ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29317,24 +23186,10 @@ ALTER TABLE ONLY other_author ALTER COLUMN _type SET DEFAULT 'other_author'::cha
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY other_author ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY other_code ALTER COLUMN _type SET DEFAULT 'other_code'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY other_code ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29345,24 +23200,10 @@ ALTER TABLE ONLY other_code_cd ALTER COLUMN _type SET DEFAULT 'other_code_cd'::c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY other_code_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY other_code_cd_vs ALTER COLUMN _type SET DEFAULT 'other_code_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY other_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29373,24 +23214,10 @@ ALTER TABLE ONLY other_idn ALTER COLUMN _type SET DEFAULT 'other_idn'::character
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY other_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY other_idn_assigner ALTER COLUMN _type SET DEFAULT 'other_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY other_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29401,24 +23228,10 @@ ALTER TABLE ONLY other_idn_period ALTER COLUMN _type SET DEFAULT 'other_idn_peri
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY other_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY other_subject ALTER COLUMN _type SET DEFAULT 'other_subject'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY other_subject ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29429,24 +23242,10 @@ ALTER TABLE ONLY other_text ALTER COLUMN _type SET DEFAULT 'other_text'::charact
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY other_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient ALTER COLUMN _type SET DEFAULT 'patient'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29457,24 +23256,10 @@ ALTER TABLE ONLY patient_address ALTER COLUMN _type SET DEFAULT 'patient_address
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_address ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_address_period ALTER COLUMN _type SET DEFAULT 'patient_address_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_address_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29485,24 +23270,10 @@ ALTER TABLE ONLY patient_animal ALTER COLUMN _type SET DEFAULT 'patient_animal':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_animal ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_animal_breed ALTER COLUMN _type SET DEFAULT 'patient_animal_breed'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_animal_breed ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29513,24 +23284,10 @@ ALTER TABLE ONLY patient_animal_breed_cd ALTER COLUMN _type SET DEFAULT 'patient
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_animal_breed_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_animal_breed_cd_vs ALTER COLUMN _type SET DEFAULT 'patient_animal_breed_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_animal_breed_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29541,24 +23298,10 @@ ALTER TABLE ONLY patient_animal_gender_status ALTER COLUMN _type SET DEFAULT 'pa
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_animal_gender_status ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_animal_gender_status_cd ALTER COLUMN _type SET DEFAULT 'patient_animal_gender_status_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_animal_gender_status_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29569,24 +23312,10 @@ ALTER TABLE ONLY patient_animal_gender_status_cd_vs ALTER COLUMN _type SET DEFAU
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_animal_gender_status_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_animal_species ALTER COLUMN _type SET DEFAULT 'patient_animal_species'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_animal_species ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29597,24 +23326,10 @@ ALTER TABLE ONLY patient_animal_species_cd ALTER COLUMN _type SET DEFAULT 'patie
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_animal_species_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_animal_species_cd_vs ALTER COLUMN _type SET DEFAULT 'patient_animal_species_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_animal_species_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29625,24 +23340,10 @@ ALTER TABLE ONLY patient_care_provider ALTER COLUMN _type SET DEFAULT 'patient_c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_care_provider ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_communication ALTER COLUMN _type SET DEFAULT 'patient_communication'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_communication ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29653,24 +23354,10 @@ ALTER TABLE ONLY patient_communication_cd ALTER COLUMN _type SET DEFAULT 'patien
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_communication_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_communication_cd_vs ALTER COLUMN _type SET DEFAULT 'patient_communication_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_communication_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29681,24 +23368,10 @@ ALTER TABLE ONLY patient_contact ALTER COLUMN _type SET DEFAULT 'patient_contact
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_contact ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_contact_address ALTER COLUMN _type SET DEFAULT 'patient_contact_address'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_contact_address ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29709,24 +23382,10 @@ ALTER TABLE ONLY patient_contact_address_period ALTER COLUMN _type SET DEFAULT '
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_contact_address_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_contact_gender ALTER COLUMN _type SET DEFAULT 'patient_contact_gender'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_contact_gender ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29737,24 +23396,10 @@ ALTER TABLE ONLY patient_contact_gender_cd ALTER COLUMN _type SET DEFAULT 'patie
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_contact_gender_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_contact_gender_cd_vs ALTER COLUMN _type SET DEFAULT 'patient_contact_gender_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_contact_gender_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29765,24 +23410,10 @@ ALTER TABLE ONLY patient_contact_name ALTER COLUMN _type SET DEFAULT 'patient_co
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_contact_name ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_contact_name_period ALTER COLUMN _type SET DEFAULT 'patient_contact_name_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_contact_name_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29793,24 +23424,10 @@ ALTER TABLE ONLY patient_contact_organization ALTER COLUMN _type SET DEFAULT 'pa
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_contact_organization ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_contact_relationship ALTER COLUMN _type SET DEFAULT 'patient_contact_relationship'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_contact_relationship ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29821,24 +23438,10 @@ ALTER TABLE ONLY patient_contact_relationship_cd ALTER COLUMN _type SET DEFAULT 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_contact_relationship_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_contact_relationship_cd_vs ALTER COLUMN _type SET DEFAULT 'patient_contact_relationship_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_contact_relationship_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29849,24 +23452,10 @@ ALTER TABLE ONLY patient_contact_telecom ALTER COLUMN _type SET DEFAULT 'patient
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_contact_telecom ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_contact_telecom_period ALTER COLUMN _type SET DEFAULT 'patient_contact_telecom_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_contact_telecom_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29877,24 +23466,10 @@ ALTER TABLE ONLY patient_gender ALTER COLUMN _type SET DEFAULT 'patient_gender':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_gender ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_gender_cd ALTER COLUMN _type SET DEFAULT 'patient_gender_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_gender_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29905,24 +23480,10 @@ ALTER TABLE ONLY patient_gender_cd_vs ALTER COLUMN _type SET DEFAULT 'patient_ge
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_gender_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_idn ALTER COLUMN _type SET DEFAULT 'patient_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29933,24 +23494,10 @@ ALTER TABLE ONLY patient_idn_assigner ALTER COLUMN _type SET DEFAULT 'patient_id
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_idn_period ALTER COLUMN _type SET DEFAULT 'patient_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29961,24 +23508,10 @@ ALTER TABLE ONLY patient_link ALTER COLUMN _type SET DEFAULT 'patient_link'::cha
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_link ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_link_other ALTER COLUMN _type SET DEFAULT 'patient_link_other'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_link_other ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -29989,24 +23522,10 @@ ALTER TABLE ONLY patient_managing_organization ALTER COLUMN _type SET DEFAULT 'p
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_managing_organization ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_marital_status ALTER COLUMN _type SET DEFAULT 'patient_marital_status'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_marital_status ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30017,24 +23536,10 @@ ALTER TABLE ONLY patient_marital_status_cd ALTER COLUMN _type SET DEFAULT 'patie
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_marital_status_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_marital_status_cd_vs ALTER COLUMN _type SET DEFAULT 'patient_marital_status_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_marital_status_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30045,24 +23550,10 @@ ALTER TABLE ONLY patient_name ALTER COLUMN _type SET DEFAULT 'patient_name'::cha
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_name ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_name_period ALTER COLUMN _type SET DEFAULT 'patient_name_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_name_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30073,24 +23564,10 @@ ALTER TABLE ONLY patient_photo ALTER COLUMN _type SET DEFAULT 'patient_photo'::c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_photo ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_telecom ALTER COLUMN _type SET DEFAULT 'patient_telecom'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_telecom ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30101,31 +23578,10 @@ ALTER TABLE ONLY patient_telecom_period ALTER COLUMN _type SET DEFAULT 'patient_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_telecom_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY patient_text ALTER COLUMN _type SET DEFAULT 'patient_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY patient_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30136,24 +23592,10 @@ ALTER TABLE ONLY practitioner ALTER COLUMN _type SET DEFAULT 'practitioner'::cha
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_address ALTER COLUMN _type SET DEFAULT 'practitioner_address'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_address ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30164,24 +23606,10 @@ ALTER TABLE ONLY practitioner_address_period ALTER COLUMN _type SET DEFAULT 'pra
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_address_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_communication ALTER COLUMN _type SET DEFAULT 'practitioner_communication'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_communication ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30192,24 +23620,10 @@ ALTER TABLE ONLY practitioner_communication_cd ALTER COLUMN _type SET DEFAULT 'p
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_communication_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_communication_cd_vs ALTER COLUMN _type SET DEFAULT 'practitioner_communication_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_communication_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30220,24 +23634,10 @@ ALTER TABLE ONLY practitioner_gender ALTER COLUMN _type SET DEFAULT 'practitione
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_gender ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_gender_cd ALTER COLUMN _type SET DEFAULT 'practitioner_gender_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_gender_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30248,24 +23648,10 @@ ALTER TABLE ONLY practitioner_gender_cd_vs ALTER COLUMN _type SET DEFAULT 'pract
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_gender_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_idn ALTER COLUMN _type SET DEFAULT 'practitioner_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30276,24 +23662,10 @@ ALTER TABLE ONLY practitioner_idn_assigner ALTER COLUMN _type SET DEFAULT 'pract
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_idn_period ALTER COLUMN _type SET DEFAULT 'practitioner_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30304,24 +23676,10 @@ ALTER TABLE ONLY practitioner_loc ALTER COLUMN _type SET DEFAULT 'practitioner_l
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_loc ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_name ALTER COLUMN _type SET DEFAULT 'practitioner_name'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_name ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30332,24 +23690,10 @@ ALTER TABLE ONLY practitioner_name_period ALTER COLUMN _type SET DEFAULT 'practi
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_name_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_organization ALTER COLUMN _type SET DEFAULT 'practitioner_organization'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_organization ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30360,24 +23704,10 @@ ALTER TABLE ONLY practitioner_period ALTER COLUMN _type SET DEFAULT 'practitione
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_photo ALTER COLUMN _type SET DEFAULT 'practitioner_photo'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_photo ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30388,24 +23718,10 @@ ALTER TABLE ONLY practitioner_qualification ALTER COLUMN _type SET DEFAULT 'prac
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_qualification ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_qualification_code ALTER COLUMN _type SET DEFAULT 'practitioner_qualification_code'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_qualification_code ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30416,24 +23732,10 @@ ALTER TABLE ONLY practitioner_qualification_code_cd ALTER COLUMN _type SET DEFAU
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_qualification_code_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_qualification_code_cd_vs ALTER COLUMN _type SET DEFAULT 'practitioner_qualification_code_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_qualification_code_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30444,24 +23746,10 @@ ALTER TABLE ONLY practitioner_qualification_issuer ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_qualification_issuer ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_qualification_period ALTER COLUMN _type SET DEFAULT 'practitioner_qualification_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_qualification_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30472,24 +23760,10 @@ ALTER TABLE ONLY practitioner_role ALTER COLUMN _type SET DEFAULT 'practitioner_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_role ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_role_cd ALTER COLUMN _type SET DEFAULT 'practitioner_role_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_role_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30500,24 +23774,10 @@ ALTER TABLE ONLY practitioner_role_cd_vs ALTER COLUMN _type SET DEFAULT 'practit
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_role_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_specialty ALTER COLUMN _type SET DEFAULT 'practitioner_specialty'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_specialty ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30528,24 +23788,10 @@ ALTER TABLE ONLY practitioner_specialty_cd ALTER COLUMN _type SET DEFAULT 'pract
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_specialty_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_specialty_cd_vs ALTER COLUMN _type SET DEFAULT 'practitioner_specialty_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_specialty_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30556,24 +23802,10 @@ ALTER TABLE ONLY practitioner_telecom ALTER COLUMN _type SET DEFAULT 'practition
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_telecom ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY practitioner_telecom_period ALTER COLUMN _type SET DEFAULT 'practitioner_telecom_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_telecom_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30584,24 +23816,10 @@ ALTER TABLE ONLY practitioner_text ALTER COLUMN _type SET DEFAULT 'practitioner_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY practitioner_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY procedure ALTER COLUMN _type SET DEFAULT 'procedure'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30612,24 +23830,10 @@ ALTER TABLE ONLY procedure_body_site ALTER COLUMN _type SET DEFAULT 'procedure_b
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_body_site ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY procedure_body_site_cd ALTER COLUMN _type SET DEFAULT 'procedure_body_site_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_body_site_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30640,24 +23844,10 @@ ALTER TABLE ONLY procedure_body_site_cd_vs ALTER COLUMN _type SET DEFAULT 'proce
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_body_site_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY procedure_complication ALTER COLUMN _type SET DEFAULT 'procedure_complication'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_complication ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30668,24 +23858,10 @@ ALTER TABLE ONLY procedure_complication_cd ALTER COLUMN _type SET DEFAULT 'proce
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_complication_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY procedure_complication_cd_vs ALTER COLUMN _type SET DEFAULT 'procedure_complication_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_complication_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30696,24 +23872,10 @@ ALTER TABLE ONLY procedure_date ALTER COLUMN _type SET DEFAULT 'procedure_date':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_date ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY procedure_encounter ALTER COLUMN _type SET DEFAULT 'procedure_encounter'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_encounter ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30724,24 +23886,10 @@ ALTER TABLE ONLY procedure_idn ALTER COLUMN _type SET DEFAULT 'procedure_idn'::c
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY procedure_idn_assigner ALTER COLUMN _type SET DEFAULT 'procedure_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30752,24 +23900,10 @@ ALTER TABLE ONLY procedure_idn_period ALTER COLUMN _type SET DEFAULT 'procedure_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY procedure_indication ALTER COLUMN _type SET DEFAULT 'procedure_indication'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_indication ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30780,24 +23914,10 @@ ALTER TABLE ONLY procedure_indication_cd ALTER COLUMN _type SET DEFAULT 'procedu
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_indication_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY procedure_indication_cd_vs ALTER COLUMN _type SET DEFAULT 'procedure_indication_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_indication_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30808,24 +23928,10 @@ ALTER TABLE ONLY procedure_performer ALTER COLUMN _type SET DEFAULT 'procedure_p
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_performer ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY procedure_performer_person ALTER COLUMN _type SET DEFAULT 'procedure_performer_person'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_performer_person ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30836,24 +23942,10 @@ ALTER TABLE ONLY procedure_performer_role ALTER COLUMN _type SET DEFAULT 'proced
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_performer_role ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY procedure_performer_role_cd ALTER COLUMN _type SET DEFAULT 'procedure_performer_role_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_performer_role_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30864,24 +23956,10 @@ ALTER TABLE ONLY procedure_performer_role_cd_vs ALTER COLUMN _type SET DEFAULT '
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_performer_role_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY procedure_related_item ALTER COLUMN _type SET DEFAULT 'procedure_related_item'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_related_item ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30892,24 +23970,10 @@ ALTER TABLE ONLY procedure_related_item_target ALTER COLUMN _type SET DEFAULT 'p
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_related_item_target ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY procedure_report ALTER COLUMN _type SET DEFAULT 'procedure_report'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_report ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30920,24 +23984,10 @@ ALTER TABLE ONLY procedure_subject ALTER COLUMN _type SET DEFAULT 'procedure_sub
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_subject ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY procedure_text ALTER COLUMN _type SET DEFAULT 'procedure_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30948,24 +23998,10 @@ ALTER TABLE ONLY procedure_type ALTER COLUMN _type SET DEFAULT 'procedure_type':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_type ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY procedure_type_cd ALTER COLUMN _type SET DEFAULT 'procedure_type_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_type_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -30976,24 +24012,10 @@ ALTER TABLE ONLY procedure_type_cd_vs ALTER COLUMN _type SET DEFAULT 'procedure_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY procedure_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY provenance ALTER COLUMN _type SET DEFAULT 'provenance'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31004,24 +24026,10 @@ ALTER TABLE ONLY provenance_agent ALTER COLUMN _type SET DEFAULT 'provenance_age
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance_agent ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY provenance_agent_role ALTER COLUMN _type SET DEFAULT 'provenance_agent_role'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance_agent_role ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31032,24 +24040,10 @@ ALTER TABLE ONLY provenance_agent_role_vs ALTER COLUMN _type SET DEFAULT 'proven
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance_agent_role_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY provenance_agent_type ALTER COLUMN _type SET DEFAULT 'provenance_agent_type'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance_agent_type ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31060,24 +24054,10 @@ ALTER TABLE ONLY provenance_agent_type_vs ALTER COLUMN _type SET DEFAULT 'proven
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance_agent_type_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY provenance_entity ALTER COLUMN _type SET DEFAULT 'provenance_entity'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance_entity ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31088,24 +24068,10 @@ ALTER TABLE ONLY provenance_entity_type ALTER COLUMN _type SET DEFAULT 'provenan
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance_entity_type ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY provenance_entity_type_vs ALTER COLUMN _type SET DEFAULT 'provenance_entity_type_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance_entity_type_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31116,24 +24082,10 @@ ALTER TABLE ONLY provenance_loc ALTER COLUMN _type SET DEFAULT 'provenance_loc':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance_loc ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY provenance_period ALTER COLUMN _type SET DEFAULT 'provenance_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31144,24 +24096,10 @@ ALTER TABLE ONLY provenance_reason ALTER COLUMN _type SET DEFAULT 'provenance_re
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance_reason ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY provenance_reason_cd ALTER COLUMN _type SET DEFAULT 'provenance_reason_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance_reason_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31172,24 +24110,10 @@ ALTER TABLE ONLY provenance_reason_cd_vs ALTER COLUMN _type SET DEFAULT 'provena
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance_reason_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY provenance_target ALTER COLUMN _type SET DEFAULT 'provenance_target'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance_target ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31200,31 +24124,10 @@ ALTER TABLE ONLY provenance_text ALTER COLUMN _type SET DEFAULT 'provenance_text
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY provenance_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY quantity ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY query ALTER COLUMN _type SET DEFAULT 'query'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY query ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31235,24 +24138,10 @@ ALTER TABLE ONLY query_response ALTER COLUMN _type SET DEFAULT 'query_response':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY query_response ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY query_response_reference ALTER COLUMN _type SET DEFAULT 'query_response_reference'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY query_response_reference ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31263,24 +24152,10 @@ ALTER TABLE ONLY query_text ALTER COLUMN _type SET DEFAULT 'query_text'::charact
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY query_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY questionnaire ALTER COLUMN _type SET DEFAULT 'questionnaire'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31291,24 +24166,10 @@ ALTER TABLE ONLY questionnaire_author ALTER COLUMN _type SET DEFAULT 'questionna
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_author ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY questionnaire_encounter ALTER COLUMN _type SET DEFAULT 'questionnaire_encounter'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_encounter ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31319,24 +24180,10 @@ ALTER TABLE ONLY questionnaire_group ALTER COLUMN _type SET DEFAULT 'questionnai
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_group ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY questionnaire_group_name ALTER COLUMN _type SET DEFAULT 'questionnaire_group_name'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_group_name ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31347,24 +24194,10 @@ ALTER TABLE ONLY questionnaire_group_name_cd ALTER COLUMN _type SET DEFAULT 'que
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_group_name_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY questionnaire_group_name_cd_vs ALTER COLUMN _type SET DEFAULT 'questionnaire_group_name_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_group_name_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31375,24 +24208,10 @@ ALTER TABLE ONLY questionnaire_group_question ALTER COLUMN _type SET DEFAULT 'qu
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_group_question ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY questionnaire_group_question_choice ALTER COLUMN _type SET DEFAULT 'questionnaire_group_question_choice'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_group_question_choice ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31403,24 +24222,10 @@ ALTER TABLE ONLY questionnaire_group_question_choice_vs ALTER COLUMN _type SET D
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_group_question_choice_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY questionnaire_group_question_name ALTER COLUMN _type SET DEFAULT 'questionnaire_group_question_name'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_group_question_name ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31431,24 +24236,10 @@ ALTER TABLE ONLY questionnaire_group_question_name_cd ALTER COLUMN _type SET DEF
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_group_question_name_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY questionnaire_group_question_name_cd_vs ALTER COLUMN _type SET DEFAULT 'questionnaire_group_question_name_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_group_question_name_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31459,24 +24250,10 @@ ALTER TABLE ONLY questionnaire_group_question_options ALTER COLUMN _type SET DEF
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_group_question_options ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY questionnaire_group_subject ALTER COLUMN _type SET DEFAULT 'questionnaire_group_subject'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_group_subject ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31487,24 +24264,10 @@ ALTER TABLE ONLY questionnaire_idn ALTER COLUMN _type SET DEFAULT 'questionnaire
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY questionnaire_idn_assigner ALTER COLUMN _type SET DEFAULT 'questionnaire_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31515,24 +24278,10 @@ ALTER TABLE ONLY questionnaire_idn_period ALTER COLUMN _type SET DEFAULT 'questi
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY questionnaire_name ALTER COLUMN _type SET DEFAULT 'questionnaire_name'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_name ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31543,24 +24292,10 @@ ALTER TABLE ONLY questionnaire_name_cd ALTER COLUMN _type SET DEFAULT 'questionn
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_name_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY questionnaire_name_cd_vs ALTER COLUMN _type SET DEFAULT 'questionnaire_name_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_name_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31571,24 +24306,10 @@ ALTER TABLE ONLY questionnaire_source ALTER COLUMN _type SET DEFAULT 'questionna
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_source ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY questionnaire_subject ALTER COLUMN _type SET DEFAULT 'questionnaire_subject'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_subject ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31599,66 +24320,10 @@ ALTER TABLE ONLY questionnaire_text ALTER COLUMN _type SET DEFAULT 'questionnair
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY questionnaire_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY range ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY range_high ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY range_low ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY ratio ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY ratio_denominator ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY ratio_numerator ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY related_person ALTER COLUMN _type SET DEFAULT 'related_person'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31669,24 +24334,10 @@ ALTER TABLE ONLY related_person_address ALTER COLUMN _type SET DEFAULT 'related_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_address ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY related_person_address_period ALTER COLUMN _type SET DEFAULT 'related_person_address_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_address_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31697,24 +24348,10 @@ ALTER TABLE ONLY related_person_gender ALTER COLUMN _type SET DEFAULT 'related_p
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_gender ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY related_person_gender_cd ALTER COLUMN _type SET DEFAULT 'related_person_gender_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_gender_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31725,24 +24362,10 @@ ALTER TABLE ONLY related_person_gender_cd_vs ALTER COLUMN _type SET DEFAULT 'rel
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_gender_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY related_person_idn ALTER COLUMN _type SET DEFAULT 'related_person_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31753,24 +24376,10 @@ ALTER TABLE ONLY related_person_idn_assigner ALTER COLUMN _type SET DEFAULT 'rel
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY related_person_idn_period ALTER COLUMN _type SET DEFAULT 'related_person_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31781,24 +24390,10 @@ ALTER TABLE ONLY related_person_name ALTER COLUMN _type SET DEFAULT 'related_per
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_name ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY related_person_name_period ALTER COLUMN _type SET DEFAULT 'related_person_name_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_name_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31809,24 +24404,10 @@ ALTER TABLE ONLY related_person_patient ALTER COLUMN _type SET DEFAULT 'related_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_patient ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY related_person_photo ALTER COLUMN _type SET DEFAULT 'related_person_photo'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_photo ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31837,24 +24418,10 @@ ALTER TABLE ONLY related_person_relationship ALTER COLUMN _type SET DEFAULT 'rel
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_relationship ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY related_person_relationship_cd ALTER COLUMN _type SET DEFAULT 'related_person_relationship_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_relationship_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31865,24 +24432,10 @@ ALTER TABLE ONLY related_person_relationship_cd_vs ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_relationship_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY related_person_telecom ALTER COLUMN _type SET DEFAULT 'related_person_telecom'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_telecom ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31893,73 +24446,10 @@ ALTER TABLE ONLY related_person_telecom_period ALTER COLUMN _type SET DEFAULT 'r
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_telecom_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY related_person_text ALTER COLUMN _type SET DEFAULT 'related_person_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY related_person_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY res_ref ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY sampled_data ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY sampled_data_origin ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY schedule ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY schedule_event ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY schedule_repeat ALTER COLUMN created_at SET DEFAULT now();
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY schedulerepeat ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31970,24 +24460,10 @@ ALTER TABLE ONLY security_event ALTER COLUMN _type SET DEFAULT 'security_event':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY security_event_event ALTER COLUMN _type SET DEFAULT 'security_event_event'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_event ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -31998,24 +24474,10 @@ ALTER TABLE ONLY security_event_event_subtype ALTER COLUMN _type SET DEFAULT 'se
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_event_subtype ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY security_event_event_subtype_cd ALTER COLUMN _type SET DEFAULT 'security_event_event_subtype_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_event_subtype_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32026,24 +24488,10 @@ ALTER TABLE ONLY security_event_event_subtype_cd_vs ALTER COLUMN _type SET DEFAU
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_event_subtype_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY security_event_event_type ALTER COLUMN _type SET DEFAULT 'security_event_event_type'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_event_type ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32054,24 +24502,10 @@ ALTER TABLE ONLY security_event_event_type_cd ALTER COLUMN _type SET DEFAULT 'se
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_event_type_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY security_event_event_type_cd_vs ALTER COLUMN _type SET DEFAULT 'security_event_event_type_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_event_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32082,24 +24516,10 @@ ALTER TABLE ONLY security_event_object ALTER COLUMN _type SET DEFAULT 'security_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_object ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY security_event_object_detail ALTER COLUMN _type SET DEFAULT 'security_event_object_detail'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_object_detail ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32110,24 +24530,10 @@ ALTER TABLE ONLY security_event_object_idn ALTER COLUMN _type SET DEFAULT 'secur
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_object_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY security_event_object_idn_assigner ALTER COLUMN _type SET DEFAULT 'security_event_object_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_object_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32138,24 +24544,10 @@ ALTER TABLE ONLY security_event_object_idn_period ALTER COLUMN _type SET DEFAULT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_object_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY security_event_object_reference ALTER COLUMN _type SET DEFAULT 'security_event_object_reference'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_object_reference ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32166,24 +24558,10 @@ ALTER TABLE ONLY security_event_object_sensitivity ALTER COLUMN _type SET DEFAUL
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_object_sensitivity ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY security_event_object_sensitivity_cd ALTER COLUMN _type SET DEFAULT 'security_event_object_sensitivity_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_object_sensitivity_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32194,24 +24572,10 @@ ALTER TABLE ONLY security_event_object_sensitivity_cd_vs ALTER COLUMN _type SET 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_object_sensitivity_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY security_event_participant ALTER COLUMN _type SET DEFAULT 'security_event_participant'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_participant ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32222,24 +24586,10 @@ ALTER TABLE ONLY security_event_participant_media ALTER COLUMN _type SET DEFAULT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_participant_media ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY security_event_participant_media_vs ALTER COLUMN _type SET DEFAULT 'security_event_participant_media_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_participant_media_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32250,24 +24600,10 @@ ALTER TABLE ONLY security_event_participant_network ALTER COLUMN _type SET DEFAU
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_participant_network ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY security_event_participant_reference ALTER COLUMN _type SET DEFAULT 'security_event_participant_reference'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_participant_reference ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32278,24 +24614,10 @@ ALTER TABLE ONLY security_event_participant_role ALTER COLUMN _type SET DEFAULT 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_participant_role ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY security_event_participant_role_cd ALTER COLUMN _type SET DEFAULT 'security_event_participant_role_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_participant_role_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32306,24 +24628,10 @@ ALTER TABLE ONLY security_event_participant_role_cd_vs ALTER COLUMN _type SET DE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_participant_role_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY security_event_source ALTER COLUMN _type SET DEFAULT 'security_event_source'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_source ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32334,24 +24642,10 @@ ALTER TABLE ONLY security_event_source_type ALTER COLUMN _type SET DEFAULT 'secu
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_source_type ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY security_event_source_type_vs ALTER COLUMN _type SET DEFAULT 'security_event_source_type_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_source_type_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32362,24 +24656,10 @@ ALTER TABLE ONLY security_event_text ALTER COLUMN _type SET DEFAULT 'security_ev
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY security_event_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen ALTER COLUMN _type SET DEFAULT 'specimen'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32390,24 +24670,10 @@ ALTER TABLE ONLY specimen_accession_identifier ALTER COLUMN _type SET DEFAULT 's
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_accession_identifier ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_accession_identifier_assigner ALTER COLUMN _type SET DEFAULT 'specimen_accession_identifier_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_accession_identifier_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32418,24 +24684,10 @@ ALTER TABLE ONLY specimen_accession_identifier_period ALTER COLUMN _type SET DEF
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_accession_identifier_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_collection ALTER COLUMN _type SET DEFAULT 'specimen_collection'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_collection ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32446,24 +24698,10 @@ ALTER TABLE ONLY specimen_collection_collected_period ALTER COLUMN _type SET DEF
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_collection_collected_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_collection_collector ALTER COLUMN _type SET DEFAULT 'specimen_collection_collector'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_collection_collector ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32474,24 +24712,10 @@ ALTER TABLE ONLY specimen_collection_method ALTER COLUMN _type SET DEFAULT 'spec
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_collection_method ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_collection_method_cd ALTER COLUMN _type SET DEFAULT 'specimen_collection_method_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_collection_method_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32502,24 +24726,10 @@ ALTER TABLE ONLY specimen_collection_method_cd_vs ALTER COLUMN _type SET DEFAULT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_collection_method_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_collection_quantity ALTER COLUMN _type SET DEFAULT 'specimen_collection_quantity'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_collection_quantity ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32530,24 +24740,10 @@ ALTER TABLE ONLY specimen_collection_source_site ALTER COLUMN _type SET DEFAULT 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_collection_source_site ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_collection_source_site_cd ALTER COLUMN _type SET DEFAULT 'specimen_collection_source_site_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_collection_source_site_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32558,24 +24754,10 @@ ALTER TABLE ONLY specimen_collection_source_site_cd_vs ALTER COLUMN _type SET DE
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_collection_source_site_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_container ALTER COLUMN _type SET DEFAULT 'specimen_container'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_container ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32586,24 +24768,10 @@ ALTER TABLE ONLY specimen_container_additive ALTER COLUMN _type SET DEFAULT 'spe
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_container_additive ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_container_capacity ALTER COLUMN _type SET DEFAULT 'specimen_container_capacity'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_container_capacity ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32614,24 +24782,10 @@ ALTER TABLE ONLY specimen_container_idn ALTER COLUMN _type SET DEFAULT 'specimen
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_container_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_container_idn_assigner ALTER COLUMN _type SET DEFAULT 'specimen_container_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_container_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32642,24 +24796,10 @@ ALTER TABLE ONLY specimen_container_idn_period ALTER COLUMN _type SET DEFAULT 's
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_container_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_container_specimen_quantity ALTER COLUMN _type SET DEFAULT 'specimen_container_specimen_quantity'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_container_specimen_quantity ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32670,24 +24810,10 @@ ALTER TABLE ONLY specimen_container_type ALTER COLUMN _type SET DEFAULT 'specime
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_container_type ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_container_type_cd ALTER COLUMN _type SET DEFAULT 'specimen_container_type_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_container_type_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32698,24 +24824,10 @@ ALTER TABLE ONLY specimen_container_type_cd_vs ALTER COLUMN _type SET DEFAULT 's
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_container_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_idn ALTER COLUMN _type SET DEFAULT 'specimen_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32726,24 +24838,10 @@ ALTER TABLE ONLY specimen_idn_assigner ALTER COLUMN _type SET DEFAULT 'specimen_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_idn_period ALTER COLUMN _type SET DEFAULT 'specimen_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32754,24 +24852,10 @@ ALTER TABLE ONLY specimen_source ALTER COLUMN _type SET DEFAULT 'specimen_source
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_source ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_source_target ALTER COLUMN _type SET DEFAULT 'specimen_source_target'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_source_target ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32782,24 +24866,10 @@ ALTER TABLE ONLY specimen_subject ALTER COLUMN _type SET DEFAULT 'specimen_subje
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_subject ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_text ALTER COLUMN _type SET DEFAULT 'specimen_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32810,24 +24880,10 @@ ALTER TABLE ONLY specimen_treatment ALTER COLUMN _type SET DEFAULT 'specimen_tre
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_treatment ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_treatment_additive ALTER COLUMN _type SET DEFAULT 'specimen_treatment_additive'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_treatment_additive ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32838,24 +24894,10 @@ ALTER TABLE ONLY specimen_treatment_procedure ALTER COLUMN _type SET DEFAULT 'sp
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_treatment_procedure ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_treatment_procedure_cd ALTER COLUMN _type SET DEFAULT 'specimen_treatment_procedure_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_treatment_procedure_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32866,24 +24908,10 @@ ALTER TABLE ONLY specimen_treatment_procedure_cd_vs ALTER COLUMN _type SET DEFAU
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_treatment_procedure_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_type ALTER COLUMN _type SET DEFAULT 'specimen_type'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_type ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32894,24 +24922,10 @@ ALTER TABLE ONLY specimen_type_cd ALTER COLUMN _type SET DEFAULT 'specimen_type_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_type_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY specimen_type_cd_vs ALTER COLUMN _type SET DEFAULT 'specimen_type_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY specimen_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32922,24 +24936,10 @@ ALTER TABLE ONLY substance ALTER COLUMN _type SET DEFAULT 'substance'::character
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY substance ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY substance_ingredient ALTER COLUMN _type SET DEFAULT 'substance_ingredient'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY substance_ingredient ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32950,24 +24950,10 @@ ALTER TABLE ONLY substance_ingredient_quantity ALTER COLUMN _type SET DEFAULT 's
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY substance_ingredient_quantity ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY substance_ingredient_quantity_denominator ALTER COLUMN _type SET DEFAULT 'substance_ingredient_quantity_denominator'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY substance_ingredient_quantity_denominator ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -32978,24 +24964,10 @@ ALTER TABLE ONLY substance_ingredient_quantity_numerator ALTER COLUMN _type SET 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY substance_ingredient_quantity_numerator ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY substance_ingredient_substance ALTER COLUMN _type SET DEFAULT 'substance_ingredient_substance'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY substance_ingredient_substance ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33006,24 +24978,10 @@ ALTER TABLE ONLY substance_instance ALTER COLUMN _type SET DEFAULT 'substance_in
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY substance_instance ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY substance_instance_idn ALTER COLUMN _type SET DEFAULT 'substance_instance_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY substance_instance_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33034,24 +24992,10 @@ ALTER TABLE ONLY substance_instance_idn_assigner ALTER COLUMN _type SET DEFAULT 
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY substance_instance_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY substance_instance_idn_period ALTER COLUMN _type SET DEFAULT 'substance_instance_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY substance_instance_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33062,24 +25006,10 @@ ALTER TABLE ONLY substance_instance_quantity ALTER COLUMN _type SET DEFAULT 'sub
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY substance_instance_quantity ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY substance_text ALTER COLUMN _type SET DEFAULT 'substance_text'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY substance_text ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33090,24 +25020,10 @@ ALTER TABLE ONLY substance_type ALTER COLUMN _type SET DEFAULT 'substance_type':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY substance_type ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY substance_type_cd ALTER COLUMN _type SET DEFAULT 'substance_type_cd'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY substance_type_cd ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33118,24 +25034,10 @@ ALTER TABLE ONLY substance_type_cd_vs ALTER COLUMN _type SET DEFAULT 'substance_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY substance_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY supply ALTER COLUMN _type SET DEFAULT 'supply'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33146,24 +25048,10 @@ ALTER TABLE ONLY supply_dispense ALTER COLUMN _type SET DEFAULT 'supply_dispense
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_dispense ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY supply_dispense_destination ALTER COLUMN _type SET DEFAULT 'supply_dispense_destination'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_dispense_destination ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33174,24 +25062,10 @@ ALTER TABLE ONLY supply_dispense_idn ALTER COLUMN _type SET DEFAULT 'supply_disp
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_dispense_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY supply_dispense_idn_assigner ALTER COLUMN _type SET DEFAULT 'supply_dispense_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_dispense_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33202,24 +25076,10 @@ ALTER TABLE ONLY supply_dispense_idn_period ALTER COLUMN _type SET DEFAULT 'supp
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_dispense_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY supply_dispense_quantity ALTER COLUMN _type SET DEFAULT 'supply_dispense_quantity'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_dispense_quantity ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33230,24 +25090,10 @@ ALTER TABLE ONLY supply_dispense_receiver ALTER COLUMN _type SET DEFAULT 'supply
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_dispense_receiver ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY supply_dispense_supplied_item ALTER COLUMN _type SET DEFAULT 'supply_dispense_supplied_item'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_dispense_supplied_item ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33258,24 +25104,10 @@ ALTER TABLE ONLY supply_dispense_supplier ALTER COLUMN _type SET DEFAULT 'supply
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_dispense_supplier ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY supply_dispense_type ALTER COLUMN _type SET DEFAULT 'supply_dispense_type'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_dispense_type ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33286,24 +25118,10 @@ ALTER TABLE ONLY supply_dispense_type_cd ALTER COLUMN _type SET DEFAULT 'supply_
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_dispense_type_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY supply_dispense_type_cd_vs ALTER COLUMN _type SET DEFAULT 'supply_dispense_type_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_dispense_type_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33314,24 +25132,10 @@ ALTER TABLE ONLY supply_dispense_when_handed_over ALTER COLUMN _type SET DEFAULT
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_dispense_when_handed_over ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY supply_dispense_when_prepared ALTER COLUMN _type SET DEFAULT 'supply_dispense_when_prepared'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_dispense_when_prepared ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33342,24 +25146,10 @@ ALTER TABLE ONLY supply_idn ALTER COLUMN _type SET DEFAULT 'supply_idn'::charact
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_idn ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY supply_idn_assigner ALTER COLUMN _type SET DEFAULT 'supply_idn_assigner'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33370,24 +25160,10 @@ ALTER TABLE ONLY supply_idn_period ALTER COLUMN _type SET DEFAULT 'supply_idn_pe
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_idn_period ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY supply_kind ALTER COLUMN _type SET DEFAULT 'supply_kind'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_kind ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33398,24 +25174,10 @@ ALTER TABLE ONLY supply_kind_cd ALTER COLUMN _type SET DEFAULT 'supply_kind_cd':
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_kind_cd ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY supply_kind_cd_vs ALTER COLUMN _type SET DEFAULT 'supply_kind_cd_vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_kind_cd_vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33426,24 +25188,10 @@ ALTER TABLE ONLY supply_ordered_item ALTER COLUMN _type SET DEFAULT 'supply_orde
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_ordered_item ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY supply_patient ALTER COLUMN _type SET DEFAULT 'supply_patient'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_patient ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33454,24 +25202,10 @@ ALTER TABLE ONLY supply_text ALTER COLUMN _type SET DEFAULT 'supply_text'::chara
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY supply_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY vs ALTER COLUMN _type SET DEFAULT 'vs'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY vs ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33482,24 +25216,10 @@ ALTER TABLE ONLY vs_compose ALTER COLUMN _type SET DEFAULT 'vs_compose'::charact
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY vs_compose ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY vs_compose_include ALTER COLUMN _type SET DEFAULT 'vs_compose_include'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY vs_compose_include ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33510,24 +25230,10 @@ ALTER TABLE ONLY vs_compose_include_filter ALTER COLUMN _type SET DEFAULT 'vs_co
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY vs_compose_include_filter ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY vs_define ALTER COLUMN _type SET DEFAULT 'vs_define'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY vs_define ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33538,24 +25244,10 @@ ALTER TABLE ONLY vs_define_concept ALTER COLUMN _type SET DEFAULT 'vs_define_con
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY vs_define_concept ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY vs_expansion ALTER COLUMN _type SET DEFAULT 'vs_expansion'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY vs_expansion ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33566,24 +25258,10 @@ ALTER TABLE ONLY vs_expansion_contains ALTER COLUMN _type SET DEFAULT 'vs_expans
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY vs_expansion_contains ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY vs_expansion_idn ALTER COLUMN _type SET DEFAULT 'vs_expansion_idn'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY vs_expansion_idn ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33594,24 +25272,10 @@ ALTER TABLE ONLY vs_expansion_idn_assigner ALTER COLUMN _type SET DEFAULT 'vs_ex
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY vs_expansion_idn_assigner ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY vs_expansion_idn_period ALTER COLUMN _type SET DEFAULT 'vs_expansion_idn_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY vs_expansion_idn_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33622,24 +25286,10 @@ ALTER TABLE ONLY vs_telecom ALTER COLUMN _type SET DEFAULT 'vs_telecom'::charact
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY vs_telecom ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Name: _type; Type: DEFAULT; Schema: fhir; Owner: -
 --
 
 ALTER TABLE ONLY vs_telecom_period ALTER COLUMN _type SET DEFAULT 'vs_telecom_period'::character varying;
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY vs_telecom_period ALTER COLUMN created_at SET DEFAULT now();
 
 
 --
@@ -33650,17 +25300,10 @@ ALTER TABLE ONLY vs_text ALTER COLUMN _type SET DEFAULT 'vs_text'::character var
 
 
 --
--- Name: created_at; Type: DEFAULT; Schema: fhir; Owner: -
---
-
-ALTER TABLE ONLY vs_text ALTER COLUMN created_at SET DEFAULT now();
-
-
---
 -- Data for Name: address; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY address (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, text, line, city, state, zip, country) FROM stdin;
+COPY address (id, _type, _unknown_attributes, parent_id, resource_id, use, text, line, city, state, zip, country) FROM stdin;
 \.
 
 
@@ -33668,7 +25311,7 @@ COPY address (id, _type, _unknown_attributes, parent_id, resource_id, created_at
 -- Data for Name: address_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY address_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY address_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -33676,7 +25319,7 @@ COPY address_period (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: adverse_reaction; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY adverse_reaction (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, did_not_occur_flag, date) FROM stdin;
+COPY adverse_reaction (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, did_not_occur_flag, date) FROM stdin;
 \.
 
 
@@ -33684,7 +25327,7 @@ COPY adverse_reaction (id, _type, _unknown_attributes, resource_type, language, 
 -- Data for Name: adverse_reaction_exposure; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY adverse_reaction_exposure (id, _type, _unknown_attributes, parent_id, resource_id, created_at, causality_expectation, type, date) FROM stdin;
+COPY adverse_reaction_exposure (id, _type, _unknown_attributes, parent_id, resource_id, causality_expectation, type, date) FROM stdin;
 \.
 
 
@@ -33692,7 +25335,7 @@ COPY adverse_reaction_exposure (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: adverse_reaction_exposure_substance; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY adverse_reaction_exposure_substance (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY adverse_reaction_exposure_substance (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33700,7 +25343,7 @@ COPY adverse_reaction_exposure_substance (id, _type, _unknown_attributes, parent
 -- Data for Name: adverse_reaction_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY adverse_reaction_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY adverse_reaction_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -33708,7 +25351,7 @@ COPY adverse_reaction_idn (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: adverse_reaction_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY adverse_reaction_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY adverse_reaction_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33716,7 +25359,7 @@ COPY adverse_reaction_idn_assigner (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: adverse_reaction_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY adverse_reaction_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY adverse_reaction_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -33724,7 +25367,7 @@ COPY adverse_reaction_idn_period (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: adverse_reaction_recorder; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY adverse_reaction_recorder (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY adverse_reaction_recorder (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33732,7 +25375,7 @@ COPY adverse_reaction_recorder (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: adverse_reaction_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY adverse_reaction_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY adverse_reaction_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33740,7 +25383,7 @@ COPY adverse_reaction_subject (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: adverse_reaction_symptom; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY adverse_reaction_symptom (id, _type, _unknown_attributes, parent_id, resource_id, created_at, severity) FROM stdin;
+COPY adverse_reaction_symptom (id, _type, _unknown_attributes, parent_id, resource_id, severity) FROM stdin;
 \.
 
 
@@ -33748,7 +25391,7 @@ COPY adverse_reaction_symptom (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: adverse_reaction_symptom_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY adverse_reaction_symptom_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY adverse_reaction_symptom_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -33756,7 +25399,7 @@ COPY adverse_reaction_symptom_code (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: adverse_reaction_symptom_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY adverse_reaction_symptom_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY adverse_reaction_symptom_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -33764,7 +25407,7 @@ COPY adverse_reaction_symptom_code_cd (id, _type, _unknown_attributes, parent_id
 -- Data for Name: adverse_reaction_symptom_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY adverse_reaction_symptom_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY adverse_reaction_symptom_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33772,7 +25415,7 @@ COPY adverse_reaction_symptom_code_cd_vs (id, _type, _unknown_attributes, parent
 -- Data for Name: adverse_reaction_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY adverse_reaction_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY adverse_reaction_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -33780,7 +25423,7 @@ COPY adverse_reaction_text (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: alert; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY alert (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, status, note) FROM stdin;
+COPY alert (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, status, note) FROM stdin;
 \.
 
 
@@ -33788,7 +25431,7 @@ COPY alert (id, _type, _unknown_attributes, resource_type, language, container_i
 -- Data for Name: alert_author; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY alert_author (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY alert_author (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33796,7 +25439,7 @@ COPY alert_author (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: alert_category; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY alert_category (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY alert_category (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -33804,7 +25447,7 @@ COPY alert_category (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: alert_category_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY alert_category_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY alert_category_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -33812,7 +25455,7 @@ COPY alert_category_cd (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: alert_category_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY alert_category_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY alert_category_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33820,7 +25463,7 @@ COPY alert_category_cd_vs (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: alert_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY alert_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY alert_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -33828,7 +25471,7 @@ COPY alert_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_
 -- Data for Name: alert_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY alert_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY alert_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33836,7 +25479,7 @@ COPY alert_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: alert_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY alert_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY alert_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -33844,7 +25487,7 @@ COPY alert_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: alert_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY alert_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY alert_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33852,7 +25495,7 @@ COPY alert_subject (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: alert_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY alert_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY alert_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -33860,7 +25503,7 @@ COPY alert_text (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: allergy_intolerance; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY allergy_intolerance (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, status, sensitivity_type, criticality, recorded_date) FROM stdin;
+COPY allergy_intolerance (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, status, sensitivity_type, criticality, recorded_date) FROM stdin;
 \.
 
 
@@ -33868,7 +25511,7 @@ COPY allergy_intolerance (id, _type, _unknown_attributes, resource_type, languag
 -- Data for Name: allergy_intolerance_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY allergy_intolerance_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY allergy_intolerance_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -33876,7 +25519,7 @@ COPY allergy_intolerance_idn (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: allergy_intolerance_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY allergy_intolerance_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY allergy_intolerance_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33884,7 +25527,7 @@ COPY allergy_intolerance_idn_assigner (id, _type, _unknown_attributes, parent_id
 -- Data for Name: allergy_intolerance_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY allergy_intolerance_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY allergy_intolerance_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -33892,7 +25535,7 @@ COPY allergy_intolerance_idn_period (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: allergy_intolerance_reaction; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY allergy_intolerance_reaction (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY allergy_intolerance_reaction (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33900,7 +25543,7 @@ COPY allergy_intolerance_reaction (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: allergy_intolerance_recorder; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY allergy_intolerance_recorder (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY allergy_intolerance_recorder (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33908,7 +25551,7 @@ COPY allergy_intolerance_recorder (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: allergy_intolerance_sensitivity_test; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY allergy_intolerance_sensitivity_test (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY allergy_intolerance_sensitivity_test (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33916,7 +25559,7 @@ COPY allergy_intolerance_sensitivity_test (id, _type, _unknown_attributes, paren
 -- Data for Name: allergy_intolerance_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY allergy_intolerance_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY allergy_intolerance_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33924,7 +25567,7 @@ COPY allergy_intolerance_subject (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: allergy_intolerance_substance; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY allergy_intolerance_substance (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY allergy_intolerance_substance (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33932,7 +25575,7 @@ COPY allergy_intolerance_substance (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: allergy_intolerance_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY allergy_intolerance_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY allergy_intolerance_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -33940,7 +25583,7 @@ COPY allergy_intolerance_text (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: attachment; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY attachment (id, _type, _unknown_attributes, parent_id, resource_id, created_at, content_type, language, data, url, size, hash, title) FROM stdin;
+COPY attachment (id, _type, _unknown_attributes, parent_id, resource_id, content_type, language, data, url, size, hash, title) FROM stdin;
 \.
 
 
@@ -33948,7 +25591,7 @@ COPY attachment (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: care_plan; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, status, modified, notes) FROM stdin;
+COPY care_plan (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, status, modified, notes) FROM stdin;
 \.
 
 
@@ -33956,7 +25599,7 @@ COPY care_plan (id, _type, _unknown_attributes, resource_type, language, contain
 -- Data for Name: care_plan_activity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, prohibited, status, notes) FROM stdin;
+COPY care_plan_activity (id, _type, _unknown_attributes, parent_id, resource_id, prohibited, status, notes) FROM stdin;
 \.
 
 
@@ -33964,7 +25607,7 @@ COPY care_plan_activity (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: care_plan_activity_action_resulting; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_action_resulting (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY care_plan_activity_action_resulting (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33972,7 +25615,7 @@ COPY care_plan_activity_action_resulting (id, _type, _unknown_attributes, parent
 -- Data for Name: care_plan_activity_detail; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_detail (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY care_plan_activity_detail (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -33980,7 +25623,7 @@ COPY care_plan_activity_detail (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: care_plan_activity_simple; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_simple (id, _type, _unknown_attributes, parent_id, resource_id, created_at, category, timing_string, details) FROM stdin;
+COPY care_plan_activity_simple (id, _type, _unknown_attributes, parent_id, resource_id, category, timing_string, details) FROM stdin;
 \.
 
 
@@ -33988,7 +25631,7 @@ COPY care_plan_activity_simple (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: care_plan_activity_simple_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_simple_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY care_plan_activity_simple_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -33996,7 +25639,7 @@ COPY care_plan_activity_simple_code (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: care_plan_activity_simple_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_simple_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY care_plan_activity_simple_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34004,7 +25647,7 @@ COPY care_plan_activity_simple_code_cd (id, _type, _unknown_attributes, parent_i
 -- Data for Name: care_plan_activity_simple_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_simple_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY care_plan_activity_simple_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34012,7 +25655,7 @@ COPY care_plan_activity_simple_code_cd_vs (id, _type, _unknown_attributes, paren
 -- Data for Name: care_plan_activity_simple_daily_amount; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_simple_daily_amount (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY care_plan_activity_simple_daily_amount (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -34020,7 +25663,7 @@ COPY care_plan_activity_simple_daily_amount (id, _type, _unknown_attributes, par
 -- Data for Name: care_plan_activity_simple_loc; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_simple_loc (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY care_plan_activity_simple_loc (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34028,7 +25671,7 @@ COPY care_plan_activity_simple_loc (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: care_plan_activity_simple_performer; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_simple_performer (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY care_plan_activity_simple_performer (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34036,7 +25679,7 @@ COPY care_plan_activity_simple_performer (id, _type, _unknown_attributes, parent
 -- Data for Name: care_plan_activity_simple_product; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_simple_product (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY care_plan_activity_simple_product (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34044,7 +25687,7 @@ COPY care_plan_activity_simple_product (id, _type, _unknown_attributes, parent_i
 -- Data for Name: care_plan_activity_simple_quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_simple_quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY care_plan_activity_simple_quantity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -34052,7 +25695,7 @@ COPY care_plan_activity_simple_quantity (id, _type, _unknown_attributes, parent_
 -- Data for Name: care_plan_activity_simple_timing_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_simple_timing_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY care_plan_activity_simple_timing_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -34060,7 +25703,7 @@ COPY care_plan_activity_simple_timing_period (id, _type, _unknown_attributes, pa
 -- Data for Name: care_plan_activity_simple_timing_schedule; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_simple_timing_schedule (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY care_plan_activity_simple_timing_schedule (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -34068,7 +25711,7 @@ COPY care_plan_activity_simple_timing_schedule (id, _type, _unknown_attributes, 
 -- Data for Name: care_plan_activity_simple_timing_schedule_event; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_simple_timing_schedule_event (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY care_plan_activity_simple_timing_schedule_event (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -34076,7 +25719,7 @@ COPY care_plan_activity_simple_timing_schedule_event (id, _type, _unknown_attrib
 -- Data for Name: care_plan_activity_simple_timing_schedule_repeat; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_activity_simple_timing_schedule_repeat (id, _type, _unknown_attributes, parent_id, resource_id, created_at, frequency, "when", duration, units, count, "end") FROM stdin;
+COPY care_plan_activity_simple_timing_schedule_repeat (id, _type, _unknown_attributes, parent_id, resource_id, frequency, "when", duration, units, count, "end") FROM stdin;
 \.
 
 
@@ -34084,7 +25727,7 @@ COPY care_plan_activity_simple_timing_schedule_repeat (id, _type, _unknown_attri
 -- Data for Name: care_plan_concern; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_concern (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY care_plan_concern (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34092,7 +25735,7 @@ COPY care_plan_concern (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: care_plan_goal; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_goal (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, notes, description) FROM stdin;
+COPY care_plan_goal (id, _type, _unknown_attributes, parent_id, resource_id, status, notes, description) FROM stdin;
 \.
 
 
@@ -34100,7 +25743,7 @@ COPY care_plan_goal (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: care_plan_goal_concern; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_goal_concern (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY care_plan_goal_concern (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34108,7 +25751,7 @@ COPY care_plan_goal_concern (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: care_plan_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY care_plan_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -34116,7 +25759,7 @@ COPY care_plan_idn (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: care_plan_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY care_plan_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34124,7 +25767,7 @@ COPY care_plan_idn_assigner (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: care_plan_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY care_plan_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -34132,7 +25775,7 @@ COPY care_plan_idn_period (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: care_plan_participant; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_participant (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY care_plan_participant (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -34140,7 +25783,7 @@ COPY care_plan_participant (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: care_plan_participant_member; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_participant_member (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY care_plan_participant_member (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34148,7 +25791,7 @@ COPY care_plan_participant_member (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: care_plan_participant_role; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_participant_role (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY care_plan_participant_role (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -34156,7 +25799,7 @@ COPY care_plan_participant_role (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: care_plan_participant_role_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_participant_role_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY care_plan_participant_role_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34164,7 +25807,7 @@ COPY care_plan_participant_role_cd (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: care_plan_participant_role_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_participant_role_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY care_plan_participant_role_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34172,7 +25815,7 @@ COPY care_plan_participant_role_cd_vs (id, _type, _unknown_attributes, parent_id
 -- Data for Name: care_plan_patient; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_patient (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY care_plan_patient (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34180,7 +25823,7 @@ COPY care_plan_patient (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: care_plan_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY care_plan_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -34188,7 +25831,7 @@ COPY care_plan_period (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: care_plan_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY care_plan_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY care_plan_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -34196,7 +25839,7 @@ COPY care_plan_text (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: cc; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY cc (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY cc (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -34204,7 +25847,7 @@ COPY cc (id, _type, _unknown_attributes, parent_id, resource_id, created_at, tex
 -- Data for Name: cc_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY cc_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY cc_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34212,7 +25855,7 @@ COPY cc_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, 
 -- Data for Name: cc_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY cc_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY cc_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34220,7 +25863,7 @@ COPY cc_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_a
 -- Data for Name: cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34228,7 +25871,7 @@ COPY cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, sys
 -- Data for Name: cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34236,7 +25879,7 @@ COPY cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, 
 -- Data for Name: composition; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, status, date, title) FROM stdin;
+COPY composition (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, status, date, title) FROM stdin;
 \.
 
 
@@ -34244,7 +25887,7 @@ COPY composition (id, _type, _unknown_attributes, resource_type, language, conta
 -- Data for Name: composition_attester; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_attester (id, _type, _unknown_attributes, parent_id, resource_id, created_at, mode, "time") FROM stdin;
+COPY composition_attester (id, _type, _unknown_attributes, parent_id, resource_id, mode, "time") FROM stdin;
 \.
 
 
@@ -34252,7 +25895,7 @@ COPY composition_attester (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: composition_attester_party; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_attester_party (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY composition_attester_party (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34260,7 +25903,7 @@ COPY composition_attester_party (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: composition_author; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_author (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY composition_author (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34268,7 +25911,7 @@ COPY composition_author (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: composition_class; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_class (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY composition_class (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -34276,7 +25919,7 @@ COPY composition_class (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: composition_class_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_class_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY composition_class_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34284,7 +25927,7 @@ COPY composition_class_cd (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: composition_class_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_class_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY composition_class_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34292,7 +25935,7 @@ COPY composition_class_cd_vs (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: composition_confidentiality; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_confidentiality (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY composition_confidentiality (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34300,7 +25943,7 @@ COPY composition_confidentiality (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: composition_confidentiality_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_confidentiality_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY composition_confidentiality_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34308,7 +25951,7 @@ COPY composition_confidentiality_vs (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: composition_custodian; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_custodian (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY composition_custodian (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34316,7 +25959,7 @@ COPY composition_custodian (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: composition_encounter; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_encounter (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY composition_encounter (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34324,7 +25967,7 @@ COPY composition_encounter (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: composition_event; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_event (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY composition_event (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -34332,7 +25975,7 @@ COPY composition_event (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: composition_event_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_event_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY composition_event_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -34340,7 +25983,7 @@ COPY composition_event_code (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: composition_event_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_event_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY composition_event_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34348,7 +25991,7 @@ COPY composition_event_code_cd (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: composition_event_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_event_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY composition_event_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34356,7 +25999,7 @@ COPY composition_event_code_cd_vs (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: composition_event_detail; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_event_detail (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY composition_event_detail (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34364,7 +26007,7 @@ COPY composition_event_detail (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: composition_event_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_event_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY composition_event_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -34372,7 +26015,7 @@ COPY composition_event_period (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: composition_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY composition_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -34380,7 +26023,7 @@ COPY composition_idn (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: composition_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY composition_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34388,7 +26031,7 @@ COPY composition_idn_assigner (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: composition_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY composition_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -34396,7 +26039,7 @@ COPY composition_idn_period (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: composition_section; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_section (id, _type, _unknown_attributes, parent_id, resource_id, created_at, title) FROM stdin;
+COPY composition_section (id, _type, _unknown_attributes, parent_id, resource_id, title) FROM stdin;
 \.
 
 
@@ -34404,7 +26047,7 @@ COPY composition_section (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: composition_section_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_section_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY composition_section_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -34412,7 +26055,7 @@ COPY composition_section_code (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: composition_section_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_section_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY composition_section_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34420,7 +26063,7 @@ COPY composition_section_code_cd (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: composition_section_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_section_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY composition_section_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34428,7 +26071,7 @@ COPY composition_section_code_cd_vs (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: composition_section_content; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_section_content (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY composition_section_content (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34436,7 +26079,7 @@ COPY composition_section_content (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: composition_section_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_section_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY composition_section_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34444,7 +26087,7 @@ COPY composition_section_subject (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: composition_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY composition_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34452,7 +26095,7 @@ COPY composition_subject (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: composition_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY composition_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -34460,7 +26103,7 @@ COPY composition_text (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: composition_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY composition_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -34468,7 +26111,7 @@ COPY composition_type (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: composition_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY composition_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34476,7 +26119,7 @@ COPY composition_type_cd (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: composition_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY composition_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY composition_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34484,7 +26127,7 @@ COPY composition_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: concept_map; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY concept_map (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, experimental, status, date, copyright, description, publisher, name, version, identifier) FROM stdin;
+COPY concept_map (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, experimental, status, date, copyright, description, publisher, name, version, identifier) FROM stdin;
 \.
 
 
@@ -34492,7 +26135,7 @@ COPY concept_map (id, _type, _unknown_attributes, resource_type, language, conta
 -- Data for Name: concept_map_concept; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY concept_map_concept (id, _type, _unknown_attributes, parent_id, resource_id, created_at, code, system) FROM stdin;
+COPY concept_map_concept (id, _type, _unknown_attributes, parent_id, resource_id, code, system) FROM stdin;
 \.
 
 
@@ -34500,7 +26143,7 @@ COPY concept_map_concept (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: concept_map_concept_depends_on; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY concept_map_concept_depends_on (id, _type, _unknown_attributes, parent_id, resource_id, created_at, code, concept, system) FROM stdin;
+COPY concept_map_concept_depends_on (id, _type, _unknown_attributes, parent_id, resource_id, code, concept, system) FROM stdin;
 \.
 
 
@@ -34508,7 +26151,7 @@ COPY concept_map_concept_depends_on (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: concept_map_concept_map; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY concept_map_concept_map (id, _type, _unknown_attributes, parent_id, resource_id, created_at, equivalence, code, comments, system) FROM stdin;
+COPY concept_map_concept_map (id, _type, _unknown_attributes, parent_id, resource_id, equivalence, code, comments, system) FROM stdin;
 \.
 
 
@@ -34516,7 +26159,7 @@ COPY concept_map_concept_map (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: concept_map_source; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY concept_map_source (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY concept_map_source (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34524,7 +26167,7 @@ COPY concept_map_source (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: concept_map_target; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY concept_map_target (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY concept_map_target (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34532,7 +26175,7 @@ COPY concept_map_target (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: concept_map_telecom; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY concept_map_telecom (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, value, use) FROM stdin;
+COPY concept_map_telecom (id, _type, _unknown_attributes, parent_id, resource_id, system, value, use) FROM stdin;
 \.
 
 
@@ -34540,7 +26183,7 @@ COPY concept_map_telecom (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: concept_map_telecom_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY concept_map_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY concept_map_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -34548,7 +26191,7 @@ COPY concept_map_telecom_period (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: concept_map_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY concept_map_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY concept_map_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -34556,7 +26199,7 @@ COPY concept_map_text (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: condition; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, abatement_boolean, status, abatement_date, onset_date, date_asserted, notes) FROM stdin;
+COPY condition (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, abatement_boolean, status, abatement_date, onset_date, date_asserted, notes) FROM stdin;
 \.
 
 
@@ -34564,7 +26207,7 @@ COPY condition (id, _type, _unknown_attributes, resource_type, language, contain
 -- Data for Name: condition_asserter; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_asserter (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY condition_asserter (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34572,7 +26215,7 @@ COPY condition_asserter (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: condition_category; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_category (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY condition_category (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -34580,7 +26223,7 @@ COPY condition_category (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: condition_category_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_category_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY condition_category_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34588,7 +26231,7 @@ COPY condition_category_cd (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: condition_category_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_category_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY condition_category_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34596,7 +26239,7 @@ COPY condition_category_cd_vs (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: condition_certainty; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_certainty (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY condition_certainty (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -34604,7 +26247,7 @@ COPY condition_certainty (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: condition_certainty_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_certainty_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY condition_certainty_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34612,7 +26255,7 @@ COPY condition_certainty_cd (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: condition_certainty_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_certainty_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY condition_certainty_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34620,7 +26263,7 @@ COPY condition_certainty_cd_vs (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: condition_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY condition_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -34628,7 +26271,7 @@ COPY condition_code (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: condition_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY condition_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34636,7 +26279,7 @@ COPY condition_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: condition_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY condition_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34644,7 +26287,7 @@ COPY condition_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: condition_encounter; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_encounter (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY condition_encounter (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34652,7 +26295,7 @@ COPY condition_encounter (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: condition_evidence; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_evidence (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY condition_evidence (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -34660,7 +26303,7 @@ COPY condition_evidence (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: condition_evidence_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_evidence_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY condition_evidence_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -34668,7 +26311,7 @@ COPY condition_evidence_code (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: condition_evidence_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_evidence_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY condition_evidence_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34676,7 +26319,7 @@ COPY condition_evidence_code_cd (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: condition_evidence_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_evidence_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY condition_evidence_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34684,7 +26327,7 @@ COPY condition_evidence_code_cd_vs (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: condition_evidence_detail; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_evidence_detail (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY condition_evidence_detail (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34692,7 +26335,7 @@ COPY condition_evidence_detail (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: condition_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY condition_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -34700,7 +26343,7 @@ COPY condition_idn (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: condition_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY condition_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34708,7 +26351,7 @@ COPY condition_idn_assigner (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: condition_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY condition_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -34716,7 +26359,7 @@ COPY condition_idn_period (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: condition_loc; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_loc (id, _type, _unknown_attributes, parent_id, resource_id, created_at, detail) FROM stdin;
+COPY condition_loc (id, _type, _unknown_attributes, parent_id, resource_id, detail) FROM stdin;
 \.
 
 
@@ -34724,7 +26367,7 @@ COPY condition_loc (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: condition_loc_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_loc_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY condition_loc_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -34732,7 +26375,7 @@ COPY condition_loc_code (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: condition_loc_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_loc_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY condition_loc_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34740,7 +26383,7 @@ COPY condition_loc_code_cd (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: condition_loc_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_loc_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY condition_loc_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34748,7 +26391,7 @@ COPY condition_loc_code_cd_vs (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: condition_related_item; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_related_item (id, _type, _unknown_attributes, parent_id, resource_id, created_at, type) FROM stdin;
+COPY condition_related_item (id, _type, _unknown_attributes, parent_id, resource_id, type) FROM stdin;
 \.
 
 
@@ -34756,7 +26399,7 @@ COPY condition_related_item (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: condition_related_item_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_related_item_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY condition_related_item_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -34764,7 +26407,7 @@ COPY condition_related_item_code (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: condition_related_item_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_related_item_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY condition_related_item_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34772,7 +26415,7 @@ COPY condition_related_item_code_cd (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: condition_related_item_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_related_item_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY condition_related_item_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34780,7 +26423,7 @@ COPY condition_related_item_code_cd_vs (id, _type, _unknown_attributes, parent_i
 -- Data for Name: condition_related_item_target; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_related_item_target (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY condition_related_item_target (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34788,7 +26431,7 @@ COPY condition_related_item_target (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: condition_severity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_severity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY condition_severity (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -34796,7 +26439,7 @@ COPY condition_severity (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: condition_severity_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_severity_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY condition_severity_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34804,7 +26447,7 @@ COPY condition_severity_cd (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: condition_severity_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_severity_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY condition_severity_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34812,7 +26455,7 @@ COPY condition_severity_cd_vs (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: condition_stage; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_stage (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY condition_stage (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -34820,7 +26463,7 @@ COPY condition_stage (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: condition_stage_assessment; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_stage_assessment (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY condition_stage_assessment (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34828,7 +26471,7 @@ COPY condition_stage_assessment (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: condition_stage_summary; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_stage_summary (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY condition_stage_summary (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -34836,7 +26479,7 @@ COPY condition_stage_summary (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: condition_stage_summary_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_stage_summary_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY condition_stage_summary_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34844,7 +26487,7 @@ COPY condition_stage_summary_cd (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: condition_stage_summary_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_stage_summary_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY condition_stage_summary_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34852,7 +26495,7 @@ COPY condition_stage_summary_cd_vs (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: condition_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY condition_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34860,7 +26503,7 @@ COPY condition_subject (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: condition_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY condition_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY condition_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -34868,7 +26511,7 @@ COPY condition_text (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: conformance; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, experimental, accept_unknown, status, format, date, fhir_version, description, publisher, name, version, identifier) FROM stdin;
+COPY conformance (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, experimental, accept_unknown, status, format, date, fhir_version, description, publisher, name, version, identifier) FROM stdin;
 \.
 
 
@@ -34876,7 +26519,7 @@ COPY conformance (id, _type, _unknown_attributes, resource_type, language, conta
 -- Data for Name: conformance_document; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_document (id, _type, _unknown_attributes, parent_id, resource_id, created_at, mode, documentation) FROM stdin;
+COPY conformance_document (id, _type, _unknown_attributes, parent_id, resource_id, mode, documentation) FROM stdin;
 \.
 
 
@@ -34884,7 +26527,7 @@ COPY conformance_document (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: conformance_document_profile; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_document_profile (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY conformance_document_profile (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34892,7 +26535,7 @@ COPY conformance_document_profile (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: conformance_implementation; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_implementation (id, _type, _unknown_attributes, parent_id, resource_id, created_at, description, url) FROM stdin;
+COPY conformance_implementation (id, _type, _unknown_attributes, parent_id, resource_id, description, url) FROM stdin;
 \.
 
 
@@ -34900,7 +26543,7 @@ COPY conformance_implementation (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: conformance_messaging; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_messaging (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reliable_cache, documentation, endpoint) FROM stdin;
+COPY conformance_messaging (id, _type, _unknown_attributes, parent_id, resource_id, reliable_cache, documentation, endpoint) FROM stdin;
 \.
 
 
@@ -34908,7 +26551,7 @@ COPY conformance_messaging (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: conformance_messaging_event; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_messaging_event (id, _type, _unknown_attributes, parent_id, resource_id, created_at, focus, mode, category, documentation) FROM stdin;
+COPY conformance_messaging_event (id, _type, _unknown_attributes, parent_id, resource_id, focus, mode, category, documentation) FROM stdin;
 \.
 
 
@@ -34916,7 +26559,7 @@ COPY conformance_messaging_event (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: conformance_messaging_event_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_messaging_event_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY conformance_messaging_event_code (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34924,7 +26567,7 @@ COPY conformance_messaging_event_code (id, _type, _unknown_attributes, parent_id
 -- Data for Name: conformance_messaging_event_code_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_messaging_event_code_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY conformance_messaging_event_code_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34932,7 +26575,7 @@ COPY conformance_messaging_event_code_vs (id, _type, _unknown_attributes, parent
 -- Data for Name: conformance_messaging_event_protocol; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_messaging_event_protocol (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY conformance_messaging_event_protocol (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -34940,7 +26583,7 @@ COPY conformance_messaging_event_protocol (id, _type, _unknown_attributes, paren
 -- Data for Name: conformance_messaging_event_protocol_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_messaging_event_protocol_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY conformance_messaging_event_protocol_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34948,7 +26591,7 @@ COPY conformance_messaging_event_protocol_vs (id, _type, _unknown_attributes, pa
 -- Data for Name: conformance_messaging_event_request; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_messaging_event_request (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY conformance_messaging_event_request (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34956,7 +26599,7 @@ COPY conformance_messaging_event_request (id, _type, _unknown_attributes, parent
 -- Data for Name: conformance_messaging_event_response; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_messaging_event_response (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY conformance_messaging_event_response (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34964,7 +26607,7 @@ COPY conformance_messaging_event_response (id, _type, _unknown_attributes, paren
 -- Data for Name: conformance_profile; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_profile (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY conformance_profile (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -34972,7 +26615,7 @@ COPY conformance_profile (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: conformance_rest; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_rest (id, _type, _unknown_attributes, parent_id, resource_id, created_at, mode, documentation, document_mailbox) FROM stdin;
+COPY conformance_rest (id, _type, _unknown_attributes, parent_id, resource_id, mode, documentation, document_mailbox) FROM stdin;
 \.
 
 
@@ -34980,7 +26623,7 @@ COPY conformance_rest (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: conformance_rest_operation; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_rest_operation (id, _type, _unknown_attributes, parent_id, resource_id, created_at, code, documentation) FROM stdin;
+COPY conformance_rest_operation (id, _type, _unknown_attributes, parent_id, resource_id, code, documentation) FROM stdin;
 \.
 
 
@@ -34988,7 +26631,7 @@ COPY conformance_rest_operation (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: conformance_rest_query; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_rest_query (id, _type, _unknown_attributes, parent_id, resource_id, created_at, documentation, name, definition) FROM stdin;
+COPY conformance_rest_query (id, _type, _unknown_attributes, parent_id, resource_id, documentation, name, definition) FROM stdin;
 \.
 
 
@@ -34996,7 +26639,7 @@ COPY conformance_rest_query (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: conformance_rest_resource; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_rest_resource (id, _type, _unknown_attributes, parent_id, resource_id, created_at, update_create, read_history, type, search_include) FROM stdin;
+COPY conformance_rest_resource (id, _type, _unknown_attributes, parent_id, resource_id, update_create, read_history, type, search_include) FROM stdin;
 \.
 
 
@@ -35004,7 +26647,7 @@ COPY conformance_rest_resource (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: conformance_rest_resource_operation; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_rest_resource_operation (id, _type, _unknown_attributes, parent_id, resource_id, created_at, code, documentation) FROM stdin;
+COPY conformance_rest_resource_operation (id, _type, _unknown_attributes, parent_id, resource_id, code, documentation) FROM stdin;
 \.
 
 
@@ -35012,7 +26655,7 @@ COPY conformance_rest_resource_operation (id, _type, _unknown_attributes, parent
 -- Data for Name: conformance_rest_resource_profile; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_rest_resource_profile (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY conformance_rest_resource_profile (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35020,7 +26663,7 @@ COPY conformance_rest_resource_profile (id, _type, _unknown_attributes, parent_i
 -- Data for Name: conformance_rest_resource_search_param; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_rest_resource_search_param (id, _type, _unknown_attributes, parent_id, resource_id, created_at, type, target, chain, documentation, name, definition) FROM stdin;
+COPY conformance_rest_resource_search_param (id, _type, _unknown_attributes, parent_id, resource_id, type, target, chain, documentation, name, definition) FROM stdin;
 \.
 
 
@@ -35028,7 +26671,7 @@ COPY conformance_rest_resource_search_param (id, _type, _unknown_attributes, par
 -- Data for Name: conformance_rest_security; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_rest_security (id, _type, _unknown_attributes, parent_id, resource_id, created_at, cors, description) FROM stdin;
+COPY conformance_rest_security (id, _type, _unknown_attributes, parent_id, resource_id, cors, description) FROM stdin;
 \.
 
 
@@ -35036,7 +26679,7 @@ COPY conformance_rest_security (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: conformance_rest_security_certificate; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_rest_security_certificate (id, _type, _unknown_attributes, parent_id, resource_id, created_at, blob, type) FROM stdin;
+COPY conformance_rest_security_certificate (id, _type, _unknown_attributes, parent_id, resource_id, blob, type) FROM stdin;
 \.
 
 
@@ -35044,7 +26687,7 @@ COPY conformance_rest_security_certificate (id, _type, _unknown_attributes, pare
 -- Data for Name: conformance_rest_security_service; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_rest_security_service (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY conformance_rest_security_service (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35052,7 +26695,7 @@ COPY conformance_rest_security_service (id, _type, _unknown_attributes, parent_i
 -- Data for Name: conformance_rest_security_service_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_rest_security_service_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY conformance_rest_security_service_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35060,7 +26703,7 @@ COPY conformance_rest_security_service_cd (id, _type, _unknown_attributes, paren
 -- Data for Name: conformance_rest_security_service_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_rest_security_service_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY conformance_rest_security_service_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35068,7 +26711,7 @@ COPY conformance_rest_security_service_cd_vs (id, _type, _unknown_attributes, pa
 -- Data for Name: conformance_software; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_software (id, _type, _unknown_attributes, parent_id, resource_id, created_at, release_date, version, name) FROM stdin;
+COPY conformance_software (id, _type, _unknown_attributes, parent_id, resource_id, release_date, version, name) FROM stdin;
 \.
 
 
@@ -35076,7 +26719,7 @@ COPY conformance_software (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: conformance_telecom; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_telecom (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, value, use) FROM stdin;
+COPY conformance_telecom (id, _type, _unknown_attributes, parent_id, resource_id, system, value, use) FROM stdin;
 \.
 
 
@@ -35084,7 +26727,7 @@ COPY conformance_telecom (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: conformance_telecom_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY conformance_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -35092,7 +26735,7 @@ COPY conformance_telecom_period (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: conformance_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY conformance_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY conformance_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -35100,7 +26743,7 @@ COPY conformance_text (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: contact; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY contact (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, value, use) FROM stdin;
+COPY contact (id, _type, _unknown_attributes, parent_id, resource_id, system, value, use) FROM stdin;
 \.
 
 
@@ -35108,7 +26751,7 @@ COPY contact (id, _type, _unknown_attributes, parent_id, resource_id, created_at
 -- Data for Name: contact_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY contact_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY contact_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -35116,7 +26759,7 @@ COPY contact_period (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: device; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, expiry, lot_number, udi, version, model, manufacturer, url) FROM stdin;
+COPY device (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, expiry, lot_number, udi, version, model, manufacturer, url) FROM stdin;
 \.
 
 
@@ -35124,7 +26767,7 @@ COPY device (id, _type, _unknown_attributes, resource_type, language, container_
 -- Data for Name: device_contact; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_contact (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, value, use) FROM stdin;
+COPY device_contact (id, _type, _unknown_attributes, parent_id, resource_id, system, value, use) FROM stdin;
 \.
 
 
@@ -35132,7 +26775,7 @@ COPY device_contact (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: device_contact_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_contact_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY device_contact_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -35140,7 +26783,7 @@ COPY device_contact_period (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: device_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY device_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -35148,7 +26791,7 @@ COPY device_idn (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: device_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY device_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35156,7 +26799,7 @@ COPY device_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: device_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY device_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -35164,7 +26807,7 @@ COPY device_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: device_loc; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_loc (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY device_loc (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35172,7 +26815,7 @@ COPY device_loc (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: device_observation_report; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, instant) FROM stdin;
+COPY device_observation_report (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, instant) FROM stdin;
 \.
 
 
@@ -35180,7 +26823,7 @@ COPY device_observation_report (id, _type, _unknown_attributes, resource_type, l
 -- Data for Name: device_observation_report_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY device_observation_report_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -35188,7 +26831,7 @@ COPY device_observation_report_idn (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: device_observation_report_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY device_observation_report_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35196,7 +26839,7 @@ COPY device_observation_report_idn_assigner (id, _type, _unknown_attributes, par
 -- Data for Name: device_observation_report_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY device_observation_report_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -35204,7 +26847,7 @@ COPY device_observation_report_idn_period (id, _type, _unknown_attributes, paren
 -- Data for Name: device_observation_report_source; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_source (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY device_observation_report_source (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35212,7 +26855,7 @@ COPY device_observation_report_source (id, _type, _unknown_attributes, parent_id
 -- Data for Name: device_observation_report_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY device_observation_report_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35220,7 +26863,7 @@ COPY device_observation_report_subject (id, _type, _unknown_attributes, parent_i
 -- Data for Name: device_observation_report_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY device_observation_report_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -35228,7 +26871,7 @@ COPY device_observation_report_text (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: device_observation_report_virtual_device; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_virtual_device (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY device_observation_report_virtual_device (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -35236,7 +26879,7 @@ COPY device_observation_report_virtual_device (id, _type, _unknown_attributes, p
 -- Data for Name: device_observation_report_virtual_device_channel; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_virtual_device_channel (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY device_observation_report_virtual_device_channel (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -35244,7 +26887,7 @@ COPY device_observation_report_virtual_device_channel (id, _type, _unknown_attri
 -- Data for Name: device_observation_report_virtual_device_channel_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_virtual_device_channel_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY device_observation_report_virtual_device_channel_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35252,7 +26895,7 @@ COPY device_observation_report_virtual_device_channel_code (id, _type, _unknown_
 -- Data for Name: device_observation_report_virtual_device_channel_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_virtual_device_channel_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY device_observation_report_virtual_device_channel_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35260,7 +26903,7 @@ COPY device_observation_report_virtual_device_channel_code_cd (id, _type, _unkno
 -- Data for Name: device_observation_report_virtual_device_channel_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_virtual_device_channel_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY device_observation_report_virtual_device_channel_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35268,7 +26911,7 @@ COPY device_observation_report_virtual_device_channel_code_cd_vs (id, _type, _un
 -- Data for Name: device_observation_report_virtual_device_channel_metric; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_virtual_device_channel_metric (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY device_observation_report_virtual_device_channel_metric (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -35276,7 +26919,7 @@ COPY device_observation_report_virtual_device_channel_metric (id, _type, _unknow
 -- Data for Name: device_observation_report_virtual_device_channel_metric_obs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_virtual_device_channel_metric_obs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY device_observation_report_virtual_device_channel_metric_obs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35284,7 +26927,7 @@ COPY device_observation_report_virtual_device_channel_metric_obs (id, _type, _un
 -- Data for Name: device_observation_report_virtual_device_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_virtual_device_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY device_observation_report_virtual_device_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35292,7 +26935,7 @@ COPY device_observation_report_virtual_device_code (id, _type, _unknown_attribut
 -- Data for Name: device_observation_report_virtual_device_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_virtual_device_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY device_observation_report_virtual_device_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35300,7 +26943,7 @@ COPY device_observation_report_virtual_device_code_cd (id, _type, _unknown_attri
 -- Data for Name: device_observation_report_virtual_device_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_observation_report_virtual_device_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY device_observation_report_virtual_device_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35308,7 +26951,7 @@ COPY device_observation_report_virtual_device_code_cd_vs (id, _type, _unknown_at
 -- Data for Name: device_owner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_owner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY device_owner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35316,7 +26959,7 @@ COPY device_owner (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: device_patient; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_patient (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY device_patient (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35324,7 +26967,7 @@ COPY device_patient (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: device_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY device_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -35332,7 +26975,7 @@ COPY device_text (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: device_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY device_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35340,7 +26983,7 @@ COPY device_type (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: device_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY device_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35348,7 +26991,7 @@ COPY device_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: device_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY device_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY device_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35356,7 +26999,7 @@ COPY device_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: diagnostic_order; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, priority, status, clinical_notes) FROM stdin;
+COPY diagnostic_order (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, priority, status, clinical_notes) FROM stdin;
 \.
 
 
@@ -35364,7 +27007,7 @@ COPY diagnostic_order (id, _type, _unknown_attributes, resource_type, language, 
 -- Data for Name: diagnostic_order_encounter; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_encounter (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_order_encounter (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35372,7 +27015,7 @@ COPY diagnostic_order_encounter (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: diagnostic_order_event; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_event (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, date_time) FROM stdin;
+COPY diagnostic_order_event (id, _type, _unknown_attributes, parent_id, resource_id, status, date_time) FROM stdin;
 \.
 
 
@@ -35380,7 +27023,7 @@ COPY diagnostic_order_event (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: diagnostic_order_event_actor; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_event_actor (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_order_event_actor (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35388,7 +27031,7 @@ COPY diagnostic_order_event_actor (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: diagnostic_order_event_description; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_event_description (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY diagnostic_order_event_description (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35396,7 +27039,7 @@ COPY diagnostic_order_event_description (id, _type, _unknown_attributes, parent_
 -- Data for Name: diagnostic_order_event_description_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_event_description_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY diagnostic_order_event_description_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35404,7 +27047,7 @@ COPY diagnostic_order_event_description_cd (id, _type, _unknown_attributes, pare
 -- Data for Name: diagnostic_order_event_description_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_event_description_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_order_event_description_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35412,7 +27055,7 @@ COPY diagnostic_order_event_description_cd_vs (id, _type, _unknown_attributes, p
 -- Data for Name: diagnostic_order_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY diagnostic_order_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -35420,7 +27063,7 @@ COPY diagnostic_order_idn (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: diagnostic_order_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_order_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35428,7 +27071,7 @@ COPY diagnostic_order_idn_assigner (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: diagnostic_order_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY diagnostic_order_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -35436,7 +27079,7 @@ COPY diagnostic_order_idn_period (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: diagnostic_order_item; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_item (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status) FROM stdin;
+COPY diagnostic_order_item (id, _type, _unknown_attributes, parent_id, resource_id, status) FROM stdin;
 \.
 
 
@@ -35444,7 +27087,7 @@ COPY diagnostic_order_item (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: diagnostic_order_item_body_site; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_item_body_site (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY diagnostic_order_item_body_site (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35452,7 +27095,7 @@ COPY diagnostic_order_item_body_site (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: diagnostic_order_item_body_site_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_item_body_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY diagnostic_order_item_body_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35460,7 +27103,7 @@ COPY diagnostic_order_item_body_site_cd (id, _type, _unknown_attributes, parent_
 -- Data for Name: diagnostic_order_item_body_site_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_item_body_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_order_item_body_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35468,7 +27111,7 @@ COPY diagnostic_order_item_body_site_cd_vs (id, _type, _unknown_attributes, pare
 -- Data for Name: diagnostic_order_item_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_item_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY diagnostic_order_item_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35476,7 +27119,7 @@ COPY diagnostic_order_item_code (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: diagnostic_order_item_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_item_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY diagnostic_order_item_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35484,7 +27127,7 @@ COPY diagnostic_order_item_code_cd (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: diagnostic_order_item_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_item_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_order_item_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35492,7 +27135,7 @@ COPY diagnostic_order_item_code_cd_vs (id, _type, _unknown_attributes, parent_id
 -- Data for Name: diagnostic_order_item_specimen; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_item_specimen (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_order_item_specimen (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35500,7 +27143,7 @@ COPY diagnostic_order_item_specimen (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: diagnostic_order_orderer; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_orderer (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_order_orderer (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35508,7 +27151,7 @@ COPY diagnostic_order_orderer (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: diagnostic_order_specimen; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_specimen (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_order_specimen (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35516,7 +27159,7 @@ COPY diagnostic_order_specimen (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: diagnostic_order_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_order_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35524,7 +27167,7 @@ COPY diagnostic_order_subject (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: diagnostic_order_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_order_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY diagnostic_order_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -35532,7 +27175,7 @@ COPY diagnostic_order_text (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: diagnostic_report; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, status, issued, diagnostic_date_time, conclusion) FROM stdin;
+COPY diagnostic_report (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, status, issued, diagnostic_date_time, conclusion) FROM stdin;
 \.
 
 
@@ -35540,7 +27183,7 @@ COPY diagnostic_report (id, _type, _unknown_attributes, resource_type, language,
 -- Data for Name: diagnostic_report_coded_diagnosis; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_coded_diagnosis (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY diagnostic_report_coded_diagnosis (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35548,7 +27191,7 @@ COPY diagnostic_report_coded_diagnosis (id, _type, _unknown_attributes, parent_i
 -- Data for Name: diagnostic_report_coded_diagnosis_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_coded_diagnosis_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY diagnostic_report_coded_diagnosis_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35556,7 +27199,7 @@ COPY diagnostic_report_coded_diagnosis_cd (id, _type, _unknown_attributes, paren
 -- Data for Name: diagnostic_report_coded_diagnosis_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_coded_diagnosis_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_report_coded_diagnosis_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35564,7 +27207,7 @@ COPY diagnostic_report_coded_diagnosis_cd_vs (id, _type, _unknown_attributes, pa
 -- Data for Name: diagnostic_report_diagnostic_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_diagnostic_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY diagnostic_report_diagnostic_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -35572,7 +27215,7 @@ COPY diagnostic_report_diagnostic_period (id, _type, _unknown_attributes, parent
 -- Data for Name: diagnostic_report_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY diagnostic_report_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -35580,7 +27223,7 @@ COPY diagnostic_report_idn (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: diagnostic_report_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_report_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35588,7 +27231,7 @@ COPY diagnostic_report_idn_assigner (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: diagnostic_report_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY diagnostic_report_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -35596,7 +27239,7 @@ COPY diagnostic_report_idn_period (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: diagnostic_report_image; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_image (id, _type, _unknown_attributes, parent_id, resource_id, created_at, comment) FROM stdin;
+COPY diagnostic_report_image (id, _type, _unknown_attributes, parent_id, resource_id, comment) FROM stdin;
 \.
 
 
@@ -35604,7 +27247,7 @@ COPY diagnostic_report_image (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: diagnostic_report_image_link; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_image_link (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_report_image_link (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35612,7 +27255,7 @@ COPY diagnostic_report_image_link (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: diagnostic_report_imaging_study; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_imaging_study (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_report_imaging_study (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35620,7 +27263,7 @@ COPY diagnostic_report_imaging_study (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: diagnostic_report_name; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_name (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY diagnostic_report_name (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35628,7 +27271,7 @@ COPY diagnostic_report_name (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: diagnostic_report_name_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_name_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY diagnostic_report_name_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35636,7 +27279,7 @@ COPY diagnostic_report_name_cd (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: diagnostic_report_name_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_name_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_report_name_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35644,7 +27287,7 @@ COPY diagnostic_report_name_cd_vs (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: diagnostic_report_performer; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_performer (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_report_performer (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35652,7 +27295,7 @@ COPY diagnostic_report_performer (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: diagnostic_report_presented_form; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_presented_form (id, _type, _unknown_attributes, parent_id, resource_id, created_at, content_type, language, data, url, size, hash, title) FROM stdin;
+COPY diagnostic_report_presented_form (id, _type, _unknown_attributes, parent_id, resource_id, content_type, language, data, url, size, hash, title) FROM stdin;
 \.
 
 
@@ -35660,7 +27303,7 @@ COPY diagnostic_report_presented_form (id, _type, _unknown_attributes, parent_id
 -- Data for Name: diagnostic_report_request_detail; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_request_detail (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_report_request_detail (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35668,7 +27311,7 @@ COPY diagnostic_report_request_detail (id, _type, _unknown_attributes, parent_id
 -- Data for Name: diagnostic_report_result; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_result (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_report_result (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35676,7 +27319,7 @@ COPY diagnostic_report_result (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: diagnostic_report_service_category; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_service_category (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY diagnostic_report_service_category (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35684,7 +27327,7 @@ COPY diagnostic_report_service_category (id, _type, _unknown_attributes, parent_
 -- Data for Name: diagnostic_report_service_category_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_service_category_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY diagnostic_report_service_category_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35692,7 +27335,7 @@ COPY diagnostic_report_service_category_cd (id, _type, _unknown_attributes, pare
 -- Data for Name: diagnostic_report_service_category_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_service_category_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_report_service_category_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35700,7 +27343,7 @@ COPY diagnostic_report_service_category_cd_vs (id, _type, _unknown_attributes, p
 -- Data for Name: diagnostic_report_specimen; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_specimen (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_report_specimen (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35708,7 +27351,7 @@ COPY diagnostic_report_specimen (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: diagnostic_report_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY diagnostic_report_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35716,7 +27359,7 @@ COPY diagnostic_report_subject (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: diagnostic_report_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY diagnostic_report_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY diagnostic_report_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -35724,7 +27367,7 @@ COPY diagnostic_report_text (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: document_manifest; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, status, created, description, source) FROM stdin;
+COPY document_manifest (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, status, created, description, source) FROM stdin;
 \.
 
 
@@ -35732,7 +27375,7 @@ COPY document_manifest (id, _type, _unknown_attributes, resource_type, language,
 -- Data for Name: document_manifest_author; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_author (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_manifest_author (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35740,7 +27383,7 @@ COPY document_manifest_author (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: document_manifest_confidentiality; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_confidentiality (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY document_manifest_confidentiality (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35748,7 +27391,7 @@ COPY document_manifest_confidentiality (id, _type, _unknown_attributes, parent_i
 -- Data for Name: document_manifest_confidentiality_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_confidentiality_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY document_manifest_confidentiality_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35756,7 +27399,7 @@ COPY document_manifest_confidentiality_cd (id, _type, _unknown_attributes, paren
 -- Data for Name: document_manifest_confidentiality_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_confidentiality_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_manifest_confidentiality_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35764,7 +27407,7 @@ COPY document_manifest_confidentiality_cd_vs (id, _type, _unknown_attributes, pa
 -- Data for Name: document_manifest_content; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_content (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_manifest_content (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35772,7 +27415,7 @@ COPY document_manifest_content (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: document_manifest_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY document_manifest_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -35780,7 +27423,7 @@ COPY document_manifest_idn (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: document_manifest_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_manifest_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35788,7 +27431,7 @@ COPY document_manifest_idn_assigner (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: document_manifest_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY document_manifest_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -35796,7 +27439,7 @@ COPY document_manifest_idn_period (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: document_manifest_master_identifier; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_master_identifier (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY document_manifest_master_identifier (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -35804,7 +27447,7 @@ COPY document_manifest_master_identifier (id, _type, _unknown_attributes, parent
 -- Data for Name: document_manifest_master_identifier_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_master_identifier_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_manifest_master_identifier_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35812,7 +27455,7 @@ COPY document_manifest_master_identifier_assigner (id, _type, _unknown_attribute
 -- Data for Name: document_manifest_master_identifier_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_master_identifier_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY document_manifest_master_identifier_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -35820,7 +27463,7 @@ COPY document_manifest_master_identifier_period (id, _type, _unknown_attributes,
 -- Data for Name: document_manifest_recipient; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_recipient (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_manifest_recipient (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35828,7 +27471,7 @@ COPY document_manifest_recipient (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: document_manifest_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_manifest_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35836,7 +27479,7 @@ COPY document_manifest_subject (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: document_manifest_supercedes; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_supercedes (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_manifest_supercedes (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35844,7 +27487,7 @@ COPY document_manifest_supercedes (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: document_manifest_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY document_manifest_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -35852,7 +27495,7 @@ COPY document_manifest_text (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: document_manifest_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY document_manifest_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35860,7 +27503,7 @@ COPY document_manifest_type (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: document_manifest_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY document_manifest_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35868,7 +27511,7 @@ COPY document_manifest_type_cd (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: document_manifest_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_manifest_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_manifest_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35876,7 +27519,7 @@ COPY document_manifest_type_cd_vs (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: document_reference; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, primary_language, status, mime_type, created, indexed, size, hash, description, policy_manager, location, format) FROM stdin;
+COPY document_reference (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, primary_language, status, mime_type, created, indexed, size, hash, description, policy_manager, location, format) FROM stdin;
 \.
 
 
@@ -35884,7 +27527,7 @@ COPY document_reference (id, _type, _unknown_attributes, resource_type, language
 -- Data for Name: document_reference_authenticator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_authenticator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_reference_authenticator (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35892,7 +27535,7 @@ COPY document_reference_authenticator (id, _type, _unknown_attributes, parent_id
 -- Data for Name: document_reference_author; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_author (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_reference_author (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35900,7 +27543,7 @@ COPY document_reference_author (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: document_reference_class; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_class (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY document_reference_class (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35908,7 +27551,7 @@ COPY document_reference_class (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: document_reference_class_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_class_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY document_reference_class_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35916,7 +27559,7 @@ COPY document_reference_class_cd (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: document_reference_class_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_class_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_reference_class_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35924,7 +27567,7 @@ COPY document_reference_class_cd_vs (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: document_reference_confidentiality; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_confidentiality (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY document_reference_confidentiality (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35932,7 +27575,7 @@ COPY document_reference_confidentiality (id, _type, _unknown_attributes, parent_
 -- Data for Name: document_reference_confidentiality_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_confidentiality_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY document_reference_confidentiality_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35940,7 +27583,7 @@ COPY document_reference_confidentiality_cd (id, _type, _unknown_attributes, pare
 -- Data for Name: document_reference_confidentiality_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_confidentiality_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_reference_confidentiality_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35948,7 +27591,7 @@ COPY document_reference_confidentiality_cd_vs (id, _type, _unknown_attributes, p
 -- Data for Name: document_reference_context; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_context (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY document_reference_context (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -35956,7 +27599,7 @@ COPY document_reference_context (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: document_reference_context_event; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_context_event (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY document_reference_context_event (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35964,7 +27607,7 @@ COPY document_reference_context_event (id, _type, _unknown_attributes, parent_id
 -- Data for Name: document_reference_context_event_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_context_event_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY document_reference_context_event_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35972,7 +27615,7 @@ COPY document_reference_context_event_cd (id, _type, _unknown_attributes, parent
 -- Data for Name: document_reference_context_event_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_context_event_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_reference_context_event_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -35980,7 +27623,7 @@ COPY document_reference_context_event_cd_vs (id, _type, _unknown_attributes, par
 -- Data for Name: document_reference_context_facility_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_context_facility_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY document_reference_context_facility_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -35988,7 +27631,7 @@ COPY document_reference_context_facility_type (id, _type, _unknown_attributes, p
 -- Data for Name: document_reference_context_facility_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_context_facility_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY document_reference_context_facility_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -35996,7 +27639,7 @@ COPY document_reference_context_facility_type_cd (id, _type, _unknown_attributes
 -- Data for Name: document_reference_context_facility_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_context_facility_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_reference_context_facility_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36004,7 +27647,7 @@ COPY document_reference_context_facility_type_cd_vs (id, _type, _unknown_attribu
 -- Data for Name: document_reference_context_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_context_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY document_reference_context_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -36012,7 +27655,7 @@ COPY document_reference_context_period (id, _type, _unknown_attributes, parent_i
 -- Data for Name: document_reference_custodian; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_custodian (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_reference_custodian (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36020,7 +27663,7 @@ COPY document_reference_custodian (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: document_reference_doc_status; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_doc_status (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY document_reference_doc_status (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36028,7 +27671,7 @@ COPY document_reference_doc_status (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: document_reference_doc_status_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_doc_status_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY document_reference_doc_status_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36036,7 +27679,7 @@ COPY document_reference_doc_status_cd (id, _type, _unknown_attributes, parent_id
 -- Data for Name: document_reference_doc_status_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_doc_status_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_reference_doc_status_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36044,7 +27687,7 @@ COPY document_reference_doc_status_cd_vs (id, _type, _unknown_attributes, parent
 -- Data for Name: document_reference_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY document_reference_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -36052,7 +27695,7 @@ COPY document_reference_idn (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: document_reference_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_reference_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36060,7 +27703,7 @@ COPY document_reference_idn_assigner (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: document_reference_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY document_reference_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -36068,7 +27711,7 @@ COPY document_reference_idn_period (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: document_reference_master_identifier; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_master_identifier (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY document_reference_master_identifier (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -36076,7 +27719,7 @@ COPY document_reference_master_identifier (id, _type, _unknown_attributes, paren
 -- Data for Name: document_reference_master_identifier_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_master_identifier_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_reference_master_identifier_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36084,7 +27727,7 @@ COPY document_reference_master_identifier_assigner (id, _type, _unknown_attribut
 -- Data for Name: document_reference_master_identifier_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_master_identifier_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY document_reference_master_identifier_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -36092,7 +27735,7 @@ COPY document_reference_master_identifier_period (id, _type, _unknown_attributes
 -- Data for Name: document_reference_relates_to; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_relates_to (id, _type, _unknown_attributes, parent_id, resource_id, created_at, code) FROM stdin;
+COPY document_reference_relates_to (id, _type, _unknown_attributes, parent_id, resource_id, code) FROM stdin;
 \.
 
 
@@ -36100,7 +27743,7 @@ COPY document_reference_relates_to (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: document_reference_relates_to_target; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_relates_to_target (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_reference_relates_to_target (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36108,7 +27751,7 @@ COPY document_reference_relates_to_target (id, _type, _unknown_attributes, paren
 -- Data for Name: document_reference_service; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_service (id, _type, _unknown_attributes, parent_id, resource_id, created_at, address) FROM stdin;
+COPY document_reference_service (id, _type, _unknown_attributes, parent_id, resource_id, address) FROM stdin;
 \.
 
 
@@ -36116,7 +27759,7 @@ COPY document_reference_service (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: document_reference_service_parameter; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_service_parameter (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, name) FROM stdin;
+COPY document_reference_service_parameter (id, _type, _unknown_attributes, parent_id, resource_id, value, name) FROM stdin;
 \.
 
 
@@ -36124,7 +27767,7 @@ COPY document_reference_service_parameter (id, _type, _unknown_attributes, paren
 -- Data for Name: document_reference_service_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_service_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY document_reference_service_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36132,7 +27775,7 @@ COPY document_reference_service_type (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: document_reference_service_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_service_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY document_reference_service_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36140,7 +27783,7 @@ COPY document_reference_service_type_cd (id, _type, _unknown_attributes, parent_
 -- Data for Name: document_reference_service_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_service_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_reference_service_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36148,7 +27791,7 @@ COPY document_reference_service_type_cd_vs (id, _type, _unknown_attributes, pare
 -- Data for Name: document_reference_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_reference_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36156,7 +27799,7 @@ COPY document_reference_subject (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: document_reference_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY document_reference_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -36164,7 +27807,7 @@ COPY document_reference_text (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: document_reference_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY document_reference_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36172,7 +27815,7 @@ COPY document_reference_type (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: document_reference_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY document_reference_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36180,7 +27823,7 @@ COPY document_reference_type_cd (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: document_reference_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY document_reference_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY document_reference_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36188,7 +27831,7 @@ COPY document_reference_type_cd_vs (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: encounter; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, class, status) FROM stdin;
+COPY encounter (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, class, status) FROM stdin;
 \.
 
 
@@ -36196,7 +27839,7 @@ COPY encounter (id, _type, _unknown_attributes, resource_type, language, contain
 -- Data for Name: encounter_hospitalization; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization (id, _type, _unknown_attributes, parent_id, resource_id, created_at, re_admission) FROM stdin;
+COPY encounter_hospitalization (id, _type, _unknown_attributes, parent_id, resource_id, re_admission) FROM stdin;
 \.
 
 
@@ -36204,7 +27847,7 @@ COPY encounter_hospitalization (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: encounter_hospitalization_accomodation; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_accomodation (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY encounter_hospitalization_accomodation (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -36212,7 +27855,7 @@ COPY encounter_hospitalization_accomodation (id, _type, _unknown_attributes, par
 -- Data for Name: encounter_hospitalization_accomodation_bed; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_accomodation_bed (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_hospitalization_accomodation_bed (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36220,7 +27863,7 @@ COPY encounter_hospitalization_accomodation_bed (id, _type, _unknown_attributes,
 -- Data for Name: encounter_hospitalization_accomodation_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_accomodation_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY encounter_hospitalization_accomodation_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -36228,7 +27871,7 @@ COPY encounter_hospitalization_accomodation_period (id, _type, _unknown_attribut
 -- Data for Name: encounter_hospitalization_admit_source; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_admit_source (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY encounter_hospitalization_admit_source (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36236,7 +27879,7 @@ COPY encounter_hospitalization_admit_source (id, _type, _unknown_attributes, par
 -- Data for Name: encounter_hospitalization_admit_source_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_admit_source_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY encounter_hospitalization_admit_source_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36244,7 +27887,7 @@ COPY encounter_hospitalization_admit_source_cd (id, _type, _unknown_attributes, 
 -- Data for Name: encounter_hospitalization_admit_source_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_admit_source_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_hospitalization_admit_source_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36252,7 +27895,7 @@ COPY encounter_hospitalization_admit_source_cd_vs (id, _type, _unknown_attribute
 -- Data for Name: encounter_hospitalization_destination; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_destination (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_hospitalization_destination (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36260,7 +27903,7 @@ COPY encounter_hospitalization_destination (id, _type, _unknown_attributes, pare
 -- Data for Name: encounter_hospitalization_diet; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_diet (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY encounter_hospitalization_diet (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36268,7 +27911,7 @@ COPY encounter_hospitalization_diet (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: encounter_hospitalization_diet_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_diet_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY encounter_hospitalization_diet_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36276,7 +27919,7 @@ COPY encounter_hospitalization_diet_cd (id, _type, _unknown_attributes, parent_i
 -- Data for Name: encounter_hospitalization_diet_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_diet_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_hospitalization_diet_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36284,7 +27927,7 @@ COPY encounter_hospitalization_diet_cd_vs (id, _type, _unknown_attributes, paren
 -- Data for Name: encounter_hospitalization_discharge_diagnosis; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_discharge_diagnosis (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_hospitalization_discharge_diagnosis (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36292,7 +27935,7 @@ COPY encounter_hospitalization_discharge_diagnosis (id, _type, _unknown_attribut
 -- Data for Name: encounter_hospitalization_discharge_disposition; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_discharge_disposition (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY encounter_hospitalization_discharge_disposition (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36300,7 +27943,7 @@ COPY encounter_hospitalization_discharge_disposition (id, _type, _unknown_attrib
 -- Data for Name: encounter_hospitalization_discharge_disposition_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_discharge_disposition_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY encounter_hospitalization_discharge_disposition_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36308,7 +27951,7 @@ COPY encounter_hospitalization_discharge_disposition_cd (id, _type, _unknown_att
 -- Data for Name: encounter_hospitalization_discharge_disposition_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_discharge_disposition_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_hospitalization_discharge_disposition_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36316,7 +27959,7 @@ COPY encounter_hospitalization_discharge_disposition_cd_vs (id, _type, _unknown_
 -- Data for Name: encounter_hospitalization_origin; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_origin (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_hospitalization_origin (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36324,7 +27967,7 @@ COPY encounter_hospitalization_origin (id, _type, _unknown_attributes, parent_id
 -- Data for Name: encounter_hospitalization_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY encounter_hospitalization_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -36332,7 +27975,7 @@ COPY encounter_hospitalization_period (id, _type, _unknown_attributes, parent_id
 -- Data for Name: encounter_hospitalization_pre_admission_identifier; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_pre_admission_identifier (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY encounter_hospitalization_pre_admission_identifier (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -36340,7 +27983,7 @@ COPY encounter_hospitalization_pre_admission_identifier (id, _type, _unknown_att
 -- Data for Name: encounter_hospitalization_pre_admission_identifier_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_pre_admission_identifier_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_hospitalization_pre_admission_identifier_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36348,7 +27991,7 @@ COPY encounter_hospitalization_pre_admission_identifier_assigner (id, _type, _un
 -- Data for Name: encounter_hospitalization_pre_admission_identifier_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_pre_admission_identifier_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY encounter_hospitalization_pre_admission_identifier_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -36356,7 +27999,7 @@ COPY encounter_hospitalization_pre_admission_identifier_period (id, _type, _unkn
 -- Data for Name: encounter_hospitalization_special_arrangement; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_special_arrangement (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY encounter_hospitalization_special_arrangement (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36364,7 +28007,7 @@ COPY encounter_hospitalization_special_arrangement (id, _type, _unknown_attribut
 -- Data for Name: encounter_hospitalization_special_arrangement_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_special_arrangement_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY encounter_hospitalization_special_arrangement_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36372,7 +28015,7 @@ COPY encounter_hospitalization_special_arrangement_cd (id, _type, _unknown_attri
 -- Data for Name: encounter_hospitalization_special_arrangement_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_special_arrangement_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_hospitalization_special_arrangement_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36380,7 +28023,7 @@ COPY encounter_hospitalization_special_arrangement_cd_vs (id, _type, _unknown_at
 -- Data for Name: encounter_hospitalization_special_courtesy; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_special_courtesy (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY encounter_hospitalization_special_courtesy (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36388,7 +28031,7 @@ COPY encounter_hospitalization_special_courtesy (id, _type, _unknown_attributes,
 -- Data for Name: encounter_hospitalization_special_courtesy_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_special_courtesy_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY encounter_hospitalization_special_courtesy_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36396,7 +28039,7 @@ COPY encounter_hospitalization_special_courtesy_cd (id, _type, _unknown_attribut
 -- Data for Name: encounter_hospitalization_special_courtesy_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_hospitalization_special_courtesy_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_hospitalization_special_courtesy_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36404,7 +28047,7 @@ COPY encounter_hospitalization_special_courtesy_cd_vs (id, _type, _unknown_attri
 -- Data for Name: encounter_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY encounter_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -36412,7 +28055,7 @@ COPY encounter_idn (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: encounter_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36420,7 +28063,7 @@ COPY encounter_idn_assigner (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: encounter_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY encounter_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -36428,7 +28071,7 @@ COPY encounter_idn_period (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: encounter_indication; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_indication (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_indication (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36436,7 +28079,7 @@ COPY encounter_indication (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: encounter_loc; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_loc (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY encounter_loc (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -36444,7 +28087,7 @@ COPY encounter_loc (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: encounter_loc_loc; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_loc_loc (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_loc_loc (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36452,7 +28095,7 @@ COPY encounter_loc_loc (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: encounter_loc_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_loc_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY encounter_loc_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -36460,7 +28103,7 @@ COPY encounter_loc_period (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: encounter_part_of; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_part_of (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_part_of (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36468,7 +28111,7 @@ COPY encounter_part_of (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: encounter_participant; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_participant (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY encounter_participant (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -36476,7 +28119,7 @@ COPY encounter_participant (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: encounter_participant_individual; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_participant_individual (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_participant_individual (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36484,7 +28127,7 @@ COPY encounter_participant_individual (id, _type, _unknown_attributes, parent_id
 -- Data for Name: encounter_participant_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_participant_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY encounter_participant_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36492,7 +28135,7 @@ COPY encounter_participant_type (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: encounter_participant_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_participant_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY encounter_participant_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36500,7 +28143,7 @@ COPY encounter_participant_type_cd (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: encounter_participant_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_participant_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_participant_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36508,7 +28151,7 @@ COPY encounter_participant_type_cd_vs (id, _type, _unknown_attributes, parent_id
 -- Data for Name: encounter_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY encounter_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -36516,7 +28159,7 @@ COPY encounter_period (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: encounter_priority; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_priority (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY encounter_priority (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36524,7 +28167,7 @@ COPY encounter_priority (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: encounter_priority_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_priority_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY encounter_priority_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36532,7 +28175,7 @@ COPY encounter_priority_cd (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: encounter_priority_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_priority_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_priority_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36540,7 +28183,7 @@ COPY encounter_priority_cd_vs (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: encounter_reason; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_reason (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY encounter_reason (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36548,7 +28191,7 @@ COPY encounter_reason (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: encounter_reason_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY encounter_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36556,7 +28199,7 @@ COPY encounter_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: encounter_reason_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36564,7 +28207,7 @@ COPY encounter_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: encounter_service_provider; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_service_provider (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_service_provider (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36572,7 +28215,7 @@ COPY encounter_service_provider (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: encounter_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36580,7 +28223,7 @@ COPY encounter_subject (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: encounter_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY encounter_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -36588,7 +28231,7 @@ COPY encounter_text (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: encounter_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY encounter_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36596,7 +28239,7 @@ COPY encounter_type (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: encounter_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY encounter_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36604,7 +28247,7 @@ COPY encounter_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: encounter_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY encounter_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY encounter_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36612,7 +28255,7 @@ COPY encounter_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: family_history; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, note) FROM stdin;
+COPY family_history (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, note) FROM stdin;
 \.
 
 
@@ -36620,7 +28263,7 @@ COPY family_history (id, _type, _unknown_attributes, resource_type, language, co
 -- Data for Name: family_history_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY family_history_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -36628,7 +28271,7 @@ COPY family_history_idn (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: family_history_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY family_history_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36636,7 +28279,7 @@ COPY family_history_idn_assigner (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: family_history_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY family_history_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -36644,7 +28287,7 @@ COPY family_history_idn_period (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: family_history_relation; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation (id, _type, _unknown_attributes, parent_id, resource_id, created_at, deceased_boolean, born_date, deceased_date, note, deceased_string, born_string, name) FROM stdin;
+COPY family_history_relation (id, _type, _unknown_attributes, parent_id, resource_id, deceased_boolean, born_date, deceased_date, note, deceased_string, born_string, name) FROM stdin;
 \.
 
 
@@ -36652,7 +28295,7 @@ COPY family_history_relation (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: family_history_relation_born_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_born_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY family_history_relation_born_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -36660,7 +28303,7 @@ COPY family_history_relation_born_period (id, _type, _unknown_attributes, parent
 -- Data for Name: family_history_relation_condition; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_condition (id, _type, _unknown_attributes, parent_id, resource_id, created_at, note, onset_string) FROM stdin;
+COPY family_history_relation_condition (id, _type, _unknown_attributes, parent_id, resource_id, note, onset_string) FROM stdin;
 \.
 
 
@@ -36668,7 +28311,7 @@ COPY family_history_relation_condition (id, _type, _unknown_attributes, parent_i
 -- Data for Name: family_history_relation_condition_onset_range; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_condition_onset_range (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY family_history_relation_condition_onset_range (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -36676,7 +28319,7 @@ COPY family_history_relation_condition_onset_range (id, _type, _unknown_attribut
 -- Data for Name: family_history_relation_condition_onset_range_high; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_condition_onset_range_high (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY family_history_relation_condition_onset_range_high (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -36684,7 +28327,7 @@ COPY family_history_relation_condition_onset_range_high (id, _type, _unknown_att
 -- Data for Name: family_history_relation_condition_onset_range_low; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_condition_onset_range_low (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY family_history_relation_condition_onset_range_low (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -36692,7 +28335,7 @@ COPY family_history_relation_condition_onset_range_low (id, _type, _unknown_attr
 -- Data for Name: family_history_relation_condition_outcome; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_condition_outcome (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY family_history_relation_condition_outcome (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36700,7 +28343,7 @@ COPY family_history_relation_condition_outcome (id, _type, _unknown_attributes, 
 -- Data for Name: family_history_relation_condition_outcome_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_condition_outcome_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY family_history_relation_condition_outcome_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36708,7 +28351,7 @@ COPY family_history_relation_condition_outcome_cd (id, _type, _unknown_attribute
 -- Data for Name: family_history_relation_condition_outcome_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_condition_outcome_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY family_history_relation_condition_outcome_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36716,7 +28359,7 @@ COPY family_history_relation_condition_outcome_cd_vs (id, _type, _unknown_attrib
 -- Data for Name: family_history_relation_condition_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_condition_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY family_history_relation_condition_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36724,7 +28367,7 @@ COPY family_history_relation_condition_type (id, _type, _unknown_attributes, par
 -- Data for Name: family_history_relation_condition_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_condition_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY family_history_relation_condition_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36732,7 +28375,7 @@ COPY family_history_relation_condition_type_cd (id, _type, _unknown_attributes, 
 -- Data for Name: family_history_relation_condition_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_condition_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY family_history_relation_condition_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36740,7 +28383,7 @@ COPY family_history_relation_condition_type_cd_vs (id, _type, _unknown_attribute
 -- Data for Name: family_history_relation_deceased_range; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_deceased_range (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY family_history_relation_deceased_range (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -36748,7 +28391,7 @@ COPY family_history_relation_deceased_range (id, _type, _unknown_attributes, par
 -- Data for Name: family_history_relation_deceased_range_high; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_deceased_range_high (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY family_history_relation_deceased_range_high (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -36756,7 +28399,7 @@ COPY family_history_relation_deceased_range_high (id, _type, _unknown_attributes
 -- Data for Name: family_history_relation_deceased_range_low; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_deceased_range_low (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY family_history_relation_deceased_range_low (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -36764,7 +28407,7 @@ COPY family_history_relation_deceased_range_low (id, _type, _unknown_attributes,
 -- Data for Name: family_history_relation_relationship; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_relationship (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY family_history_relation_relationship (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36772,7 +28415,7 @@ COPY family_history_relation_relationship (id, _type, _unknown_attributes, paren
 -- Data for Name: family_history_relation_relationship_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_relationship_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY family_history_relation_relationship_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36780,7 +28423,7 @@ COPY family_history_relation_relationship_cd (id, _type, _unknown_attributes, pa
 -- Data for Name: family_history_relation_relationship_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_relation_relationship_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY family_history_relation_relationship_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36788,7 +28431,7 @@ COPY family_history_relation_relationship_cd_vs (id, _type, _unknown_attributes,
 -- Data for Name: family_history_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY family_history_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36796,7 +28439,7 @@ COPY family_history_subject (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: family_history_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY family_history_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY family_history_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -36804,7 +28447,7 @@ COPY family_history_text (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: group; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY "group" (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, actual, type, quantity, name) FROM stdin;
+COPY "group" (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, actual, type, quantity, name) FROM stdin;
 \.
 
 
@@ -36812,7 +28455,7 @@ COPY "group" (id, _type, _unknown_attributes, resource_type, language, container
 -- Data for Name: group_characteristic; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_characteristic (id, _type, _unknown_attributes, parent_id, resource_id, created_at, exclude, value_boolean) FROM stdin;
+COPY group_characteristic (id, _type, _unknown_attributes, parent_id, resource_id, exclude, value_boolean) FROM stdin;
 \.
 
 
@@ -36820,7 +28463,7 @@ COPY group_characteristic (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: group_characteristic_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_characteristic_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY group_characteristic_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36828,7 +28471,7 @@ COPY group_characteristic_code (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: group_characteristic_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_characteristic_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY group_characteristic_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36836,7 +28479,7 @@ COPY group_characteristic_code_cd (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: group_characteristic_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_characteristic_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY group_characteristic_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36844,7 +28487,7 @@ COPY group_characteristic_code_cd_vs (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: group_characteristic_value_codeable_concept; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_characteristic_value_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY group_characteristic_value_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36852,7 +28495,7 @@ COPY group_characteristic_value_codeable_concept (id, _type, _unknown_attributes
 -- Data for Name: group_characteristic_value_codeable_concept_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_characteristic_value_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY group_characteristic_value_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36860,7 +28503,7 @@ COPY group_characteristic_value_codeable_concept_cd (id, _type, _unknown_attribu
 -- Data for Name: group_characteristic_value_codeable_concept_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_characteristic_value_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY group_characteristic_value_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36868,7 +28511,7 @@ COPY group_characteristic_value_codeable_concept_cd_vs (id, _type, _unknown_attr
 -- Data for Name: group_characteristic_value_quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_characteristic_value_quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY group_characteristic_value_quantity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -36876,7 +28519,7 @@ COPY group_characteristic_value_quantity (id, _type, _unknown_attributes, parent
 -- Data for Name: group_characteristic_value_range; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_characteristic_value_range (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY group_characteristic_value_range (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -36884,7 +28527,7 @@ COPY group_characteristic_value_range (id, _type, _unknown_attributes, parent_id
 -- Data for Name: group_characteristic_value_range_high; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_characteristic_value_range_high (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY group_characteristic_value_range_high (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -36892,7 +28535,7 @@ COPY group_characteristic_value_range_high (id, _type, _unknown_attributes, pare
 -- Data for Name: group_characteristic_value_range_low; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_characteristic_value_range_low (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY group_characteristic_value_range_low (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -36900,7 +28543,7 @@ COPY group_characteristic_value_range_low (id, _type, _unknown_attributes, paren
 -- Data for Name: group_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY group_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -36908,7 +28551,7 @@ COPY group_code (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: group_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY group_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -36916,7 +28559,7 @@ COPY group_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: group_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY group_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36924,7 +28567,7 @@ COPY group_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: group_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY group_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -36932,7 +28575,7 @@ COPY group_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_
 -- Data for Name: group_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY group_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36940,7 +28583,7 @@ COPY group_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: group_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY group_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -36948,7 +28591,7 @@ COPY group_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: group_member; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_member (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY group_member (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36956,7 +28599,7 @@ COPY group_member (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: group_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY group_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY group_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -36964,7 +28607,7 @@ COPY group_text (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: human_name; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY human_name (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, text, family, given, prefix, suffix) FROM stdin;
+COPY human_name (id, _type, _unknown_attributes, parent_id, resource_id, use, text, family, given, prefix, suffix) FROM stdin;
 \.
 
 
@@ -36972,7 +28615,7 @@ COPY human_name (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: human_name_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY human_name_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY human_name_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -36980,7 +28623,7 @@ COPY human_name_period (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -36988,7 +28631,7 @@ COPY idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, us
 -- Data for Name: idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -36996,7 +28639,7 @@ COPY idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -37004,7 +28647,7 @@ COPY idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: imaging_study; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, modality, availability, date_time, number_of_series, number_of_instances, uid, description, clinical_information, url) FROM stdin;
+COPY imaging_study (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, modality, availability, date_time, number_of_series, number_of_instances, uid, description, clinical_information, url) FROM stdin;
 \.
 
 
@@ -37012,7 +28655,7 @@ COPY imaging_study (id, _type, _unknown_attributes, resource_type, language, con
 -- Data for Name: imaging_study_accession_no; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_accession_no (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY imaging_study_accession_no (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -37020,7 +28663,7 @@ COPY imaging_study_accession_no (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: imaging_study_accession_no_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_accession_no_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imaging_study_accession_no_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37028,7 +28671,7 @@ COPY imaging_study_accession_no_assigner (id, _type, _unknown_attributes, parent
 -- Data for Name: imaging_study_accession_no_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_accession_no_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY imaging_study_accession_no_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -37036,7 +28679,7 @@ COPY imaging_study_accession_no_period (id, _type, _unknown_attributes, parent_i
 -- Data for Name: imaging_study_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY imaging_study_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -37044,7 +28687,7 @@ COPY imaging_study_idn (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: imaging_study_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imaging_study_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37052,7 +28695,7 @@ COPY imaging_study_idn_assigner (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: imaging_study_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY imaging_study_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -37060,7 +28703,7 @@ COPY imaging_study_idn_period (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: imaging_study_interpreter; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_interpreter (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imaging_study_interpreter (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37068,7 +28711,7 @@ COPY imaging_study_interpreter (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: imaging_study_order; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_order (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imaging_study_order (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37076,7 +28719,7 @@ COPY imaging_study_order (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: imaging_study_procedure; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_procedure (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY imaging_study_procedure (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37084,7 +28727,7 @@ COPY imaging_study_procedure (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: imaging_study_procedure_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_procedure_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imaging_study_procedure_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37092,7 +28735,7 @@ COPY imaging_study_procedure_vs (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: imaging_study_referrer; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_referrer (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imaging_study_referrer (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37100,7 +28743,7 @@ COPY imaging_study_referrer (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: imaging_study_series; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_series (id, _type, _unknown_attributes, parent_id, resource_id, created_at, availability, modality, date_time, number, number_of_instances, uid, description, url) FROM stdin;
+COPY imaging_study_series (id, _type, _unknown_attributes, parent_id, resource_id, availability, modality, date_time, number, number_of_instances, uid, description, url) FROM stdin;
 \.
 
 
@@ -37108,7 +28751,7 @@ COPY imaging_study_series (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: imaging_study_series_body_site; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_series_body_site (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY imaging_study_series_body_site (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37116,7 +28759,7 @@ COPY imaging_study_series_body_site (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: imaging_study_series_body_site_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_series_body_site_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imaging_study_series_body_site_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37124,7 +28767,7 @@ COPY imaging_study_series_body_site_vs (id, _type, _unknown_attributes, parent_i
 -- Data for Name: imaging_study_series_instance; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_series_instance (id, _type, _unknown_attributes, parent_id, resource_id, created_at, number, sopclass, uid, title, type, url) FROM stdin;
+COPY imaging_study_series_instance (id, _type, _unknown_attributes, parent_id, resource_id, number, sopclass, uid, title, type, url) FROM stdin;
 \.
 
 
@@ -37132,7 +28775,7 @@ COPY imaging_study_series_instance (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: imaging_study_series_instance_attachment; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_series_instance_attachment (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imaging_study_series_instance_attachment (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37140,7 +28783,7 @@ COPY imaging_study_series_instance_attachment (id, _type, _unknown_attributes, p
 -- Data for Name: imaging_study_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imaging_study_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37148,7 +28791,7 @@ COPY imaging_study_subject (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: imaging_study_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imaging_study_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY imaging_study_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -37156,7 +28799,7 @@ COPY imaging_study_text (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: imm; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, reported, refused_indicator, expiration_date, date, lot_number) FROM stdin;
+COPY imm (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, reported, refused_indicator, expiration_date, date, lot_number) FROM stdin;
 \.
 
 
@@ -37164,7 +28807,7 @@ COPY imm (id, _type, _unknown_attributes, resource_type, language, container_id,
 -- Data for Name: imm_dose_quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_dose_quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY imm_dose_quantity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -37172,7 +28815,7 @@ COPY imm_dose_quantity (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: imm_explanation; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_explanation (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY imm_explanation (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -37180,7 +28823,7 @@ COPY imm_explanation (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: imm_explanation_reason; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_explanation_reason (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY imm_explanation_reason (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37188,7 +28831,7 @@ COPY imm_explanation_reason (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: imm_explanation_reason_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_explanation_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY imm_explanation_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37196,7 +28839,7 @@ COPY imm_explanation_reason_cd (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: imm_explanation_reason_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_explanation_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_explanation_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37204,7 +28847,7 @@ COPY imm_explanation_reason_cd_vs (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: imm_explanation_refusal_reason; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_explanation_refusal_reason (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY imm_explanation_refusal_reason (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37212,7 +28855,7 @@ COPY imm_explanation_refusal_reason (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: imm_explanation_refusal_reason_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_explanation_refusal_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY imm_explanation_refusal_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37220,7 +28863,7 @@ COPY imm_explanation_refusal_reason_cd (id, _type, _unknown_attributes, parent_i
 -- Data for Name: imm_explanation_refusal_reason_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_explanation_refusal_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_explanation_refusal_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37228,7 +28871,7 @@ COPY imm_explanation_refusal_reason_cd_vs (id, _type, _unknown_attributes, paren
 -- Data for Name: imm_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY imm_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -37236,7 +28879,7 @@ COPY imm_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at
 -- Data for Name: imm_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37244,7 +28887,7 @@ COPY imm_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: imm_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY imm_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -37252,7 +28895,7 @@ COPY imm_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: imm_loc; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_loc (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_loc (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37260,7 +28903,7 @@ COPY imm_loc (id, _type, _unknown_attributes, parent_id, resource_id, created_at
 -- Data for Name: imm_manufacturer; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_manufacturer (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_manufacturer (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37268,7 +28911,7 @@ COPY imm_manufacturer (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: imm_performer; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_performer (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_performer (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37276,7 +28919,7 @@ COPY imm_performer (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: imm_reaction; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_reaction (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reported, date) FROM stdin;
+COPY imm_reaction (id, _type, _unknown_attributes, parent_id, resource_id, reported, date) FROM stdin;
 \.
 
 
@@ -37284,7 +28927,7 @@ COPY imm_reaction (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: imm_reaction_detail; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_reaction_detail (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_reaction_detail (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37292,7 +28935,7 @@ COPY imm_reaction_detail (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: imm_rec; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at) FROM stdin;
+COPY imm_rec (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id) FROM stdin;
 \.
 
 
@@ -37300,7 +28943,7 @@ COPY imm_rec (id, _type, _unknown_attributes, resource_type, language, container
 -- Data for Name: imm_rec_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY imm_rec_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -37308,7 +28951,7 @@ COPY imm_rec_idn (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: imm_rec_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_rec_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37316,7 +28959,7 @@ COPY imm_rec_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: imm_rec_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY imm_rec_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -37324,7 +28967,7 @@ COPY imm_rec_idn_period (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: imm_rec_recommendation; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_recommendation (id, _type, _unknown_attributes, parent_id, resource_id, created_at, date, dose_number) FROM stdin;
+COPY imm_rec_recommendation (id, _type, _unknown_attributes, parent_id, resource_id, date, dose_number) FROM stdin;
 \.
 
 
@@ -37332,7 +28975,7 @@ COPY imm_rec_recommendation (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: imm_rec_recommendation_date_criterion; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_recommendation_date_criterion (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value) FROM stdin;
+COPY imm_rec_recommendation_date_criterion (id, _type, _unknown_attributes, parent_id, resource_id, value) FROM stdin;
 \.
 
 
@@ -37340,7 +28983,7 @@ COPY imm_rec_recommendation_date_criterion (id, _type, _unknown_attributes, pare
 -- Data for Name: imm_rec_recommendation_date_criterion_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_recommendation_date_criterion_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY imm_rec_recommendation_date_criterion_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37348,7 +28991,7 @@ COPY imm_rec_recommendation_date_criterion_code (id, _type, _unknown_attributes,
 -- Data for Name: imm_rec_recommendation_date_criterion_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_recommendation_date_criterion_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY imm_rec_recommendation_date_criterion_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37356,7 +28999,7 @@ COPY imm_rec_recommendation_date_criterion_code_cd (id, _type, _unknown_attribut
 -- Data for Name: imm_rec_recommendation_date_criterion_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_recommendation_date_criterion_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_rec_recommendation_date_criterion_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37364,7 +29007,7 @@ COPY imm_rec_recommendation_date_criterion_code_cd_vs (id, _type, _unknown_attri
 -- Data for Name: imm_rec_recommendation_forecast_status; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_recommendation_forecast_status (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY imm_rec_recommendation_forecast_status (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37372,7 +29015,7 @@ COPY imm_rec_recommendation_forecast_status (id, _type, _unknown_attributes, par
 -- Data for Name: imm_rec_recommendation_forecast_status_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_recommendation_forecast_status_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY imm_rec_recommendation_forecast_status_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37380,7 +29023,7 @@ COPY imm_rec_recommendation_forecast_status_cd (id, _type, _unknown_attributes, 
 -- Data for Name: imm_rec_recommendation_forecast_status_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_recommendation_forecast_status_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_rec_recommendation_forecast_status_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37388,7 +29031,7 @@ COPY imm_rec_recommendation_forecast_status_cd_vs (id, _type, _unknown_attribute
 -- Data for Name: imm_rec_recommendation_protocol; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_recommendation_protocol (id, _type, _unknown_attributes, parent_id, resource_id, created_at, dose_sequence, series, description) FROM stdin;
+COPY imm_rec_recommendation_protocol (id, _type, _unknown_attributes, parent_id, resource_id, dose_sequence, series, description) FROM stdin;
 \.
 
 
@@ -37396,7 +29039,7 @@ COPY imm_rec_recommendation_protocol (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: imm_rec_recommendation_protocol_authority; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_recommendation_protocol_authority (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_rec_recommendation_protocol_authority (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37404,7 +29047,7 @@ COPY imm_rec_recommendation_protocol_authority (id, _type, _unknown_attributes, 
 -- Data for Name: imm_rec_recommendation_supporting_immunization; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_recommendation_supporting_immunization (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_rec_recommendation_supporting_immunization (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37412,7 +29055,7 @@ COPY imm_rec_recommendation_supporting_immunization (id, _type, _unknown_attribu
 -- Data for Name: imm_rec_recommendation_supporting_patient_information; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_recommendation_supporting_patient_information (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_rec_recommendation_supporting_patient_information (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37420,7 +29063,7 @@ COPY imm_rec_recommendation_supporting_patient_information (id, _type, _unknown_
 -- Data for Name: imm_rec_recommendation_vaccine_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_recommendation_vaccine_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY imm_rec_recommendation_vaccine_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37428,7 +29071,7 @@ COPY imm_rec_recommendation_vaccine_type (id, _type, _unknown_attributes, parent
 -- Data for Name: imm_rec_recommendation_vaccine_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_recommendation_vaccine_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY imm_rec_recommendation_vaccine_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37436,7 +29079,7 @@ COPY imm_rec_recommendation_vaccine_type_cd (id, _type, _unknown_attributes, par
 -- Data for Name: imm_rec_recommendation_vaccine_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_recommendation_vaccine_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_rec_recommendation_vaccine_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37444,7 +29087,7 @@ COPY imm_rec_recommendation_vaccine_type_cd_vs (id, _type, _unknown_attributes, 
 -- Data for Name: imm_rec_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_rec_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37452,7 +29095,7 @@ COPY imm_rec_subject (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: imm_rec_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_rec_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY imm_rec_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -37460,7 +29103,7 @@ COPY imm_rec_text (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: imm_requester; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_requester (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_requester (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37468,7 +29111,7 @@ COPY imm_requester (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: imm_route; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_route (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY imm_route (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37476,7 +29119,7 @@ COPY imm_route (id, _type, _unknown_attributes, parent_id, resource_id, created_
 -- Data for Name: imm_route_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_route_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY imm_route_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37484,7 +29127,7 @@ COPY imm_route_cd (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: imm_route_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_route_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_route_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37492,7 +29135,7 @@ COPY imm_route_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: imm_site; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_site (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY imm_site (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37500,7 +29143,7 @@ COPY imm_site (id, _type, _unknown_attributes, parent_id, resource_id, created_a
 -- Data for Name: imm_site_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY imm_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37508,7 +29151,7 @@ COPY imm_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: imm_site_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37516,7 +29159,7 @@ COPY imm_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: imm_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37524,7 +29167,7 @@ COPY imm_subject (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: imm_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY imm_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -37532,7 +29175,7 @@ COPY imm_text (id, _type, _unknown_attributes, parent_id, resource_id, created_a
 -- Data for Name: imm_vaccination_protocol; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_vaccination_protocol (id, _type, _unknown_attributes, parent_id, resource_id, created_at, dose_sequence, series_doses, series, description) FROM stdin;
+COPY imm_vaccination_protocol (id, _type, _unknown_attributes, parent_id, resource_id, dose_sequence, series_doses, series, description) FROM stdin;
 \.
 
 
@@ -37540,7 +29183,7 @@ COPY imm_vaccination_protocol (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: imm_vaccination_protocol_authority; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_vaccination_protocol_authority (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_vaccination_protocol_authority (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37548,7 +29191,7 @@ COPY imm_vaccination_protocol_authority (id, _type, _unknown_attributes, parent_
 -- Data for Name: imm_vaccination_protocol_dose_status; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_vaccination_protocol_dose_status (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY imm_vaccination_protocol_dose_status (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37556,7 +29199,7 @@ COPY imm_vaccination_protocol_dose_status (id, _type, _unknown_attributes, paren
 -- Data for Name: imm_vaccination_protocol_dose_status_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_vaccination_protocol_dose_status_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY imm_vaccination_protocol_dose_status_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37564,7 +29207,7 @@ COPY imm_vaccination_protocol_dose_status_cd (id, _type, _unknown_attributes, pa
 -- Data for Name: imm_vaccination_protocol_dose_status_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_vaccination_protocol_dose_status_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_vaccination_protocol_dose_status_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37572,7 +29215,7 @@ COPY imm_vaccination_protocol_dose_status_cd_vs (id, _type, _unknown_attributes,
 -- Data for Name: imm_vaccination_protocol_dose_status_reason; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_vaccination_protocol_dose_status_reason (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY imm_vaccination_protocol_dose_status_reason (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37580,7 +29223,7 @@ COPY imm_vaccination_protocol_dose_status_reason (id, _type, _unknown_attributes
 -- Data for Name: imm_vaccination_protocol_dose_status_reason_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_vaccination_protocol_dose_status_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY imm_vaccination_protocol_dose_status_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37588,7 +29231,7 @@ COPY imm_vaccination_protocol_dose_status_reason_cd (id, _type, _unknown_attribu
 -- Data for Name: imm_vaccination_protocol_dose_status_reason_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_vaccination_protocol_dose_status_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_vaccination_protocol_dose_status_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37596,7 +29239,7 @@ COPY imm_vaccination_protocol_dose_status_reason_cd_vs (id, _type, _unknown_attr
 -- Data for Name: imm_vaccination_protocol_dose_target; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_vaccination_protocol_dose_target (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY imm_vaccination_protocol_dose_target (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37604,7 +29247,7 @@ COPY imm_vaccination_protocol_dose_target (id, _type, _unknown_attributes, paren
 -- Data for Name: imm_vaccination_protocol_dose_target_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_vaccination_protocol_dose_target_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY imm_vaccination_protocol_dose_target_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37612,7 +29255,7 @@ COPY imm_vaccination_protocol_dose_target_cd (id, _type, _unknown_attributes, pa
 -- Data for Name: imm_vaccination_protocol_dose_target_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_vaccination_protocol_dose_target_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_vaccination_protocol_dose_target_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37620,7 +29263,7 @@ COPY imm_vaccination_protocol_dose_target_cd_vs (id, _type, _unknown_attributes,
 -- Data for Name: imm_vaccine_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_vaccine_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY imm_vaccine_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37628,7 +29271,7 @@ COPY imm_vaccine_type (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: imm_vaccine_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_vaccine_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY imm_vaccine_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37636,7 +29279,7 @@ COPY imm_vaccine_type_cd (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: imm_vaccine_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY imm_vaccine_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY imm_vaccine_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37644,7 +29287,7 @@ COPY imm_vaccine_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: list; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, ordered, mode, date) FROM stdin;
+COPY list (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, ordered, mode, date) FROM stdin;
 \.
 
 
@@ -37652,7 +29295,7 @@ COPY list (id, _type, _unknown_attributes, resource_type, language, container_id
 -- Data for Name: list_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY list_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37660,7 +29303,7 @@ COPY list_code (id, _type, _unknown_attributes, parent_id, resource_id, created_
 -- Data for Name: list_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY list_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37668,7 +29311,7 @@ COPY list_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: list_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY list_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37676,7 +29319,7 @@ COPY list_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: list_empty_reason; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_empty_reason (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY list_empty_reason (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37684,7 +29327,7 @@ COPY list_empty_reason (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: list_empty_reason_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_empty_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY list_empty_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37692,7 +29335,7 @@ COPY list_empty_reason_cd (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: list_empty_reason_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_empty_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY list_empty_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37700,7 +29343,7 @@ COPY list_empty_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: list_entry; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_entry (id, _type, _unknown_attributes, parent_id, resource_id, created_at, deleted, date) FROM stdin;
+COPY list_entry (id, _type, _unknown_attributes, parent_id, resource_id, deleted, date) FROM stdin;
 \.
 
 
@@ -37708,7 +29351,7 @@ COPY list_entry (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: list_entry_flag; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_entry_flag (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY list_entry_flag (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37716,7 +29359,7 @@ COPY list_entry_flag (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: list_entry_flag_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_entry_flag_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY list_entry_flag_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37724,7 +29367,7 @@ COPY list_entry_flag_cd (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: list_entry_flag_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_entry_flag_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY list_entry_flag_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37732,7 +29375,7 @@ COPY list_entry_flag_cd_vs (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: list_entry_item; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_entry_item (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY list_entry_item (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37740,7 +29383,7 @@ COPY list_entry_item (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: list_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY list_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -37748,7 +29391,7 @@ COPY list_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_a
 -- Data for Name: list_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY list_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37756,7 +29399,7 @@ COPY list_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: list_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY list_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -37764,7 +29407,7 @@ COPY list_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: list_source; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_source (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY list_source (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37772,7 +29415,7 @@ COPY list_source (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: list_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY list_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37780,7 +29423,7 @@ COPY list_subject (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: list_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY list_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY list_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -37788,7 +29431,7 @@ COPY list_text (id, _type, _unknown_attributes, parent_id, resource_id, created_
 -- Data for Name: loc; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, status, mode, name, description) FROM stdin;
+COPY loc (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, status, mode, name, description) FROM stdin;
 \.
 
 
@@ -37796,7 +29439,7 @@ COPY loc (id, _type, _unknown_attributes, resource_type, language, container_id,
 -- Data for Name: loc_address; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_address (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, text, line, city, state, zip, country) FROM stdin;
+COPY loc_address (id, _type, _unknown_attributes, parent_id, resource_id, use, text, line, city, state, zip, country) FROM stdin;
 \.
 
 
@@ -37804,7 +29447,7 @@ COPY loc_address (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: loc_address_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_address_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY loc_address_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -37812,7 +29455,7 @@ COPY loc_address_period (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: loc_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY loc_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -37820,7 +29463,7 @@ COPY loc_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at
 -- Data for Name: loc_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY loc_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37828,7 +29471,7 @@ COPY loc_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: loc_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY loc_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -37836,7 +29479,7 @@ COPY loc_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: loc_managing_organization; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_managing_organization (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY loc_managing_organization (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37844,7 +29487,7 @@ COPY loc_managing_organization (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: loc_part_of; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_part_of (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY loc_part_of (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37852,7 +29495,7 @@ COPY loc_part_of (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: loc_physical_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_physical_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY loc_physical_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37860,7 +29503,7 @@ COPY loc_physical_type (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: loc_physical_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_physical_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY loc_physical_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37868,7 +29511,7 @@ COPY loc_physical_type_cd (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: loc_physical_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_physical_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY loc_physical_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37876,7 +29519,7 @@ COPY loc_physical_type_cd_vs (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: loc_position; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_position (id, _type, _unknown_attributes, parent_id, resource_id, created_at, altitude, latitude, longitude) FROM stdin;
+COPY loc_position (id, _type, _unknown_attributes, parent_id, resource_id, altitude, latitude, longitude) FROM stdin;
 \.
 
 
@@ -37884,7 +29527,7 @@ COPY loc_position (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: loc_telecom; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_telecom (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, value, use) FROM stdin;
+COPY loc_telecom (id, _type, _unknown_attributes, parent_id, resource_id, system, value, use) FROM stdin;
 \.
 
 
@@ -37892,7 +29535,7 @@ COPY loc_telecom (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: loc_telecom_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY loc_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -37900,7 +29543,7 @@ COPY loc_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: loc_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY loc_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -37908,7 +29551,7 @@ COPY loc_text (id, _type, _unknown_attributes, parent_id, resource_id, created_a
 -- Data for Name: loc_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY loc_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37916,7 +29559,7 @@ COPY loc_type (id, _type, _unknown_attributes, parent_id, resource_id, created_a
 -- Data for Name: loc_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY loc_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37924,7 +29567,7 @@ COPY loc_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: loc_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY loc_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY loc_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37932,7 +29575,7 @@ COPY loc_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: med; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, is_brand, kind, name) FROM stdin;
+COPY med (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, is_brand, kind, name) FROM stdin;
 \.
 
 
@@ -37940,7 +29583,7 @@ COPY med (id, _type, _unknown_attributes, resource_type, language, container_id,
 -- Data for Name: med_adm; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, was_not_given, status) FROM stdin;
+COPY med_adm (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, was_not_given, status) FROM stdin;
 \.
 
 
@@ -37948,7 +29591,7 @@ COPY med_adm (id, _type, _unknown_attributes, resource_type, language, container
 -- Data for Name: med_adm_device; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_device (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_adm_device (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37956,7 +29599,7 @@ COPY med_adm_device (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: med_adm_dosage; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage (id, _type, _unknown_attributes, parent_id, resource_id, created_at, as_needed_boolean, timing_date_time) FROM stdin;
+COPY med_adm_dosage (id, _type, _unknown_attributes, parent_id, resource_id, as_needed_boolean, timing_date_time) FROM stdin;
 \.
 
 
@@ -37964,7 +29607,7 @@ COPY med_adm_dosage (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: med_adm_dosage_as_needed_codeable_concept; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_as_needed_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_adm_dosage_as_needed_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -37972,7 +29615,7 @@ COPY med_adm_dosage_as_needed_codeable_concept (id, _type, _unknown_attributes, 
 -- Data for Name: med_adm_dosage_as_needed_codeable_concept_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_as_needed_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_adm_dosage_as_needed_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -37980,7 +29623,7 @@ COPY med_adm_dosage_as_needed_codeable_concept_cd (id, _type, _unknown_attribute
 -- Data for Name: med_adm_dosage_as_needed_codeable_concept_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_as_needed_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_adm_dosage_as_needed_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -37988,7 +29631,7 @@ COPY med_adm_dosage_as_needed_codeable_concept_cd_vs (id, _type, _unknown_attrib
 -- Data for Name: med_adm_dosage_max_dose_per_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_max_dose_per_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_adm_dosage_max_dose_per_period (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -37996,7 +29639,7 @@ COPY med_adm_dosage_max_dose_per_period (id, _type, _unknown_attributes, parent_
 -- Data for Name: med_adm_dosage_max_dose_per_period_denominator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_max_dose_per_period_denominator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_adm_dosage_max_dose_per_period_denominator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38004,7 +29647,7 @@ COPY med_adm_dosage_max_dose_per_period_denominator (id, _type, _unknown_attribu
 -- Data for Name: med_adm_dosage_max_dose_per_period_numerator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_max_dose_per_period_numerator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_adm_dosage_max_dose_per_period_numerator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38012,7 +29655,7 @@ COPY med_adm_dosage_max_dose_per_period_numerator (id, _type, _unknown_attribute
 -- Data for Name: med_adm_dosage_method; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_method (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_adm_dosage_method (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38020,7 +29663,7 @@ COPY med_adm_dosage_method (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: med_adm_dosage_method_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_method_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_adm_dosage_method_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38028,7 +29671,7 @@ COPY med_adm_dosage_method_cd (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: med_adm_dosage_method_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_method_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_adm_dosage_method_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38036,7 +29679,7 @@ COPY med_adm_dosage_method_cd_vs (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: med_adm_dosage_quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_adm_dosage_quantity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38044,7 +29687,7 @@ COPY med_adm_dosage_quantity (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: med_adm_dosage_rate; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_rate (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_adm_dosage_rate (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -38052,7 +29695,7 @@ COPY med_adm_dosage_rate (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: med_adm_dosage_rate_denominator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_rate_denominator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_adm_dosage_rate_denominator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38060,7 +29703,7 @@ COPY med_adm_dosage_rate_denominator (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: med_adm_dosage_rate_numerator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_rate_numerator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_adm_dosage_rate_numerator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38068,7 +29711,7 @@ COPY med_adm_dosage_rate_numerator (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: med_adm_dosage_route; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_route (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_adm_dosage_route (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38076,7 +29719,7 @@ COPY med_adm_dosage_route (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: med_adm_dosage_route_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_route_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_adm_dosage_route_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38084,7 +29727,7 @@ COPY med_adm_dosage_route_cd (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: med_adm_dosage_route_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_route_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_adm_dosage_route_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38092,7 +29735,7 @@ COPY med_adm_dosage_route_cd_vs (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: med_adm_dosage_site; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_site (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_adm_dosage_site (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38100,7 +29743,7 @@ COPY med_adm_dosage_site (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: med_adm_dosage_site_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_adm_dosage_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38108,7 +29751,7 @@ COPY med_adm_dosage_site_cd (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: med_adm_dosage_site_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_adm_dosage_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38116,7 +29759,7 @@ COPY med_adm_dosage_site_cd_vs (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: med_adm_dosage_timing_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_dosage_timing_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY med_adm_dosage_timing_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -38124,7 +29767,7 @@ COPY med_adm_dosage_timing_period (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: med_adm_encounter; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_encounter (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_adm_encounter (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38132,7 +29775,7 @@ COPY med_adm_encounter (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: med_adm_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY med_adm_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -38140,7 +29783,7 @@ COPY med_adm_idn (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: med_adm_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_adm_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38148,7 +29791,7 @@ COPY med_adm_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: med_adm_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY med_adm_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -38156,7 +29799,7 @@ COPY med_adm_idn_period (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: med_adm_med; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_med (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_adm_med (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38164,7 +29807,7 @@ COPY med_adm_med (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: med_adm_patient; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_patient (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_adm_patient (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38172,7 +29815,7 @@ COPY med_adm_patient (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: med_adm_practitioner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_practitioner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_adm_practitioner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38180,7 +29823,7 @@ COPY med_adm_practitioner (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: med_adm_prs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_prs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_adm_prs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38188,7 +29831,7 @@ COPY med_adm_prs (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: med_adm_reason_not_given; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_reason_not_given (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_adm_reason_not_given (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38196,7 +29839,7 @@ COPY med_adm_reason_not_given (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: med_adm_reason_not_given_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_reason_not_given_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_adm_reason_not_given_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38204,7 +29847,7 @@ COPY med_adm_reason_not_given_cd (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: med_adm_reason_not_given_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_reason_not_given_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_adm_reason_not_given_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38212,7 +29855,7 @@ COPY med_adm_reason_not_given_cd_vs (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: med_adm_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY med_adm_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -38220,7 +29863,7 @@ COPY med_adm_text (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: med_adm_when_given; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_adm_when_given (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY med_adm_when_given (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -38228,7 +29871,7 @@ COPY med_adm_when_given (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: med_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38236,7 +29879,7 @@ COPY med_code (id, _type, _unknown_attributes, parent_id, resource_id, created_a
 -- Data for Name: med_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38244,7 +29887,7 @@ COPY med_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: med_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38252,7 +29895,7 @@ COPY med_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: med_disp; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, status) FROM stdin;
+COPY med_disp (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, status) FROM stdin;
 \.
 
 
@@ -38260,7 +29903,7 @@ COPY med_disp (id, _type, _unknown_attributes, resource_type, language, containe
 -- Data for Name: med_disp_authorizing_prescription; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_authorizing_prescription (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_authorizing_prescription (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38268,7 +29911,7 @@ COPY med_disp_authorizing_prescription (id, _type, _unknown_attributes, parent_i
 -- Data for Name: med_disp_dispense; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, when_prepared, when_handed_over) FROM stdin;
+COPY med_disp_dispense (id, _type, _unknown_attributes, parent_id, resource_id, status, when_prepared, when_handed_over) FROM stdin;
 \.
 
 
@@ -38276,7 +29919,7 @@ COPY med_disp_dispense (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: med_disp_dispense_destination; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_destination (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_dispense_destination (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38284,7 +29927,7 @@ COPY med_disp_dispense_destination (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: med_disp_dispense_dosage; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage (id, _type, _unknown_attributes, parent_id, resource_id, created_at, as_needed_boolean, timing_date_time) FROM stdin;
+COPY med_disp_dispense_dosage (id, _type, _unknown_attributes, parent_id, resource_id, as_needed_boolean, timing_date_time) FROM stdin;
 \.
 
 
@@ -38292,7 +29935,7 @@ COPY med_disp_dispense_dosage (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: med_disp_dispense_dosage_additional_instructions; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_additional_instructions (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_disp_dispense_dosage_additional_instructions (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38300,7 +29943,7 @@ COPY med_disp_dispense_dosage_additional_instructions (id, _type, _unknown_attri
 -- Data for Name: med_disp_dispense_dosage_additional_instructions_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_additional_instructions_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_disp_dispense_dosage_additional_instructions_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38308,7 +29951,7 @@ COPY med_disp_dispense_dosage_additional_instructions_cd (id, _type, _unknown_at
 -- Data for Name: med_disp_dispense_dosage_additional_instructions_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_additional_instructions_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_dispense_dosage_additional_instructions_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38316,7 +29959,7 @@ COPY med_disp_dispense_dosage_additional_instructions_cd_vs (id, _type, _unknown
 -- Data for Name: med_disp_dispense_dosage_as_needed_codeable_concept; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_as_needed_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_disp_dispense_dosage_as_needed_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38324,7 +29967,7 @@ COPY med_disp_dispense_dosage_as_needed_codeable_concept (id, _type, _unknown_at
 -- Data for Name: med_disp_dispense_dosage_as_needed_codeable_concept_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_as_needed_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_disp_dispense_dosage_as_needed_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38332,7 +29975,7 @@ COPY med_disp_dispense_dosage_as_needed_codeable_concept_cd (id, _type, _unknown
 -- Data for Name: med_disp_dispense_dosage_as_needed_codeable_concept_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_as_needed_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_dispense_dosage_as_needed_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38340,7 +29983,7 @@ COPY med_disp_dispense_dosage_as_needed_codeable_concept_cd_vs (id, _type, _unkn
 -- Data for Name: med_disp_dispense_dosage_max_dose_per_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_max_dose_per_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_disp_dispense_dosage_max_dose_per_period (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -38348,7 +29991,7 @@ COPY med_disp_dispense_dosage_max_dose_per_period (id, _type, _unknown_attribute
 -- Data for Name: med_disp_dispense_dosage_max_dose_per_period_denominator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_max_dose_per_period_denominator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_disp_dispense_dosage_max_dose_per_period_denominator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38356,7 +29999,7 @@ COPY med_disp_dispense_dosage_max_dose_per_period_denominator (id, _type, _unkno
 -- Data for Name: med_disp_dispense_dosage_max_dose_per_period_numerator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_max_dose_per_period_numerator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_disp_dispense_dosage_max_dose_per_period_numerator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38364,7 +30007,7 @@ COPY med_disp_dispense_dosage_max_dose_per_period_numerator (id, _type, _unknown
 -- Data for Name: med_disp_dispense_dosage_method; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_method (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_disp_dispense_dosage_method (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38372,7 +30015,7 @@ COPY med_disp_dispense_dosage_method (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: med_disp_dispense_dosage_method_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_method_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_disp_dispense_dosage_method_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38380,7 +30023,7 @@ COPY med_disp_dispense_dosage_method_cd (id, _type, _unknown_attributes, parent_
 -- Data for Name: med_disp_dispense_dosage_method_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_method_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_dispense_dosage_method_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38388,7 +30031,7 @@ COPY med_disp_dispense_dosage_method_cd_vs (id, _type, _unknown_attributes, pare
 -- Data for Name: med_disp_dispense_dosage_quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_disp_dispense_dosage_quantity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38396,7 +30039,7 @@ COPY med_disp_dispense_dosage_quantity (id, _type, _unknown_attributes, parent_i
 -- Data for Name: med_disp_dispense_dosage_rate; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_rate (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_disp_dispense_dosage_rate (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -38404,7 +30047,7 @@ COPY med_disp_dispense_dosage_rate (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: med_disp_dispense_dosage_rate_denominator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_rate_denominator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_disp_dispense_dosage_rate_denominator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38412,7 +30055,7 @@ COPY med_disp_dispense_dosage_rate_denominator (id, _type, _unknown_attributes, 
 -- Data for Name: med_disp_dispense_dosage_rate_numerator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_rate_numerator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_disp_dispense_dosage_rate_numerator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38420,7 +30063,7 @@ COPY med_disp_dispense_dosage_rate_numerator (id, _type, _unknown_attributes, pa
 -- Data for Name: med_disp_dispense_dosage_route; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_route (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_disp_dispense_dosage_route (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38428,7 +30071,7 @@ COPY med_disp_dispense_dosage_route (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: med_disp_dispense_dosage_route_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_route_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_disp_dispense_dosage_route_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38436,7 +30079,7 @@ COPY med_disp_dispense_dosage_route_cd (id, _type, _unknown_attributes, parent_i
 -- Data for Name: med_disp_dispense_dosage_route_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_route_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_dispense_dosage_route_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38444,7 +30087,7 @@ COPY med_disp_dispense_dosage_route_cd_vs (id, _type, _unknown_attributes, paren
 -- Data for Name: med_disp_dispense_dosage_site; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_site (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_disp_dispense_dosage_site (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38452,7 +30095,7 @@ COPY med_disp_dispense_dosage_site (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: med_disp_dispense_dosage_site_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_disp_dispense_dosage_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38460,7 +30103,7 @@ COPY med_disp_dispense_dosage_site_cd (id, _type, _unknown_attributes, parent_id
 -- Data for Name: med_disp_dispense_dosage_site_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_dispense_dosage_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38468,7 +30111,7 @@ COPY med_disp_dispense_dosage_site_cd_vs (id, _type, _unknown_attributes, parent
 -- Data for Name: med_disp_dispense_dosage_timing_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_timing_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY med_disp_dispense_dosage_timing_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -38476,7 +30119,7 @@ COPY med_disp_dispense_dosage_timing_period (id, _type, _unknown_attributes, par
 -- Data for Name: med_disp_dispense_dosage_timing_schedule; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_timing_schedule (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_disp_dispense_dosage_timing_schedule (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -38484,7 +30127,7 @@ COPY med_disp_dispense_dosage_timing_schedule (id, _type, _unknown_attributes, p
 -- Data for Name: med_disp_dispense_dosage_timing_schedule_event; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_timing_schedule_event (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY med_disp_dispense_dosage_timing_schedule_event (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -38492,7 +30135,7 @@ COPY med_disp_dispense_dosage_timing_schedule_event (id, _type, _unknown_attribu
 -- Data for Name: med_disp_dispense_dosage_timing_schedule_repeat; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_dosage_timing_schedule_repeat (id, _type, _unknown_attributes, parent_id, resource_id, created_at, frequency, "when", duration, units, count, "end") FROM stdin;
+COPY med_disp_dispense_dosage_timing_schedule_repeat (id, _type, _unknown_attributes, parent_id, resource_id, frequency, "when", duration, units, count, "end") FROM stdin;
 \.
 
 
@@ -38500,7 +30143,7 @@ COPY med_disp_dispense_dosage_timing_schedule_repeat (id, _type, _unknown_attrib
 -- Data for Name: med_disp_dispense_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY med_disp_dispense_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -38508,7 +30151,7 @@ COPY med_disp_dispense_idn (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: med_disp_dispense_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_dispense_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38516,7 +30159,7 @@ COPY med_disp_dispense_idn_assigner (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: med_disp_dispense_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY med_disp_dispense_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -38524,7 +30167,7 @@ COPY med_disp_dispense_idn_period (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: med_disp_dispense_med; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_med (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_dispense_med (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38532,7 +30175,7 @@ COPY med_disp_dispense_med (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: med_disp_dispense_quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_disp_dispense_quantity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38540,7 +30183,7 @@ COPY med_disp_dispense_quantity (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: med_disp_dispense_receiver; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_receiver (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_dispense_receiver (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38548,7 +30191,7 @@ COPY med_disp_dispense_receiver (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: med_disp_dispense_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_disp_dispense_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38556,7 +30199,7 @@ COPY med_disp_dispense_type (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: med_disp_dispense_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_disp_dispense_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38564,7 +30207,7 @@ COPY med_disp_dispense_type_cd (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: med_disp_dispense_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispense_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_dispense_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38572,7 +30215,7 @@ COPY med_disp_dispense_type_cd_vs (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: med_disp_dispenser; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_dispenser (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_dispenser (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38580,7 +30223,7 @@ COPY med_disp_dispenser (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: med_disp_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY med_disp_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -38588,7 +30231,7 @@ COPY med_disp_idn (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: med_disp_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38596,7 +30239,7 @@ COPY med_disp_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: med_disp_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY med_disp_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -38604,7 +30247,7 @@ COPY med_disp_idn_period (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: med_disp_patient; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_patient (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_patient (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38612,7 +30255,7 @@ COPY med_disp_patient (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: med_disp_substitution; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_substitution (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_disp_substitution (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -38620,7 +30263,7 @@ COPY med_disp_substitution (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: med_disp_substitution_reason; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_substitution_reason (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_disp_substitution_reason (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38628,7 +30271,7 @@ COPY med_disp_substitution_reason (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: med_disp_substitution_reason_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_substitution_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_disp_substitution_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38636,7 +30279,7 @@ COPY med_disp_substitution_reason_cd (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: med_disp_substitution_reason_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_substitution_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_substitution_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38644,7 +30287,7 @@ COPY med_disp_substitution_reason_cd_vs (id, _type, _unknown_attributes, parent_
 -- Data for Name: med_disp_substitution_responsible_party; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_substitution_responsible_party (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_substitution_responsible_party (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38652,7 +30295,7 @@ COPY med_disp_substitution_responsible_party (id, _type, _unknown_attributes, pa
 -- Data for Name: med_disp_substitution_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_substitution_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_disp_substitution_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38660,7 +30303,7 @@ COPY med_disp_substitution_type (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: med_disp_substitution_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_substitution_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_disp_substitution_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38668,7 +30311,7 @@ COPY med_disp_substitution_type_cd (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: med_disp_substitution_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_substitution_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_disp_substitution_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38676,7 +30319,7 @@ COPY med_disp_substitution_type_cd_vs (id, _type, _unknown_attributes, parent_id
 -- Data for Name: med_disp_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_disp_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY med_disp_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -38684,7 +30327,7 @@ COPY med_disp_text (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: med_manufacturer; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_manufacturer (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_manufacturer (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38692,7 +30335,7 @@ COPY med_manufacturer (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: med_package; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_package (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_package (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -38700,7 +30343,7 @@ COPY med_package (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: med_package_container; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_package_container (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_package_container (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38708,7 +30351,7 @@ COPY med_package_container (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: med_package_container_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_package_container_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_package_container_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38716,7 +30359,7 @@ COPY med_package_container_cd (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: med_package_container_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_package_container_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_package_container_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38724,7 +30367,7 @@ COPY med_package_container_cd_vs (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: med_package_content; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_package_content (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_package_content (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -38732,7 +30375,7 @@ COPY med_package_content (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: med_package_content_amount; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_package_content_amount (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_package_content_amount (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38740,7 +30383,7 @@ COPY med_package_content_amount (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: med_package_content_item; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_package_content_item (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_package_content_item (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38748,7 +30391,7 @@ COPY med_package_content_item (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: med_product; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_product (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_product (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -38756,7 +30399,7 @@ COPY med_product (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: med_product_form; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_product_form (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_product_form (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38764,7 +30407,7 @@ COPY med_product_form (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: med_product_form_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_product_form_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_product_form_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38772,7 +30415,7 @@ COPY med_product_form_cd (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: med_product_form_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_product_form_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_product_form_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38780,7 +30423,7 @@ COPY med_product_form_cd_vs (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: med_product_ingredient; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_product_ingredient (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_product_ingredient (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -38788,7 +30431,7 @@ COPY med_product_ingredient (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: med_product_ingredient_amount; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_product_ingredient_amount (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_product_ingredient_amount (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -38796,7 +30439,7 @@ COPY med_product_ingredient_amount (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: med_product_ingredient_amount_denominator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_product_ingredient_amount_denominator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_product_ingredient_amount_denominator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38804,7 +30447,7 @@ COPY med_product_ingredient_amount_denominator (id, _type, _unknown_attributes, 
 -- Data for Name: med_product_ingredient_amount_numerator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_product_ingredient_amount_numerator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_product_ingredient_amount_numerator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38812,7 +30455,7 @@ COPY med_product_ingredient_amount_numerator (id, _type, _unknown_attributes, pa
 -- Data for Name: med_product_ingredient_item; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_product_ingredient_item (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_product_ingredient_item (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38820,7 +30463,7 @@ COPY med_product_ingredient_item (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: med_prs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, status, date_written) FROM stdin;
+COPY med_prs (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, status, date_written) FROM stdin;
 \.
 
 
@@ -38828,7 +30471,7 @@ COPY med_prs (id, _type, _unknown_attributes, resource_type, language, container
 -- Data for Name: med_prs_dispense; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dispense (id, _type, _unknown_attributes, parent_id, resource_id, created_at, number_of_repeats_allowed) FROM stdin;
+COPY med_prs_dispense (id, _type, _unknown_attributes, parent_id, resource_id, number_of_repeats_allowed) FROM stdin;
 \.
 
 
@@ -38836,7 +30479,7 @@ COPY med_prs_dispense (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: med_prs_dispense_med; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dispense_med (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_prs_dispense_med (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38844,7 +30487,7 @@ COPY med_prs_dispense_med (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: med_prs_dispense_quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dispense_quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_prs_dispense_quantity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38852,7 +30495,7 @@ COPY med_prs_dispense_quantity (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: med_prs_dispense_validity_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dispense_validity_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY med_prs_dispense_validity_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -38860,7 +30503,7 @@ COPY med_prs_dispense_validity_period (id, _type, _unknown_attributes, parent_id
 -- Data for Name: med_prs_dosage_instruction; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction (id, _type, _unknown_attributes, parent_id, resource_id, created_at, as_needed_boolean, timing_date_time, text) FROM stdin;
+COPY med_prs_dosage_instruction (id, _type, _unknown_attributes, parent_id, resource_id, as_needed_boolean, timing_date_time, text) FROM stdin;
 \.
 
 
@@ -38868,7 +30511,7 @@ COPY med_prs_dosage_instruction (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: med_prs_dosage_instruction_additional_instructions; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_additional_instructions (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_prs_dosage_instruction_additional_instructions (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38876,7 +30519,7 @@ COPY med_prs_dosage_instruction_additional_instructions (id, _type, _unknown_att
 -- Data for Name: med_prs_dosage_instruction_additional_instructions_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_additional_instructions_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_prs_dosage_instruction_additional_instructions_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38884,7 +30527,7 @@ COPY med_prs_dosage_instruction_additional_instructions_cd (id, _type, _unknown_
 -- Data for Name: med_prs_dosage_instruction_additional_instructions_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_additional_instructions_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_prs_dosage_instruction_additional_instructions_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38892,7 +30535,7 @@ COPY med_prs_dosage_instruction_additional_instructions_cd_vs (id, _type, _unkno
 -- Data for Name: med_prs_dosage_instruction_as_needed_codeable_concept; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_as_needed_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_prs_dosage_instruction_as_needed_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38900,7 +30543,7 @@ COPY med_prs_dosage_instruction_as_needed_codeable_concept (id, _type, _unknown_
 -- Data for Name: med_prs_dosage_instruction_as_needed_codeable_concept_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_as_needed_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_prs_dosage_instruction_as_needed_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38908,7 +30551,7 @@ COPY med_prs_dosage_instruction_as_needed_codeable_concept_cd (id, _type, _unkno
 -- Data for Name: med_prs_dosage_instruction_as_needed_codeable_concept_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_as_needed_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_prs_dosage_instruction_as_needed_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38916,7 +30559,7 @@ COPY med_prs_dosage_instruction_as_needed_codeable_concept_cd_vs (id, _type, _un
 -- Data for Name: med_prs_dosage_instruction_dose_quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_dose_quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_prs_dosage_instruction_dose_quantity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38924,7 +30567,7 @@ COPY med_prs_dosage_instruction_dose_quantity (id, _type, _unknown_attributes, p
 -- Data for Name: med_prs_dosage_instruction_max_dose_per_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_max_dose_per_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_prs_dosage_instruction_max_dose_per_period (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -38932,7 +30575,7 @@ COPY med_prs_dosage_instruction_max_dose_per_period (id, _type, _unknown_attribu
 -- Data for Name: med_prs_dosage_instruction_max_dose_per_period_denominator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_max_dose_per_period_denominator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_prs_dosage_instruction_max_dose_per_period_denominator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38940,7 +30583,7 @@ COPY med_prs_dosage_instruction_max_dose_per_period_denominator (id, _type, _unk
 -- Data for Name: med_prs_dosage_instruction_max_dose_per_period_numerator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_max_dose_per_period_numerator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_prs_dosage_instruction_max_dose_per_period_numerator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38948,7 +30591,7 @@ COPY med_prs_dosage_instruction_max_dose_per_period_numerator (id, _type, _unkno
 -- Data for Name: med_prs_dosage_instruction_method; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_method (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_prs_dosage_instruction_method (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -38956,7 +30599,7 @@ COPY med_prs_dosage_instruction_method (id, _type, _unknown_attributes, parent_i
 -- Data for Name: med_prs_dosage_instruction_method_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_method_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_prs_dosage_instruction_method_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -38964,7 +30607,7 @@ COPY med_prs_dosage_instruction_method_cd (id, _type, _unknown_attributes, paren
 -- Data for Name: med_prs_dosage_instruction_method_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_method_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_prs_dosage_instruction_method_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -38972,7 +30615,7 @@ COPY med_prs_dosage_instruction_method_cd_vs (id, _type, _unknown_attributes, pa
 -- Data for Name: med_prs_dosage_instruction_rate; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_rate (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_prs_dosage_instruction_rate (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -38980,7 +30623,7 @@ COPY med_prs_dosage_instruction_rate (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: med_prs_dosage_instruction_rate_denominator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_rate_denominator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_prs_dosage_instruction_rate_denominator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38988,7 +30631,7 @@ COPY med_prs_dosage_instruction_rate_denominator (id, _type, _unknown_attributes
 -- Data for Name: med_prs_dosage_instruction_rate_numerator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_rate_numerator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_prs_dosage_instruction_rate_numerator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -38996,7 +30639,7 @@ COPY med_prs_dosage_instruction_rate_numerator (id, _type, _unknown_attributes, 
 -- Data for Name: med_prs_dosage_instruction_route; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_route (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_prs_dosage_instruction_route (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39004,7 +30647,7 @@ COPY med_prs_dosage_instruction_route (id, _type, _unknown_attributes, parent_id
 -- Data for Name: med_prs_dosage_instruction_route_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_route_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_prs_dosage_instruction_route_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39012,7 +30655,7 @@ COPY med_prs_dosage_instruction_route_cd (id, _type, _unknown_attributes, parent
 -- Data for Name: med_prs_dosage_instruction_route_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_route_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_prs_dosage_instruction_route_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39020,7 +30663,7 @@ COPY med_prs_dosage_instruction_route_cd_vs (id, _type, _unknown_attributes, par
 -- Data for Name: med_prs_dosage_instruction_site; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_site (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_prs_dosage_instruction_site (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39028,7 +30671,7 @@ COPY med_prs_dosage_instruction_site (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: med_prs_dosage_instruction_site_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_prs_dosage_instruction_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39036,7 +30679,7 @@ COPY med_prs_dosage_instruction_site_cd (id, _type, _unknown_attributes, parent_
 -- Data for Name: med_prs_dosage_instruction_site_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_prs_dosage_instruction_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39044,7 +30687,7 @@ COPY med_prs_dosage_instruction_site_cd_vs (id, _type, _unknown_attributes, pare
 -- Data for Name: med_prs_dosage_instruction_timing_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_timing_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY med_prs_dosage_instruction_timing_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -39052,7 +30695,7 @@ COPY med_prs_dosage_instruction_timing_period (id, _type, _unknown_attributes, p
 -- Data for Name: med_prs_dosage_instruction_timing_schedule; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_timing_schedule (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_prs_dosage_instruction_timing_schedule (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -39060,7 +30703,7 @@ COPY med_prs_dosage_instruction_timing_schedule (id, _type, _unknown_attributes,
 -- Data for Name: med_prs_dosage_instruction_timing_schedule_event; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_timing_schedule_event (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY med_prs_dosage_instruction_timing_schedule_event (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -39068,7 +30711,7 @@ COPY med_prs_dosage_instruction_timing_schedule_event (id, _type, _unknown_attri
 -- Data for Name: med_prs_dosage_instruction_timing_schedule_repeat; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_dosage_instruction_timing_schedule_repeat (id, _type, _unknown_attributes, parent_id, resource_id, created_at, frequency, "when", duration, units, count, "end") FROM stdin;
+COPY med_prs_dosage_instruction_timing_schedule_repeat (id, _type, _unknown_attributes, parent_id, resource_id, frequency, "when", duration, units, count, "end") FROM stdin;
 \.
 
 
@@ -39076,7 +30719,7 @@ COPY med_prs_dosage_instruction_timing_schedule_repeat (id, _type, _unknown_attr
 -- Data for Name: med_prs_encounter; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_encounter (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_prs_encounter (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39084,7 +30727,7 @@ COPY med_prs_encounter (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: med_prs_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY med_prs_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -39092,7 +30735,7 @@ COPY med_prs_idn (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: med_prs_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_prs_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39100,7 +30743,7 @@ COPY med_prs_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: med_prs_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY med_prs_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -39108,7 +30751,7 @@ COPY med_prs_idn_period (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: med_prs_med; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_med (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_prs_med (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39116,7 +30759,7 @@ COPY med_prs_med (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: med_prs_patient; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_patient (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_prs_patient (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39124,7 +30767,7 @@ COPY med_prs_patient (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: med_prs_prescriber; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_prescriber (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_prs_prescriber (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39132,7 +30775,7 @@ COPY med_prs_prescriber (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: med_prs_reason_codeable_concept; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_reason_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_prs_reason_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39140,7 +30783,7 @@ COPY med_prs_reason_codeable_concept (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: med_prs_reason_codeable_concept_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_reason_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_prs_reason_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39148,7 +30791,7 @@ COPY med_prs_reason_codeable_concept_cd (id, _type, _unknown_attributes, parent_
 -- Data for Name: med_prs_reason_codeable_concept_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_reason_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_prs_reason_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39156,7 +30799,7 @@ COPY med_prs_reason_codeable_concept_cd_vs (id, _type, _unknown_attributes, pare
 -- Data for Name: med_prs_reason_resource_reference; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_reason_resource_reference (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_prs_reason_resource_reference (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39164,7 +30807,7 @@ COPY med_prs_reason_resource_reference (id, _type, _unknown_attributes, parent_i
 -- Data for Name: med_prs_substitution; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_substitution (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_prs_substitution (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -39172,7 +30815,7 @@ COPY med_prs_substitution (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: med_prs_substitution_reason; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_substitution_reason (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_prs_substitution_reason (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39180,7 +30823,7 @@ COPY med_prs_substitution_reason (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: med_prs_substitution_reason_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_substitution_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_prs_substitution_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39188,7 +30831,7 @@ COPY med_prs_substitution_reason_cd (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: med_prs_substitution_reason_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_substitution_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_prs_substitution_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39196,7 +30839,7 @@ COPY med_prs_substitution_reason_cd_vs (id, _type, _unknown_attributes, parent_i
 -- Data for Name: med_prs_substitution_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_substitution_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_prs_substitution_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39204,7 +30847,7 @@ COPY med_prs_substitution_type (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: med_prs_substitution_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_substitution_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_prs_substitution_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39212,7 +30855,7 @@ COPY med_prs_substitution_type_cd (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: med_prs_substitution_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_substitution_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_prs_substitution_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39220,7 +30863,7 @@ COPY med_prs_substitution_type_cd_vs (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: med_prs_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_prs_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY med_prs_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -39228,7 +30871,7 @@ COPY med_prs_text (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: med_st; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, was_not_given) FROM stdin;
+COPY med_st (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, was_not_given) FROM stdin;
 \.
 
 
@@ -39236,7 +30879,7 @@ COPY med_st (id, _type, _unknown_attributes, resource_type, language, container_
 -- Data for Name: med_st_device; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_device (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_st_device (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39244,7 +30887,7 @@ COPY med_st_device (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: med_st_dosage; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage (id, _type, _unknown_attributes, parent_id, resource_id, created_at, as_needed_boolean) FROM stdin;
+COPY med_st_dosage (id, _type, _unknown_attributes, parent_id, resource_id, as_needed_boolean) FROM stdin;
 \.
 
 
@@ -39252,7 +30895,7 @@ COPY med_st_dosage (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: med_st_dosage_as_needed_codeable_concept; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_as_needed_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_st_dosage_as_needed_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39260,7 +30903,7 @@ COPY med_st_dosage_as_needed_codeable_concept (id, _type, _unknown_attributes, p
 -- Data for Name: med_st_dosage_as_needed_codeable_concept_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_as_needed_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_st_dosage_as_needed_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39268,7 +30911,7 @@ COPY med_st_dosage_as_needed_codeable_concept_cd (id, _type, _unknown_attributes
 -- Data for Name: med_st_dosage_as_needed_codeable_concept_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_as_needed_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_st_dosage_as_needed_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39276,7 +30919,7 @@ COPY med_st_dosage_as_needed_codeable_concept_cd_vs (id, _type, _unknown_attribu
 -- Data for Name: med_st_dosage_max_dose_per_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_max_dose_per_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_st_dosage_max_dose_per_period (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -39284,7 +30927,7 @@ COPY med_st_dosage_max_dose_per_period (id, _type, _unknown_attributes, parent_i
 -- Data for Name: med_st_dosage_max_dose_per_period_denominator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_max_dose_per_period_denominator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_st_dosage_max_dose_per_period_denominator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -39292,7 +30935,7 @@ COPY med_st_dosage_max_dose_per_period_denominator (id, _type, _unknown_attribut
 -- Data for Name: med_st_dosage_max_dose_per_period_numerator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_max_dose_per_period_numerator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_st_dosage_max_dose_per_period_numerator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -39300,7 +30943,7 @@ COPY med_st_dosage_max_dose_per_period_numerator (id, _type, _unknown_attributes
 -- Data for Name: med_st_dosage_method; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_method (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_st_dosage_method (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39308,7 +30951,7 @@ COPY med_st_dosage_method (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: med_st_dosage_method_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_method_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_st_dosage_method_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39316,7 +30959,7 @@ COPY med_st_dosage_method_cd (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: med_st_dosage_method_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_method_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_st_dosage_method_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39324,7 +30967,7 @@ COPY med_st_dosage_method_cd_vs (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: med_st_dosage_quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_st_dosage_quantity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -39332,7 +30975,7 @@ COPY med_st_dosage_quantity (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: med_st_dosage_rate; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_rate (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_st_dosage_rate (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -39340,7 +30983,7 @@ COPY med_st_dosage_rate (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: med_st_dosage_rate_denominator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_rate_denominator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_st_dosage_rate_denominator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -39348,7 +30991,7 @@ COPY med_st_dosage_rate_denominator (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: med_st_dosage_rate_numerator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_rate_numerator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY med_st_dosage_rate_numerator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -39356,7 +30999,7 @@ COPY med_st_dosage_rate_numerator (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: med_st_dosage_route; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_route (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_st_dosage_route (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39364,7 +31007,7 @@ COPY med_st_dosage_route (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: med_st_dosage_route_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_route_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_st_dosage_route_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39372,7 +31015,7 @@ COPY med_st_dosage_route_cd (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: med_st_dosage_route_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_route_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_st_dosage_route_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39380,7 +31023,7 @@ COPY med_st_dosage_route_cd_vs (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: med_st_dosage_site; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_site (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_st_dosage_site (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39388,7 +31031,7 @@ COPY med_st_dosage_site (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: med_st_dosage_site_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_st_dosage_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39396,7 +31039,7 @@ COPY med_st_dosage_site_cd (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: med_st_dosage_site_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_st_dosage_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39404,7 +31047,7 @@ COPY med_st_dosage_site_cd_vs (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: med_st_dosage_timing; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_timing (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY med_st_dosage_timing (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -39412,7 +31055,7 @@ COPY med_st_dosage_timing (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: med_st_dosage_timing_event; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_timing_event (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY med_st_dosage_timing_event (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -39420,7 +31063,7 @@ COPY med_st_dosage_timing_event (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: med_st_dosage_timing_repeat; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_dosage_timing_repeat (id, _type, _unknown_attributes, parent_id, resource_id, created_at, frequency, "when", duration, units, count, "end") FROM stdin;
+COPY med_st_dosage_timing_repeat (id, _type, _unknown_attributes, parent_id, resource_id, frequency, "when", duration, units, count, "end") FROM stdin;
 \.
 
 
@@ -39428,7 +31071,7 @@ COPY med_st_dosage_timing_repeat (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: med_st_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY med_st_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -39436,7 +31079,7 @@ COPY med_st_idn (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: med_st_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_st_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39444,7 +31087,7 @@ COPY med_st_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: med_st_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY med_st_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -39452,7 +31095,7 @@ COPY med_st_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: med_st_med; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_med (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_st_med (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39460,7 +31103,7 @@ COPY med_st_med (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: med_st_patient; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_patient (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_st_patient (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39468,7 +31111,7 @@ COPY med_st_patient (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: med_st_reason_not_given; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_reason_not_given (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY med_st_reason_not_given (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39476,7 +31119,7 @@ COPY med_st_reason_not_given (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: med_st_reason_not_given_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_reason_not_given_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY med_st_reason_not_given_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39484,7 +31127,7 @@ COPY med_st_reason_not_given_cd (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: med_st_reason_not_given_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_reason_not_given_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY med_st_reason_not_given_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39492,7 +31135,7 @@ COPY med_st_reason_not_given_cd_vs (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: med_st_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY med_st_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -39500,7 +31143,7 @@ COPY med_st_text (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: med_st_when_given; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_st_when_given (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY med_st_when_given (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -39508,7 +31151,7 @@ COPY med_st_when_given (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: med_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY med_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY med_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -39516,7 +31159,7 @@ COPY med_text (id, _type, _unknown_attributes, parent_id, resource_id, created_a
 -- Data for Name: media; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY media (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, type, date_time, width, frames, length, height, device_name) FROM stdin;
+COPY media (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, type, date_time, width, frames, length, height, device_name) FROM stdin;
 \.
 
 
@@ -39524,7 +31167,7 @@ COPY media (id, _type, _unknown_attributes, resource_type, language, container_i
 -- Data for Name: media_content; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY media_content (id, _type, _unknown_attributes, parent_id, resource_id, created_at, content_type, language, data, url, size, hash, title) FROM stdin;
+COPY media_content (id, _type, _unknown_attributes, parent_id, resource_id, content_type, language, data, url, size, hash, title) FROM stdin;
 \.
 
 
@@ -39532,7 +31175,7 @@ COPY media_content (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: media_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY media_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY media_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -39540,7 +31183,7 @@ COPY media_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_
 -- Data for Name: media_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY media_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY media_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39548,7 +31191,7 @@ COPY media_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: media_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY media_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY media_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -39556,7 +31199,7 @@ COPY media_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: media_operator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY media_operator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY media_operator (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39564,7 +31207,7 @@ COPY media_operator (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: media_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY media_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY media_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39572,7 +31215,7 @@ COPY media_subject (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: media_subtype; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY media_subtype (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY media_subtype (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39580,7 +31223,7 @@ COPY media_subtype (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: media_subtype_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY media_subtype_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY media_subtype_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39588,7 +31231,7 @@ COPY media_subtype_cd (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: media_subtype_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY media_subtype_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY media_subtype_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39596,7 +31239,7 @@ COPY media_subtype_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: media_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY media_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY media_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -39604,7 +31247,7 @@ COPY media_text (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: media_view; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY media_view (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY media_view (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39612,7 +31255,7 @@ COPY media_view (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: media_view_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY media_view_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY media_view_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39620,7 +31263,7 @@ COPY media_view_cd (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: media_view_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY media_view_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY media_view_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39628,7 +31271,7 @@ COPY media_view_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: message_header; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, identifier, "timestamp") FROM stdin;
+COPY message_header (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, identifier, "timestamp") FROM stdin;
 \.
 
 
@@ -39636,7 +31279,7 @@ COPY message_header (id, _type, _unknown_attributes, resource_type, language, co
 -- Data for Name: message_header_author; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_author (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY message_header_author (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39644,7 +31287,7 @@ COPY message_header_author (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: message_header_data; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_data (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY message_header_data (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39652,7 +31295,7 @@ COPY message_header_data (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: message_header_destination; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_destination (id, _type, _unknown_attributes, parent_id, resource_id, created_at, name, endpoint) FROM stdin;
+COPY message_header_destination (id, _type, _unknown_attributes, parent_id, resource_id, name, endpoint) FROM stdin;
 \.
 
 
@@ -39660,7 +31303,7 @@ COPY message_header_destination (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: message_header_destination_target; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_destination_target (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY message_header_destination_target (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39668,7 +31311,7 @@ COPY message_header_destination_target (id, _type, _unknown_attributes, parent_i
 -- Data for Name: message_header_enterer; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_enterer (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY message_header_enterer (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39676,7 +31319,7 @@ COPY message_header_enterer (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: message_header_event; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_event (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY message_header_event (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39684,7 +31327,7 @@ COPY message_header_event (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: message_header_event_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_event_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY message_header_event_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39692,7 +31335,7 @@ COPY message_header_event_vs (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: message_header_reason; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_reason (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY message_header_reason (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39700,7 +31343,7 @@ COPY message_header_reason (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: message_header_reason_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY message_header_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39708,7 +31351,7 @@ COPY message_header_reason_cd (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: message_header_reason_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY message_header_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39716,7 +31359,7 @@ COPY message_header_reason_cd_vs (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: message_header_receiver; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_receiver (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY message_header_receiver (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39724,7 +31367,7 @@ COPY message_header_receiver (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: message_header_response; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_response (id, _type, _unknown_attributes, parent_id, resource_id, created_at, code, identifier) FROM stdin;
+COPY message_header_response (id, _type, _unknown_attributes, parent_id, resource_id, code, identifier) FROM stdin;
 \.
 
 
@@ -39732,7 +31375,7 @@ COPY message_header_response (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: message_header_response_details; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_response_details (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY message_header_response_details (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39740,7 +31383,7 @@ COPY message_header_response_details (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: message_header_responsible; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_responsible (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY message_header_responsible (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39748,7 +31391,7 @@ COPY message_header_responsible (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: message_header_source; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_source (id, _type, _unknown_attributes, parent_id, resource_id, created_at, name, software, version, endpoint) FROM stdin;
+COPY message_header_source (id, _type, _unknown_attributes, parent_id, resource_id, name, software, version, endpoint) FROM stdin;
 \.
 
 
@@ -39756,7 +31399,7 @@ COPY message_header_source (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: message_header_source_contact; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_source_contact (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, value, use) FROM stdin;
+COPY message_header_source_contact (id, _type, _unknown_attributes, parent_id, resource_id, system, value, use) FROM stdin;
 \.
 
 
@@ -39764,7 +31407,7 @@ COPY message_header_source_contact (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: message_header_source_contact_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_source_contact_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY message_header_source_contact_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -39772,7 +31415,7 @@ COPY message_header_source_contact_period (id, _type, _unknown_attributes, paren
 -- Data for Name: message_header_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY message_header_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY message_header_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -39780,7 +31423,7 @@ COPY message_header_text (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: narrative; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY narrative (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY narrative (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -39788,7 +31431,7 @@ COPY narrative (id, _type, _unknown_attributes, parent_id, resource_id, created_
 -- Data for Name: obs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, status, reliability, applies_date_time, issued, value_string, comments) FROM stdin;
+COPY obs (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, status, reliability, applies_date_time, issued, value_string, comments) FROM stdin;
 \.
 
 
@@ -39796,7 +31439,7 @@ COPY obs (id, _type, _unknown_attributes, resource_type, language, container_id,
 -- Data for Name: obs_applies_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_applies_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY obs_applies_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -39804,7 +31447,7 @@ COPY obs_applies_period (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: obs_body_site; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_body_site (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY obs_body_site (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39812,7 +31455,7 @@ COPY obs_body_site (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: obs_body_site_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_body_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY obs_body_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39820,7 +31463,7 @@ COPY obs_body_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: obs_body_site_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_body_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY obs_body_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39828,7 +31471,7 @@ COPY obs_body_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: obs_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY obs_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -39836,7 +31479,7 @@ COPY obs_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at
 -- Data for Name: obs_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY obs_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39844,7 +31487,7 @@ COPY obs_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: obs_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY obs_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -39852,7 +31495,7 @@ COPY obs_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: obs_interpretation; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_interpretation (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY obs_interpretation (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39860,7 +31503,7 @@ COPY obs_interpretation (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: obs_interpretation_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_interpretation_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY obs_interpretation_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39868,7 +31511,7 @@ COPY obs_interpretation_cd (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: obs_interpretation_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_interpretation_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY obs_interpretation_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39876,7 +31519,7 @@ COPY obs_interpretation_cd_vs (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: obs_method; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_method (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY obs_method (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39884,7 +31527,7 @@ COPY obs_method (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: obs_method_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_method_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY obs_method_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39892,7 +31535,7 @@ COPY obs_method_cd (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: obs_method_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_method_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY obs_method_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39900,7 +31543,7 @@ COPY obs_method_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: obs_name; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_name (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY obs_name (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39908,7 +31551,7 @@ COPY obs_name (id, _type, _unknown_attributes, parent_id, resource_id, created_a
 -- Data for Name: obs_name_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_name_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY obs_name_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39916,7 +31559,7 @@ COPY obs_name_cd (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: obs_name_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_name_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY obs_name_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39924,7 +31567,7 @@ COPY obs_name_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: obs_performer; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_performer (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY obs_performer (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -39932,7 +31575,7 @@ COPY obs_performer (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: obs_reference_range; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_reference_range (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY obs_reference_range (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -39940,7 +31583,7 @@ COPY obs_reference_range (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: obs_reference_range_age; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_reference_range_age (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY obs_reference_range_age (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -39948,7 +31591,7 @@ COPY obs_reference_range_age (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: obs_reference_range_age_high; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_reference_range_age_high (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY obs_reference_range_age_high (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -39956,7 +31599,7 @@ COPY obs_reference_range_age_high (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: obs_reference_range_age_low; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_reference_range_age_low (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY obs_reference_range_age_low (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -39964,7 +31607,7 @@ COPY obs_reference_range_age_low (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: obs_reference_range_high; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_reference_range_high (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY obs_reference_range_high (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -39972,7 +31615,7 @@ COPY obs_reference_range_high (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: obs_reference_range_low; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_reference_range_low (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY obs_reference_range_low (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -39980,7 +31623,7 @@ COPY obs_reference_range_low (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: obs_reference_range_meaning; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_reference_range_meaning (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY obs_reference_range_meaning (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -39988,7 +31631,7 @@ COPY obs_reference_range_meaning (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: obs_reference_range_meaning_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_reference_range_meaning_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY obs_reference_range_meaning_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -39996,7 +31639,7 @@ COPY obs_reference_range_meaning_cd (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: obs_reference_range_meaning_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_reference_range_meaning_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY obs_reference_range_meaning_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40004,7 +31647,7 @@ COPY obs_reference_range_meaning_cd_vs (id, _type, _unknown_attributes, parent_i
 -- Data for Name: obs_related; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_related (id, _type, _unknown_attributes, parent_id, resource_id, created_at, type) FROM stdin;
+COPY obs_related (id, _type, _unknown_attributes, parent_id, resource_id, type) FROM stdin;
 \.
 
 
@@ -40012,7 +31655,7 @@ COPY obs_related (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: obs_related_target; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_related_target (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY obs_related_target (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40020,7 +31663,7 @@ COPY obs_related_target (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: obs_specimen; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_specimen (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY obs_specimen (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40028,7 +31671,7 @@ COPY obs_specimen (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: obs_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY obs_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40036,7 +31679,7 @@ COPY obs_subject (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: obs_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY obs_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -40044,7 +31687,7 @@ COPY obs_text (id, _type, _unknown_attributes, parent_id, resource_id, created_a
 -- Data for Name: obs_value_attachment; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_value_attachment (id, _type, _unknown_attributes, parent_id, resource_id, created_at, content_type, language, data, url, size, hash, title) FROM stdin;
+COPY obs_value_attachment (id, _type, _unknown_attributes, parent_id, resource_id, content_type, language, data, url, size, hash, title) FROM stdin;
 \.
 
 
@@ -40052,7 +31695,7 @@ COPY obs_value_attachment (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: obs_value_codeable_concept; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_value_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY obs_value_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -40060,7 +31703,7 @@ COPY obs_value_codeable_concept (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: obs_value_codeable_concept_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_value_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY obs_value_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40068,7 +31711,7 @@ COPY obs_value_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: obs_value_codeable_concept_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_value_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY obs_value_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40076,7 +31719,7 @@ COPY obs_value_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id
 -- Data for Name: obs_value_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_value_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY obs_value_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -40084,7 +31727,7 @@ COPY obs_value_period (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: obs_value_quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_value_quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY obs_value_quantity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -40092,7 +31735,7 @@ COPY obs_value_quantity (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: obs_value_ratio; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_value_ratio (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY obs_value_ratio (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -40100,7 +31743,7 @@ COPY obs_value_ratio (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: obs_value_ratio_denominator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_value_ratio_denominator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY obs_value_ratio_denominator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -40108,7 +31751,7 @@ COPY obs_value_ratio_denominator (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: obs_value_ratio_numerator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_value_ratio_numerator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY obs_value_ratio_numerator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -40116,7 +31759,7 @@ COPY obs_value_ratio_numerator (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: obs_value_sampled_data; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_value_sampled_data (id, _type, _unknown_attributes, parent_id, resource_id, created_at, period, factor, lower_limit, upper_limit, dimensions, data) FROM stdin;
+COPY obs_value_sampled_data (id, _type, _unknown_attributes, parent_id, resource_id, period, factor, lower_limit, upper_limit, dimensions, data) FROM stdin;
 \.
 
 
@@ -40124,7 +31767,7 @@ COPY obs_value_sampled_data (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: obs_value_sampled_data_origin; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY obs_value_sampled_data_origin (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY obs_value_sampled_data_origin (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -40132,7 +31775,7 @@ COPY obs_value_sampled_data_origin (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: operation_outcome; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY operation_outcome (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at) FROM stdin;
+COPY operation_outcome (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id) FROM stdin;
 \.
 
 
@@ -40140,7 +31783,7 @@ COPY operation_outcome (id, _type, _unknown_attributes, resource_type, language,
 -- Data for Name: operation_outcome_issue; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY operation_outcome_issue (id, _type, _unknown_attributes, parent_id, resource_id, created_at, severity, details, location) FROM stdin;
+COPY operation_outcome_issue (id, _type, _unknown_attributes, parent_id, resource_id, severity, details, location) FROM stdin;
 \.
 
 
@@ -40148,7 +31791,7 @@ COPY operation_outcome_issue (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: operation_outcome_issue_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY operation_outcome_issue_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY operation_outcome_issue_type (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40156,7 +31799,7 @@ COPY operation_outcome_issue_type (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: operation_outcome_issue_type_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY operation_outcome_issue_type_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY operation_outcome_issue_type_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40164,7 +31807,7 @@ COPY operation_outcome_issue_type_vs (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: operation_outcome_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY operation_outcome_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY operation_outcome_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -40172,7 +31815,7 @@ COPY operation_outcome_text (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: order; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY "order" (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, date) FROM stdin;
+COPY "order" (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, date) FROM stdin;
 \.
 
 
@@ -40180,7 +31823,7 @@ COPY "order" (id, _type, _unknown_attributes, resource_type, language, container
 -- Data for Name: order_authority; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_authority (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY order_authority (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40188,7 +31831,7 @@ COPY order_authority (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: order_detail; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_detail (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY order_detail (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40196,7 +31839,7 @@ COPY order_detail (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: order_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY order_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -40204,7 +31847,7 @@ COPY order_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_
 -- Data for Name: order_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY order_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40212,7 +31855,7 @@ COPY order_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: order_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY order_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -40220,7 +31863,7 @@ COPY order_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: order_reason_codeable_concept; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_reason_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY order_reason_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -40228,7 +31871,7 @@ COPY order_reason_codeable_concept (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: order_reason_codeable_concept_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_reason_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY order_reason_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40236,7 +31879,7 @@ COPY order_reason_codeable_concept_cd (id, _type, _unknown_attributes, parent_id
 -- Data for Name: order_reason_codeable_concept_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_reason_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY order_reason_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40244,7 +31887,7 @@ COPY order_reason_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent
 -- Data for Name: order_reason_resource_reference; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_reason_resource_reference (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY order_reason_resource_reference (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40252,7 +31895,7 @@ COPY order_reason_resource_reference (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: order_response; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_response (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, code, date, description) FROM stdin;
+COPY order_response (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, code, date, description) FROM stdin;
 \.
 
 
@@ -40260,7 +31903,7 @@ COPY order_response (id, _type, _unknown_attributes, resource_type, language, co
 -- Data for Name: order_response_authority_codeable_concept; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_response_authority_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY order_response_authority_codeable_concept (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -40268,7 +31911,7 @@ COPY order_response_authority_codeable_concept (id, _type, _unknown_attributes, 
 -- Data for Name: order_response_authority_codeable_concept_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_response_authority_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY order_response_authority_codeable_concept_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40276,7 +31919,7 @@ COPY order_response_authority_codeable_concept_cd (id, _type, _unknown_attribute
 -- Data for Name: order_response_authority_codeable_concept_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_response_authority_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY order_response_authority_codeable_concept_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40284,7 +31927,7 @@ COPY order_response_authority_codeable_concept_cd_vs (id, _type, _unknown_attrib
 -- Data for Name: order_response_authority_resource_reference; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_response_authority_resource_reference (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY order_response_authority_resource_reference (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40292,7 +31935,7 @@ COPY order_response_authority_resource_reference (id, _type, _unknown_attributes
 -- Data for Name: order_response_fulfillment; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_response_fulfillment (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY order_response_fulfillment (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40300,7 +31943,7 @@ COPY order_response_fulfillment (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: order_response_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_response_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY order_response_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -40308,7 +31951,7 @@ COPY order_response_idn (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: order_response_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_response_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY order_response_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40316,7 +31959,7 @@ COPY order_response_idn_assigner (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: order_response_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_response_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY order_response_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -40324,7 +31967,7 @@ COPY order_response_idn_period (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: order_response_request; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_response_request (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY order_response_request (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40332,7 +31975,7 @@ COPY order_response_request (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: order_response_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_response_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY order_response_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -40340,7 +31983,7 @@ COPY order_response_text (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: order_response_who; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_response_who (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY order_response_who (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40348,7 +31991,7 @@ COPY order_response_who (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: order_source; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_source (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY order_source (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40356,7 +31999,7 @@ COPY order_source (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: order_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY order_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40364,7 +32007,7 @@ COPY order_subject (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: order_target; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_target (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY order_target (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40372,7 +32015,7 @@ COPY order_target (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: order_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY order_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -40380,7 +32023,7 @@ COPY order_text (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: order_when; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_when (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY order_when (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -40388,7 +32031,7 @@ COPY order_when (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: order_when_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_when_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY order_when_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -40396,7 +32039,7 @@ COPY order_when_code (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: order_when_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_when_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY order_when_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40404,7 +32047,7 @@ COPY order_when_code_cd (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: order_when_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_when_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY order_when_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40412,7 +32055,7 @@ COPY order_when_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: order_when_schedule; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_when_schedule (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY order_when_schedule (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -40420,7 +32063,7 @@ COPY order_when_schedule (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: order_when_schedule_event; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_when_schedule_event (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY order_when_schedule_event (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -40428,7 +32071,7 @@ COPY order_when_schedule_event (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: order_when_schedule_repeat; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY order_when_schedule_repeat (id, _type, _unknown_attributes, parent_id, resource_id, created_at, frequency, "when", duration, units, count, "end") FROM stdin;
+COPY order_when_schedule_repeat (id, _type, _unknown_attributes, parent_id, resource_id, frequency, "when", duration, units, count, "end") FROM stdin;
 \.
 
 
@@ -40436,7 +32079,7 @@ COPY order_when_schedule_repeat (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: organization; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, active, name) FROM stdin;
+COPY organization (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, active, name) FROM stdin;
 \.
 
 
@@ -40444,7 +32087,7 @@ COPY organization (id, _type, _unknown_attributes, resource_type, language, cont
 -- Data for Name: organization_address; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_address (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, text, line, city, state, zip, country) FROM stdin;
+COPY organization_address (id, _type, _unknown_attributes, parent_id, resource_id, use, text, line, city, state, zip, country) FROM stdin;
 \.
 
 
@@ -40452,7 +32095,7 @@ COPY organization_address (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: organization_address_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_address_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY organization_address_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -40460,7 +32103,7 @@ COPY organization_address_period (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: organization_contact; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_contact (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY organization_contact (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -40468,7 +32111,7 @@ COPY organization_contact (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: organization_contact_address; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_contact_address (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, text, line, city, state, zip, country) FROM stdin;
+COPY organization_contact_address (id, _type, _unknown_attributes, parent_id, resource_id, use, text, line, city, state, zip, country) FROM stdin;
 \.
 
 
@@ -40476,7 +32119,7 @@ COPY organization_contact_address (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: organization_contact_address_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_contact_address_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY organization_contact_address_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -40484,7 +32127,7 @@ COPY organization_contact_address_period (id, _type, _unknown_attributes, parent
 -- Data for Name: organization_contact_gender; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_contact_gender (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY organization_contact_gender (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -40492,7 +32135,7 @@ COPY organization_contact_gender (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: organization_contact_gender_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_contact_gender_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY organization_contact_gender_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40500,7 +32143,7 @@ COPY organization_contact_gender_cd (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: organization_contact_gender_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_contact_gender_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY organization_contact_gender_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40508,7 +32151,7 @@ COPY organization_contact_gender_cd_vs (id, _type, _unknown_attributes, parent_i
 -- Data for Name: organization_contact_name; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_contact_name (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, text, family, given, prefix, suffix) FROM stdin;
+COPY organization_contact_name (id, _type, _unknown_attributes, parent_id, resource_id, use, text, family, given, prefix, suffix) FROM stdin;
 \.
 
 
@@ -40516,7 +32159,7 @@ COPY organization_contact_name (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: organization_contact_name_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_contact_name_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY organization_contact_name_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -40524,7 +32167,7 @@ COPY organization_contact_name_period (id, _type, _unknown_attributes, parent_id
 -- Data for Name: organization_contact_purpose; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_contact_purpose (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY organization_contact_purpose (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -40532,7 +32175,7 @@ COPY organization_contact_purpose (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: organization_contact_purpose_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_contact_purpose_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY organization_contact_purpose_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40540,7 +32183,7 @@ COPY organization_contact_purpose_cd (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: organization_contact_purpose_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_contact_purpose_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY organization_contact_purpose_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40548,7 +32191,7 @@ COPY organization_contact_purpose_cd_vs (id, _type, _unknown_attributes, parent_
 -- Data for Name: organization_contact_telecom; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_contact_telecom (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, value, use) FROM stdin;
+COPY organization_contact_telecom (id, _type, _unknown_attributes, parent_id, resource_id, system, value, use) FROM stdin;
 \.
 
 
@@ -40556,7 +32199,7 @@ COPY organization_contact_telecom (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: organization_contact_telecom_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_contact_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY organization_contact_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -40564,7 +32207,7 @@ COPY organization_contact_telecom_period (id, _type, _unknown_attributes, parent
 -- Data for Name: organization_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY organization_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -40572,7 +32215,7 @@ COPY organization_idn (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: organization_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY organization_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40580,7 +32223,7 @@ COPY organization_idn_assigner (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: organization_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY organization_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -40588,7 +32231,7 @@ COPY organization_idn_period (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: organization_loc; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_loc (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY organization_loc (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40596,7 +32239,7 @@ COPY organization_loc (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: organization_part_of; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_part_of (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY organization_part_of (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40604,7 +32247,7 @@ COPY organization_part_of (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: organization_telecom; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_telecom (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, value, use) FROM stdin;
+COPY organization_telecom (id, _type, _unknown_attributes, parent_id, resource_id, system, value, use) FROM stdin;
 \.
 
 
@@ -40612,7 +32255,7 @@ COPY organization_telecom (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: organization_telecom_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY organization_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -40620,7 +32263,7 @@ COPY organization_telecom_period (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: organization_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY organization_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -40628,7 +32271,7 @@ COPY organization_text (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: organization_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY organization_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -40636,7 +32279,7 @@ COPY organization_type (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: organization_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY organization_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40644,7 +32287,7 @@ COPY organization_type_cd (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: organization_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY organization_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY organization_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40652,7 +32295,7 @@ COPY organization_type_cd_vs (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: other; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY other (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, created) FROM stdin;
+COPY other (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created) FROM stdin;
 \.
 
 
@@ -40660,7 +32303,7 @@ COPY other (id, _type, _unknown_attributes, resource_type, language, container_i
 -- Data for Name: other_author; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY other_author (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY other_author (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40668,7 +32311,7 @@ COPY other_author (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: other_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY other_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY other_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -40676,7 +32319,7 @@ COPY other_code (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: other_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY other_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY other_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40684,7 +32327,7 @@ COPY other_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: other_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY other_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY other_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40692,7 +32335,7 @@ COPY other_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: other_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY other_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY other_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -40700,7 +32343,7 @@ COPY other_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_
 -- Data for Name: other_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY other_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY other_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40708,7 +32351,7 @@ COPY other_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: other_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY other_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY other_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -40716,7 +32359,7 @@ COPY other_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: other_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY other_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY other_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40724,7 +32367,7 @@ COPY other_subject (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: other_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY other_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY other_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -40732,7 +32375,7 @@ COPY other_text (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: patient; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, deceased_boolean, multiple_birth_boolean, active, birth_date, deceased_date_time, multiple_birth_integer) FROM stdin;
+COPY patient (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, deceased_boolean, multiple_birth_boolean, active, birth_date, deceased_date_time, multiple_birth_integer) FROM stdin;
 \.
 
 
@@ -40740,7 +32383,7 @@ COPY patient (id, _type, _unknown_attributes, resource_type, language, container
 -- Data for Name: patient_address; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_address (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, text, line, city, state, zip, country) FROM stdin;
+COPY patient_address (id, _type, _unknown_attributes, parent_id, resource_id, use, text, line, city, state, zip, country) FROM stdin;
 \.
 
 
@@ -40748,7 +32391,7 @@ COPY patient_address (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: patient_address_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_address_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY patient_address_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -40756,7 +32399,7 @@ COPY patient_address_period (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: patient_animal; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_animal (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY patient_animal (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -40764,7 +32407,7 @@ COPY patient_animal (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: patient_animal_breed; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_animal_breed (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY patient_animal_breed (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -40772,7 +32415,7 @@ COPY patient_animal_breed (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: patient_animal_breed_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_animal_breed_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY patient_animal_breed_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40780,7 +32423,7 @@ COPY patient_animal_breed_cd (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: patient_animal_breed_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_animal_breed_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY patient_animal_breed_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40788,7 +32431,7 @@ COPY patient_animal_breed_cd_vs (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: patient_animal_gender_status; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_animal_gender_status (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY patient_animal_gender_status (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -40796,7 +32439,7 @@ COPY patient_animal_gender_status (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: patient_animal_gender_status_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_animal_gender_status_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY patient_animal_gender_status_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40804,7 +32447,7 @@ COPY patient_animal_gender_status_cd (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: patient_animal_gender_status_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_animal_gender_status_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY patient_animal_gender_status_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40812,7 +32455,7 @@ COPY patient_animal_gender_status_cd_vs (id, _type, _unknown_attributes, parent_
 -- Data for Name: patient_animal_species; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_animal_species (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY patient_animal_species (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -40820,7 +32463,7 @@ COPY patient_animal_species (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: patient_animal_species_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_animal_species_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY patient_animal_species_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40828,7 +32471,7 @@ COPY patient_animal_species_cd (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: patient_animal_species_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_animal_species_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY patient_animal_species_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40836,7 +32479,7 @@ COPY patient_animal_species_cd_vs (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: patient_care_provider; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_care_provider (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY patient_care_provider (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40844,7 +32487,7 @@ COPY patient_care_provider (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: patient_communication; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_communication (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY patient_communication (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -40852,7 +32495,7 @@ COPY patient_communication (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: patient_communication_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_communication_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY patient_communication_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40860,7 +32503,7 @@ COPY patient_communication_cd (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: patient_communication_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_communication_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY patient_communication_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40868,7 +32511,7 @@ COPY patient_communication_cd_vs (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: patient_contact; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_contact (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY patient_contact (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -40876,7 +32519,7 @@ COPY patient_contact (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: patient_contact_address; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_contact_address (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, text, line, city, state, zip, country) FROM stdin;
+COPY patient_contact_address (id, _type, _unknown_attributes, parent_id, resource_id, use, text, line, city, state, zip, country) FROM stdin;
 \.
 
 
@@ -40884,7 +32527,7 @@ COPY patient_contact_address (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: patient_contact_address_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_contact_address_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY patient_contact_address_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -40892,7 +32535,7 @@ COPY patient_contact_address_period (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: patient_contact_gender; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_contact_gender (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY patient_contact_gender (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -40900,7 +32543,7 @@ COPY patient_contact_gender (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: patient_contact_gender_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_contact_gender_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY patient_contact_gender_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40908,7 +32551,7 @@ COPY patient_contact_gender_cd (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: patient_contact_gender_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_contact_gender_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY patient_contact_gender_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40916,7 +32559,7 @@ COPY patient_contact_gender_cd_vs (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: patient_contact_name; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_contact_name (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, text, family, given, prefix, suffix) FROM stdin;
+COPY patient_contact_name (id, _type, _unknown_attributes, parent_id, resource_id, use, text, family, given, prefix, suffix) FROM stdin;
 \.
 
 
@@ -40924,7 +32567,7 @@ COPY patient_contact_name (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: patient_contact_name_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_contact_name_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY patient_contact_name_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -40932,7 +32575,7 @@ COPY patient_contact_name_period (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: patient_contact_organization; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_contact_organization (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY patient_contact_organization (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40940,7 +32583,7 @@ COPY patient_contact_organization (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: patient_contact_relationship; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_contact_relationship (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY patient_contact_relationship (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -40948,7 +32591,7 @@ COPY patient_contact_relationship (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: patient_contact_relationship_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_contact_relationship_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY patient_contact_relationship_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40956,7 +32599,7 @@ COPY patient_contact_relationship_cd (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: patient_contact_relationship_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_contact_relationship_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY patient_contact_relationship_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -40964,7 +32607,7 @@ COPY patient_contact_relationship_cd_vs (id, _type, _unknown_attributes, parent_
 -- Data for Name: patient_contact_telecom; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_contact_telecom (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, value, use) FROM stdin;
+COPY patient_contact_telecom (id, _type, _unknown_attributes, parent_id, resource_id, system, value, use) FROM stdin;
 \.
 
 
@@ -40972,7 +32615,7 @@ COPY patient_contact_telecom (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: patient_contact_telecom_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_contact_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY patient_contact_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -40980,7 +32623,7 @@ COPY patient_contact_telecom_period (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: patient_gender; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_gender (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY patient_gender (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -40988,7 +32631,7 @@ COPY patient_gender (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: patient_gender_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_gender_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY patient_gender_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -40996,7 +32639,7 @@ COPY patient_gender_cd (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: patient_gender_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_gender_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY patient_gender_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41004,7 +32647,7 @@ COPY patient_gender_cd_vs (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: patient_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY patient_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -41012,7 +32655,7 @@ COPY patient_idn (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: patient_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY patient_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41020,7 +32663,7 @@ COPY patient_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: patient_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY patient_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -41028,7 +32671,7 @@ COPY patient_idn_period (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: patient_link; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_link (id, _type, _unknown_attributes, parent_id, resource_id, created_at, type) FROM stdin;
+COPY patient_link (id, _type, _unknown_attributes, parent_id, resource_id, type) FROM stdin;
 \.
 
 
@@ -41036,7 +32679,7 @@ COPY patient_link (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: patient_link_other; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_link_other (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY patient_link_other (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41044,7 +32687,7 @@ COPY patient_link_other (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: patient_managing_organization; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_managing_organization (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY patient_managing_organization (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41052,7 +32695,7 @@ COPY patient_managing_organization (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: patient_marital_status; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_marital_status (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY patient_marital_status (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -41060,7 +32703,7 @@ COPY patient_marital_status (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: patient_marital_status_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_marital_status_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY patient_marital_status_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41068,7 +32711,7 @@ COPY patient_marital_status_cd (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: patient_marital_status_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_marital_status_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY patient_marital_status_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41076,7 +32719,7 @@ COPY patient_marital_status_cd_vs (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: patient_name; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_name (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, text, family, given, prefix, suffix) FROM stdin;
+COPY patient_name (id, _type, _unknown_attributes, parent_id, resource_id, use, text, family, given, prefix, suffix) FROM stdin;
 \.
 
 
@@ -41084,7 +32727,7 @@ COPY patient_name (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: patient_name_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_name_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY patient_name_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -41092,7 +32735,7 @@ COPY patient_name_period (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: patient_photo; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_photo (id, _type, _unknown_attributes, parent_id, resource_id, created_at, content_type, language, data, url, size, hash, title) FROM stdin;
+COPY patient_photo (id, _type, _unknown_attributes, parent_id, resource_id, content_type, language, data, url, size, hash, title) FROM stdin;
 \.
 
 
@@ -41100,7 +32743,7 @@ COPY patient_photo (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: patient_telecom; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_telecom (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, value, use) FROM stdin;
+COPY patient_telecom (id, _type, _unknown_attributes, parent_id, resource_id, system, value, use) FROM stdin;
 \.
 
 
@@ -41108,7 +32751,7 @@ COPY patient_telecom (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: patient_telecom_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY patient_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -41116,7 +32759,7 @@ COPY patient_telecom_period (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: patient_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY patient_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY patient_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -41124,7 +32767,7 @@ COPY patient_text (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -41132,7 +32775,7 @@ COPY period (id, _type, _unknown_attributes, parent_id, resource_id, created_at,
 -- Data for Name: practitioner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, birth_date) FROM stdin;
+COPY practitioner (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, birth_date) FROM stdin;
 \.
 
 
@@ -41140,7 +32783,7 @@ COPY practitioner (id, _type, _unknown_attributes, resource_type, language, cont
 -- Data for Name: practitioner_address; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_address (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, text, line, city, state, zip, country) FROM stdin;
+COPY practitioner_address (id, _type, _unknown_attributes, parent_id, resource_id, use, text, line, city, state, zip, country) FROM stdin;
 \.
 
 
@@ -41148,7 +32791,7 @@ COPY practitioner_address (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: practitioner_address_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_address_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY practitioner_address_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -41156,7 +32799,7 @@ COPY practitioner_address_period (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: practitioner_communication; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_communication (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY practitioner_communication (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -41164,7 +32807,7 @@ COPY practitioner_communication (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: practitioner_communication_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_communication_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY practitioner_communication_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41172,7 +32815,7 @@ COPY practitioner_communication_cd (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: practitioner_communication_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_communication_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY practitioner_communication_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41180,7 +32823,7 @@ COPY practitioner_communication_cd_vs (id, _type, _unknown_attributes, parent_id
 -- Data for Name: practitioner_gender; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_gender (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY practitioner_gender (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -41188,7 +32831,7 @@ COPY practitioner_gender (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: practitioner_gender_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_gender_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY practitioner_gender_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41196,7 +32839,7 @@ COPY practitioner_gender_cd (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: practitioner_gender_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_gender_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY practitioner_gender_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41204,7 +32847,7 @@ COPY practitioner_gender_cd_vs (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: practitioner_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY practitioner_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -41212,7 +32855,7 @@ COPY practitioner_idn (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: practitioner_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY practitioner_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41220,7 +32863,7 @@ COPY practitioner_idn_assigner (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: practitioner_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY practitioner_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -41228,7 +32871,7 @@ COPY practitioner_idn_period (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: practitioner_loc; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_loc (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY practitioner_loc (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41236,7 +32879,7 @@ COPY practitioner_loc (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: practitioner_name; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_name (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, text, family, given, prefix, suffix) FROM stdin;
+COPY practitioner_name (id, _type, _unknown_attributes, parent_id, resource_id, use, text, family, given, prefix, suffix) FROM stdin;
 \.
 
 
@@ -41244,7 +32887,7 @@ COPY practitioner_name (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: practitioner_name_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_name_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY practitioner_name_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -41252,7 +32895,7 @@ COPY practitioner_name_period (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: practitioner_organization; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_organization (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY practitioner_organization (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41260,7 +32903,7 @@ COPY practitioner_organization (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: practitioner_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY practitioner_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -41268,7 +32911,7 @@ COPY practitioner_period (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: practitioner_photo; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_photo (id, _type, _unknown_attributes, parent_id, resource_id, created_at, content_type, language, data, url, size, hash, title) FROM stdin;
+COPY practitioner_photo (id, _type, _unknown_attributes, parent_id, resource_id, content_type, language, data, url, size, hash, title) FROM stdin;
 \.
 
 
@@ -41276,7 +32919,7 @@ COPY practitioner_photo (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: practitioner_qualification; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_qualification (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY practitioner_qualification (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -41284,7 +32927,7 @@ COPY practitioner_qualification (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: practitioner_qualification_code; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_qualification_code (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY practitioner_qualification_code (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -41292,7 +32935,7 @@ COPY practitioner_qualification_code (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: practitioner_qualification_code_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_qualification_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY practitioner_qualification_code_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41300,7 +32943,7 @@ COPY practitioner_qualification_code_cd (id, _type, _unknown_attributes, parent_
 -- Data for Name: practitioner_qualification_code_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_qualification_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY practitioner_qualification_code_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41308,7 +32951,7 @@ COPY practitioner_qualification_code_cd_vs (id, _type, _unknown_attributes, pare
 -- Data for Name: practitioner_qualification_issuer; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_qualification_issuer (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY practitioner_qualification_issuer (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41316,7 +32959,7 @@ COPY practitioner_qualification_issuer (id, _type, _unknown_attributes, parent_i
 -- Data for Name: practitioner_qualification_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_qualification_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY practitioner_qualification_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -41324,7 +32967,7 @@ COPY practitioner_qualification_period (id, _type, _unknown_attributes, parent_i
 -- Data for Name: practitioner_role; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_role (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY practitioner_role (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -41332,7 +32975,7 @@ COPY practitioner_role (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: practitioner_role_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_role_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY practitioner_role_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41340,7 +32983,7 @@ COPY practitioner_role_cd (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: practitioner_role_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_role_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY practitioner_role_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41348,7 +32991,7 @@ COPY practitioner_role_cd_vs (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: practitioner_specialty; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_specialty (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY practitioner_specialty (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -41356,7 +32999,7 @@ COPY practitioner_specialty (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: practitioner_specialty_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_specialty_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY practitioner_specialty_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41364,7 +33007,7 @@ COPY practitioner_specialty_cd (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: practitioner_specialty_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_specialty_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY practitioner_specialty_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41372,7 +33015,7 @@ COPY practitioner_specialty_cd_vs (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: practitioner_telecom; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_telecom (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, value, use) FROM stdin;
+COPY practitioner_telecom (id, _type, _unknown_attributes, parent_id, resource_id, system, value, use) FROM stdin;
 \.
 
 
@@ -41380,7 +33023,7 @@ COPY practitioner_telecom (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: practitioner_telecom_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY practitioner_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -41388,7 +33031,7 @@ COPY practitioner_telecom_period (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: practitioner_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY practitioner_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY practitioner_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -41396,7 +33039,7 @@ COPY practitioner_text (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: procedure; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, outcome, follow_up, notes) FROM stdin;
+COPY procedure (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, outcome, follow_up, notes) FROM stdin;
 \.
 
 
@@ -41404,7 +33047,7 @@ COPY procedure (id, _type, _unknown_attributes, resource_type, language, contain
 -- Data for Name: procedure_body_site; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_body_site (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY procedure_body_site (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -41412,7 +33055,7 @@ COPY procedure_body_site (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: procedure_body_site_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_body_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY procedure_body_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41420,7 +33063,7 @@ COPY procedure_body_site_cd (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: procedure_body_site_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_body_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY procedure_body_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41428,7 +33071,7 @@ COPY procedure_body_site_cd_vs (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: procedure_complication; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_complication (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY procedure_complication (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -41436,7 +33079,7 @@ COPY procedure_complication (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: procedure_complication_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_complication_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY procedure_complication_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41444,7 +33087,7 @@ COPY procedure_complication_cd (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: procedure_complication_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_complication_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY procedure_complication_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41452,7 +33095,7 @@ COPY procedure_complication_cd_vs (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: procedure_date; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_date (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY procedure_date (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -41460,7 +33103,7 @@ COPY procedure_date (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: procedure_encounter; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_encounter (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY procedure_encounter (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41468,7 +33111,7 @@ COPY procedure_encounter (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: procedure_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY procedure_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -41476,7 +33119,7 @@ COPY procedure_idn (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: procedure_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY procedure_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41484,7 +33127,7 @@ COPY procedure_idn_assigner (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: procedure_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY procedure_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -41492,7 +33135,7 @@ COPY procedure_idn_period (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: procedure_indication; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_indication (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY procedure_indication (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -41500,7 +33143,7 @@ COPY procedure_indication (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: procedure_indication_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_indication_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY procedure_indication_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41508,7 +33151,7 @@ COPY procedure_indication_cd (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: procedure_indication_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_indication_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY procedure_indication_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41516,7 +33159,7 @@ COPY procedure_indication_cd_vs (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: procedure_performer; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_performer (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY procedure_performer (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -41524,7 +33167,7 @@ COPY procedure_performer (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: procedure_performer_person; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_performer_person (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY procedure_performer_person (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41532,7 +33175,7 @@ COPY procedure_performer_person (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: procedure_performer_role; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_performer_role (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY procedure_performer_role (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -41540,7 +33183,7 @@ COPY procedure_performer_role (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: procedure_performer_role_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_performer_role_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY procedure_performer_role_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41548,7 +33191,7 @@ COPY procedure_performer_role_cd (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: procedure_performer_role_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_performer_role_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY procedure_performer_role_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41556,7 +33199,7 @@ COPY procedure_performer_role_cd_vs (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: procedure_related_item; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_related_item (id, _type, _unknown_attributes, parent_id, resource_id, created_at, type) FROM stdin;
+COPY procedure_related_item (id, _type, _unknown_attributes, parent_id, resource_id, type) FROM stdin;
 \.
 
 
@@ -41564,7 +33207,7 @@ COPY procedure_related_item (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: procedure_related_item_target; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_related_item_target (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY procedure_related_item_target (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41572,7 +33215,7 @@ COPY procedure_related_item_target (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: procedure_report; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_report (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY procedure_report (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41580,7 +33223,7 @@ COPY procedure_report (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: procedure_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY procedure_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41588,7 +33231,7 @@ COPY procedure_subject (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: procedure_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY procedure_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -41596,7 +33239,7 @@ COPY procedure_text (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: procedure_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY procedure_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -41604,7 +33247,7 @@ COPY procedure_type (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: procedure_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY procedure_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41612,7 +33255,7 @@ COPY procedure_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: procedure_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY procedure_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY procedure_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41620,7 +33263,7 @@ COPY procedure_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: provenance; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, recorded, integrity_signature, policy) FROM stdin;
+COPY provenance (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, recorded, integrity_signature, policy) FROM stdin;
 \.
 
 
@@ -41628,7 +33271,7 @@ COPY provenance (id, _type, _unknown_attributes, resource_type, language, contai
 -- Data for Name: provenance_agent; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance_agent (id, _type, _unknown_attributes, parent_id, resource_id, created_at, display, reference) FROM stdin;
+COPY provenance_agent (id, _type, _unknown_attributes, parent_id, resource_id, display, reference) FROM stdin;
 \.
 
 
@@ -41636,7 +33279,7 @@ COPY provenance_agent (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: provenance_agent_role; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance_agent_role (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY provenance_agent_role (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41644,7 +33287,7 @@ COPY provenance_agent_role (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: provenance_agent_role_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance_agent_role_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY provenance_agent_role_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41652,7 +33295,7 @@ COPY provenance_agent_role_vs (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: provenance_agent_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance_agent_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY provenance_agent_type (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41660,7 +33303,7 @@ COPY provenance_agent_type (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: provenance_agent_type_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance_agent_type_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY provenance_agent_type_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41668,7 +33311,7 @@ COPY provenance_agent_type_vs (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: provenance_entity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance_entity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, role, display, reference) FROM stdin;
+COPY provenance_entity (id, _type, _unknown_attributes, parent_id, resource_id, role, display, reference) FROM stdin;
 \.
 
 
@@ -41676,7 +33319,7 @@ COPY provenance_entity (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: provenance_entity_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance_entity_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY provenance_entity_type (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41684,7 +33327,7 @@ COPY provenance_entity_type (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: provenance_entity_type_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance_entity_type_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY provenance_entity_type_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41692,7 +33335,7 @@ COPY provenance_entity_type_vs (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: provenance_loc; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance_loc (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY provenance_loc (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41700,7 +33343,7 @@ COPY provenance_loc (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: provenance_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY provenance_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -41708,7 +33351,7 @@ COPY provenance_period (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: provenance_reason; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance_reason (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY provenance_reason (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -41716,7 +33359,7 @@ COPY provenance_reason (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: provenance_reason_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY provenance_reason_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41724,7 +33367,7 @@ COPY provenance_reason_cd (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: provenance_reason_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY provenance_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41732,7 +33375,7 @@ COPY provenance_reason_cd_vs (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: provenance_target; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance_target (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY provenance_target (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41740,7 +33383,7 @@ COPY provenance_target (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: provenance_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY provenance_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY provenance_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -41748,7 +33391,7 @@ COPY provenance_text (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY quantity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -41756,7 +33399,7 @@ COPY quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_a
 -- Data for Name: query; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY query (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, identifier) FROM stdin;
+COPY query (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, identifier) FROM stdin;
 \.
 
 
@@ -41764,7 +33407,7 @@ COPY query (id, _type, _unknown_attributes, resource_type, language, container_i
 -- Data for Name: query_response; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY query_response (id, _type, _unknown_attributes, parent_id, resource_id, created_at, outcome, total, identifier) FROM stdin;
+COPY query_response (id, _type, _unknown_attributes, parent_id, resource_id, outcome, total, identifier) FROM stdin;
 \.
 
 
@@ -41772,7 +33415,7 @@ COPY query_response (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: query_response_reference; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY query_response_reference (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY query_response_reference (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41780,7 +33423,7 @@ COPY query_response_reference (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: query_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY query_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY query_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -41788,7 +33431,7 @@ COPY query_text (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: questionnaire; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, status, authored) FROM stdin;
+COPY questionnaire (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, status, authored) FROM stdin;
 \.
 
 
@@ -41796,7 +33439,7 @@ COPY questionnaire (id, _type, _unknown_attributes, resource_type, language, con
 -- Data for Name: questionnaire_author; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_author (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY questionnaire_author (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41804,7 +33447,7 @@ COPY questionnaire_author (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: questionnaire_encounter; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_encounter (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY questionnaire_encounter (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41812,7 +33455,7 @@ COPY questionnaire_encounter (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: questionnaire_group; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_group (id, _type, _unknown_attributes, parent_id, resource_id, created_at, header, text) FROM stdin;
+COPY questionnaire_group (id, _type, _unknown_attributes, parent_id, resource_id, header, text) FROM stdin;
 \.
 
 
@@ -41820,7 +33463,7 @@ COPY questionnaire_group (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: questionnaire_group_name; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_group_name (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY questionnaire_group_name (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -41828,7 +33471,7 @@ COPY questionnaire_group_name (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: questionnaire_group_name_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_group_name_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY questionnaire_group_name_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41836,7 +33479,7 @@ COPY questionnaire_group_name_cd (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: questionnaire_group_name_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_group_name_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY questionnaire_group_name_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41844,7 +33487,7 @@ COPY questionnaire_group_name_cd_vs (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: questionnaire_group_question; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_group_question (id, _type, _unknown_attributes, parent_id, resource_id, created_at, answer_boolean, answer_date, answer_date_time, answer_decimal, answer_instant, answer_integer, answer_string, text, remarks) FROM stdin;
+COPY questionnaire_group_question (id, _type, _unknown_attributes, parent_id, resource_id, answer_boolean, answer_date, answer_date_time, answer_decimal, answer_instant, answer_integer, answer_string, text, remarks) FROM stdin;
 \.
 
 
@@ -41852,7 +33495,7 @@ COPY questionnaire_group_question (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: questionnaire_group_question_choice; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_group_question_choice (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY questionnaire_group_question_choice (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41860,7 +33503,7 @@ COPY questionnaire_group_question_choice (id, _type, _unknown_attributes, parent
 -- Data for Name: questionnaire_group_question_choice_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_group_question_choice_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY questionnaire_group_question_choice_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41868,7 +33511,7 @@ COPY questionnaire_group_question_choice_vs (id, _type, _unknown_attributes, par
 -- Data for Name: questionnaire_group_question_name; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_group_question_name (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY questionnaire_group_question_name (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -41876,7 +33519,7 @@ COPY questionnaire_group_question_name (id, _type, _unknown_attributes, parent_i
 -- Data for Name: questionnaire_group_question_name_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_group_question_name_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY questionnaire_group_question_name_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41884,7 +33527,7 @@ COPY questionnaire_group_question_name_cd (id, _type, _unknown_attributes, paren
 -- Data for Name: questionnaire_group_question_name_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_group_question_name_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY questionnaire_group_question_name_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41892,7 +33535,7 @@ COPY questionnaire_group_question_name_cd_vs (id, _type, _unknown_attributes, pa
 -- Data for Name: questionnaire_group_question_options; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_group_question_options (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY questionnaire_group_question_options (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41900,7 +33543,7 @@ COPY questionnaire_group_question_options (id, _type, _unknown_attributes, paren
 -- Data for Name: questionnaire_group_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_group_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY questionnaire_group_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41908,7 +33551,7 @@ COPY questionnaire_group_subject (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: questionnaire_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY questionnaire_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -41916,7 +33559,7 @@ COPY questionnaire_idn (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: questionnaire_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY questionnaire_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41924,7 +33567,7 @@ COPY questionnaire_idn_assigner (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: questionnaire_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY questionnaire_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -41932,7 +33575,7 @@ COPY questionnaire_idn_period (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: questionnaire_name; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_name (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY questionnaire_name (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -41940,7 +33583,7 @@ COPY questionnaire_name (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: questionnaire_name_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_name_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY questionnaire_name_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -41948,7 +33591,7 @@ COPY questionnaire_name_cd (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: questionnaire_name_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_name_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY questionnaire_name_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41956,7 +33599,7 @@ COPY questionnaire_name_cd_vs (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: questionnaire_source; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_source (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY questionnaire_source (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41964,7 +33607,7 @@ COPY questionnaire_source (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: questionnaire_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY questionnaire_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -41972,7 +33615,7 @@ COPY questionnaire_subject (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: questionnaire_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY questionnaire_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY questionnaire_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -41980,7 +33623,7 @@ COPY questionnaire_text (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: range; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY range (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY range (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -41988,7 +33631,7 @@ COPY range (id, _type, _unknown_attributes, parent_id, resource_id, created_at) 
 -- Data for Name: range_high; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY range_high (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY range_high (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -41996,7 +33639,7 @@ COPY range_high (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: range_low; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY range_low (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY range_low (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -42004,7 +33647,7 @@ COPY range_low (id, _type, _unknown_attributes, parent_id, resource_id, created_
 -- Data for Name: ratio; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY ratio (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY ratio (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -42012,7 +33655,7 @@ COPY ratio (id, _type, _unknown_attributes, parent_id, resource_id, created_at) 
 -- Data for Name: ratio_denominator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY ratio_denominator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY ratio_denominator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -42020,7 +33663,7 @@ COPY ratio_denominator (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: ratio_numerator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY ratio_numerator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY ratio_numerator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -42028,7 +33671,7 @@ COPY ratio_numerator (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: related_person; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at) FROM stdin;
+COPY related_person (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id) FROM stdin;
 \.
 
 
@@ -42036,7 +33679,7 @@ COPY related_person (id, _type, _unknown_attributes, resource_type, language, co
 -- Data for Name: related_person_address; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_address (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, text, line, city, state, zip, country) FROM stdin;
+COPY related_person_address (id, _type, _unknown_attributes, parent_id, resource_id, use, text, line, city, state, zip, country) FROM stdin;
 \.
 
 
@@ -42044,7 +33687,7 @@ COPY related_person_address (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: related_person_address_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_address_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY related_person_address_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -42052,7 +33695,7 @@ COPY related_person_address_period (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: related_person_gender; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_gender (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY related_person_gender (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -42060,7 +33703,7 @@ COPY related_person_gender (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: related_person_gender_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_gender_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY related_person_gender_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -42068,7 +33711,7 @@ COPY related_person_gender_cd (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: related_person_gender_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_gender_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY related_person_gender_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42076,7 +33719,7 @@ COPY related_person_gender_cd_vs (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: related_person_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY related_person_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -42084,7 +33727,7 @@ COPY related_person_idn (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: related_person_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY related_person_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42092,7 +33735,7 @@ COPY related_person_idn_assigner (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: related_person_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY related_person_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -42100,7 +33743,7 @@ COPY related_person_idn_period (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: related_person_name; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_name (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, text, family, given, prefix, suffix) FROM stdin;
+COPY related_person_name (id, _type, _unknown_attributes, parent_id, resource_id, use, text, family, given, prefix, suffix) FROM stdin;
 \.
 
 
@@ -42108,7 +33751,7 @@ COPY related_person_name (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: related_person_name_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_name_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY related_person_name_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -42116,7 +33759,7 @@ COPY related_person_name_period (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: related_person_patient; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_patient (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY related_person_patient (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42124,7 +33767,7 @@ COPY related_person_patient (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: related_person_photo; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_photo (id, _type, _unknown_attributes, parent_id, resource_id, created_at, content_type, language, data, url, size, hash, title) FROM stdin;
+COPY related_person_photo (id, _type, _unknown_attributes, parent_id, resource_id, content_type, language, data, url, size, hash, title) FROM stdin;
 \.
 
 
@@ -42132,7 +33775,7 @@ COPY related_person_photo (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: related_person_relationship; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_relationship (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY related_person_relationship (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -42140,7 +33783,7 @@ COPY related_person_relationship (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: related_person_relationship_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_relationship_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY related_person_relationship_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -42148,7 +33791,7 @@ COPY related_person_relationship_cd (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: related_person_relationship_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_relationship_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY related_person_relationship_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42156,7 +33799,7 @@ COPY related_person_relationship_cd_vs (id, _type, _unknown_attributes, parent_i
 -- Data for Name: related_person_telecom; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_telecom (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, value, use) FROM stdin;
+COPY related_person_telecom (id, _type, _unknown_attributes, parent_id, resource_id, system, value, use) FROM stdin;
 \.
 
 
@@ -42164,7 +33807,7 @@ COPY related_person_telecom (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: related_person_telecom_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY related_person_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -42172,7 +33815,7 @@ COPY related_person_telecom_period (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: related_person_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY related_person_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY related_person_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -42180,7 +33823,7 @@ COPY related_person_text (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: res_ref; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY res_ref (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY res_ref (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42188,7 +33831,7 @@ COPY res_ref (id, _type, _unknown_attributes, parent_id, resource_id, created_at
 -- Data for Name: resource; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY resource (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at) FROM stdin;
+COPY resource (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id) FROM stdin;
 \.
 
 
@@ -42196,7 +33839,7 @@ COPY resource (id, _type, _unknown_attributes, resource_type, language, containe
 -- Data for Name: resource_component; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY resource_component (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY resource_component (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -42204,7 +33847,7 @@ COPY resource_component (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: sampled_data; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY sampled_data (id, _type, _unknown_attributes, parent_id, resource_id, created_at, period, factor, lower_limit, upper_limit, dimensions, data) FROM stdin;
+COPY sampled_data (id, _type, _unknown_attributes, parent_id, resource_id, period, factor, lower_limit, upper_limit, dimensions, data) FROM stdin;
 \.
 
 
@@ -42212,7 +33855,7 @@ COPY sampled_data (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: sampled_data_origin; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY sampled_data_origin (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY sampled_data_origin (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -42220,7 +33863,7 @@ COPY sampled_data_origin (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: schedule; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY schedule (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY schedule (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -42228,7 +33871,7 @@ COPY schedule (id, _type, _unknown_attributes, parent_id, resource_id, created_a
 -- Data for Name: schedule_event; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY schedule_event (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY schedule_event (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -42236,7 +33879,7 @@ COPY schedule_event (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: schedule_repeat; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY schedule_repeat (id, _type, _unknown_attributes, parent_id, resource_id, created_at, frequency, "when", duration, units, count, "end") FROM stdin;
+COPY schedule_repeat (id, _type, _unknown_attributes, parent_id, resource_id, frequency, "when", duration, units, count, "end") FROM stdin;
 \.
 
 
@@ -42244,7 +33887,7 @@ COPY schedule_repeat (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: schedulerepeat; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY schedulerepeat (id, _type, _unknown_attributes, parent_id, resource_id, created_at, frequency, "when", duration, units, count, "end") FROM stdin;
+COPY schedulerepeat (id, _type, _unknown_attributes, parent_id, resource_id, frequency, "when", duration, units, count, "end") FROM stdin;
 \.
 
 
@@ -42252,7 +33895,7 @@ COPY schedulerepeat (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: security_event; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at) FROM stdin;
+COPY security_event (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id) FROM stdin;
 \.
 
 
@@ -42260,7 +33903,7 @@ COPY security_event (id, _type, _unknown_attributes, resource_type, language, co
 -- Data for Name: security_event_event; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_event (id, _type, _unknown_attributes, parent_id, resource_id, created_at, outcome, action, date_time, outcome_desc) FROM stdin;
+COPY security_event_event (id, _type, _unknown_attributes, parent_id, resource_id, outcome, action, date_time, outcome_desc) FROM stdin;
 \.
 
 
@@ -42268,7 +33911,7 @@ COPY security_event_event (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: security_event_event_subtype; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_event_subtype (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY security_event_event_subtype (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -42276,7 +33919,7 @@ COPY security_event_event_subtype (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: security_event_event_subtype_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_event_subtype_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY security_event_event_subtype_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -42284,7 +33927,7 @@ COPY security_event_event_subtype_cd (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: security_event_event_subtype_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_event_subtype_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY security_event_event_subtype_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42292,7 +33935,7 @@ COPY security_event_event_subtype_cd_vs (id, _type, _unknown_attributes, parent_
 -- Data for Name: security_event_event_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_event_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY security_event_event_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -42300,7 +33943,7 @@ COPY security_event_event_type (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: security_event_event_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_event_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY security_event_event_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -42308,7 +33951,7 @@ COPY security_event_event_type_cd (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: security_event_event_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_event_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY security_event_event_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42316,7 +33959,7 @@ COPY security_event_event_type_cd_vs (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: security_event_object; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_object (id, _type, _unknown_attributes, parent_id, resource_id, created_at, query, lifecycle, role, type, name, description) FROM stdin;
+COPY security_event_object (id, _type, _unknown_attributes, parent_id, resource_id, query, lifecycle, role, type, name, description) FROM stdin;
 \.
 
 
@@ -42324,7 +33967,7 @@ COPY security_event_object (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: security_event_object_detail; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_object_detail (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, type) FROM stdin;
+COPY security_event_object_detail (id, _type, _unknown_attributes, parent_id, resource_id, value, type) FROM stdin;
 \.
 
 
@@ -42332,7 +33975,7 @@ COPY security_event_object_detail (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: security_event_object_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_object_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY security_event_object_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -42340,7 +33983,7 @@ COPY security_event_object_idn (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: security_event_object_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_object_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY security_event_object_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42348,7 +33991,7 @@ COPY security_event_object_idn_assigner (id, _type, _unknown_attributes, parent_
 -- Data for Name: security_event_object_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_object_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY security_event_object_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -42356,7 +33999,7 @@ COPY security_event_object_idn_period (id, _type, _unknown_attributes, parent_id
 -- Data for Name: security_event_object_reference; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_object_reference (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY security_event_object_reference (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42364,7 +34007,7 @@ COPY security_event_object_reference (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: security_event_object_sensitivity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_object_sensitivity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY security_event_object_sensitivity (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -42372,7 +34015,7 @@ COPY security_event_object_sensitivity (id, _type, _unknown_attributes, parent_i
 -- Data for Name: security_event_object_sensitivity_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_object_sensitivity_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY security_event_object_sensitivity_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -42380,7 +34023,7 @@ COPY security_event_object_sensitivity_cd (id, _type, _unknown_attributes, paren
 -- Data for Name: security_event_object_sensitivity_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_object_sensitivity_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY security_event_object_sensitivity_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42388,7 +34031,7 @@ COPY security_event_object_sensitivity_cd_vs (id, _type, _unknown_attributes, pa
 -- Data for Name: security_event_participant; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_participant (id, _type, _unknown_attributes, parent_id, resource_id, created_at, requestor, user_id, alt_id, name) FROM stdin;
+COPY security_event_participant (id, _type, _unknown_attributes, parent_id, resource_id, requestor, user_id, alt_id, name) FROM stdin;
 \.
 
 
@@ -42396,7 +34039,7 @@ COPY security_event_participant (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: security_event_participant_media; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_participant_media (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY security_event_participant_media (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -42404,7 +34047,7 @@ COPY security_event_participant_media (id, _type, _unknown_attributes, parent_id
 -- Data for Name: security_event_participant_media_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_participant_media_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY security_event_participant_media_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42412,7 +34055,7 @@ COPY security_event_participant_media_vs (id, _type, _unknown_attributes, parent
 -- Data for Name: security_event_participant_network; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_participant_network (id, _type, _unknown_attributes, parent_id, resource_id, created_at, type, identifier) FROM stdin;
+COPY security_event_participant_network (id, _type, _unknown_attributes, parent_id, resource_id, type, identifier) FROM stdin;
 \.
 
 
@@ -42420,7 +34063,7 @@ COPY security_event_participant_network (id, _type, _unknown_attributes, parent_
 -- Data for Name: security_event_participant_reference; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_participant_reference (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY security_event_participant_reference (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42428,7 +34071,7 @@ COPY security_event_participant_reference (id, _type, _unknown_attributes, paren
 -- Data for Name: security_event_participant_role; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_participant_role (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY security_event_participant_role (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -42436,7 +34079,7 @@ COPY security_event_participant_role (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: security_event_participant_role_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_participant_role_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY security_event_participant_role_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -42444,7 +34087,7 @@ COPY security_event_participant_role_cd (id, _type, _unknown_attributes, parent_
 -- Data for Name: security_event_participant_role_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_participant_role_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY security_event_participant_role_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42452,7 +34095,7 @@ COPY security_event_participant_role_cd_vs (id, _type, _unknown_attributes, pare
 -- Data for Name: security_event_source; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_source (id, _type, _unknown_attributes, parent_id, resource_id, created_at, site, identifier) FROM stdin;
+COPY security_event_source (id, _type, _unknown_attributes, parent_id, resource_id, site, identifier) FROM stdin;
 \.
 
 
@@ -42460,7 +34103,7 @@ COPY security_event_source (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: security_event_source_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_source_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY security_event_source_type (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -42468,7 +34111,7 @@ COPY security_event_source_type (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: security_event_source_type_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_source_type_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY security_event_source_type_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42476,7 +34119,7 @@ COPY security_event_source_type_vs (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: security_event_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY security_event_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY security_event_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -42484,7 +34127,7 @@ COPY security_event_text (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: specimen; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, received_time) FROM stdin;
+COPY specimen (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, received_time) FROM stdin;
 \.
 
 
@@ -42492,7 +34135,7 @@ COPY specimen (id, _type, _unknown_attributes, resource_type, language, containe
 -- Data for Name: specimen_accession_identifier; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_accession_identifier (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY specimen_accession_identifier (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -42500,7 +34143,7 @@ COPY specimen_accession_identifier (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: specimen_accession_identifier_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_accession_identifier_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY specimen_accession_identifier_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42508,7 +34151,7 @@ COPY specimen_accession_identifier_assigner (id, _type, _unknown_attributes, par
 -- Data for Name: specimen_accession_identifier_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_accession_identifier_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY specimen_accession_identifier_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -42516,7 +34159,7 @@ COPY specimen_accession_identifier_period (id, _type, _unknown_attributes, paren
 -- Data for Name: specimen_collection; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_collection (id, _type, _unknown_attributes, parent_id, resource_id, created_at, collected_date_time, comment) FROM stdin;
+COPY specimen_collection (id, _type, _unknown_attributes, parent_id, resource_id, collected_date_time, comment) FROM stdin;
 \.
 
 
@@ -42524,7 +34167,7 @@ COPY specimen_collection (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: specimen_collection_collected_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_collection_collected_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY specimen_collection_collected_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -42532,7 +34175,7 @@ COPY specimen_collection_collected_period (id, _type, _unknown_attributes, paren
 -- Data for Name: specimen_collection_collector; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_collection_collector (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY specimen_collection_collector (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42540,7 +34183,7 @@ COPY specimen_collection_collector (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: specimen_collection_method; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_collection_method (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY specimen_collection_method (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -42548,7 +34191,7 @@ COPY specimen_collection_method (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: specimen_collection_method_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_collection_method_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY specimen_collection_method_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -42556,7 +34199,7 @@ COPY specimen_collection_method_cd (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: specimen_collection_method_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_collection_method_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY specimen_collection_method_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42564,7 +34207,7 @@ COPY specimen_collection_method_cd_vs (id, _type, _unknown_attributes, parent_id
 -- Data for Name: specimen_collection_quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_collection_quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY specimen_collection_quantity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -42572,7 +34215,7 @@ COPY specimen_collection_quantity (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: specimen_collection_source_site; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_collection_source_site (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY specimen_collection_source_site (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -42580,7 +34223,7 @@ COPY specimen_collection_source_site (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: specimen_collection_source_site_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_collection_source_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY specimen_collection_source_site_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -42588,7 +34231,7 @@ COPY specimen_collection_source_site_cd (id, _type, _unknown_attributes, parent_
 -- Data for Name: specimen_collection_source_site_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_collection_source_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY specimen_collection_source_site_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42596,7 +34239,7 @@ COPY specimen_collection_source_site_cd_vs (id, _type, _unknown_attributes, pare
 -- Data for Name: specimen_container; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_container (id, _type, _unknown_attributes, parent_id, resource_id, created_at, description) FROM stdin;
+COPY specimen_container (id, _type, _unknown_attributes, parent_id, resource_id, description) FROM stdin;
 \.
 
 
@@ -42604,7 +34247,7 @@ COPY specimen_container (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: specimen_container_additive; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_container_additive (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY specimen_container_additive (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42612,7 +34255,7 @@ COPY specimen_container_additive (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: specimen_container_capacity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_container_capacity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY specimen_container_capacity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -42620,7 +34263,7 @@ COPY specimen_container_capacity (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: specimen_container_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_container_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY specimen_container_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -42628,7 +34271,7 @@ COPY specimen_container_idn (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: specimen_container_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_container_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY specimen_container_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42636,7 +34279,7 @@ COPY specimen_container_idn_assigner (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: specimen_container_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_container_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY specimen_container_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -42644,7 +34287,7 @@ COPY specimen_container_idn_period (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: specimen_container_specimen_quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_container_specimen_quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY specimen_container_specimen_quantity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -42652,7 +34295,7 @@ COPY specimen_container_specimen_quantity (id, _type, _unknown_attributes, paren
 -- Data for Name: specimen_container_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_container_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY specimen_container_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -42660,7 +34303,7 @@ COPY specimen_container_type (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: specimen_container_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_container_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY specimen_container_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -42668,7 +34311,7 @@ COPY specimen_container_type_cd (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: specimen_container_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_container_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY specimen_container_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42676,7 +34319,7 @@ COPY specimen_container_type_cd_vs (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: specimen_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY specimen_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -42684,7 +34327,7 @@ COPY specimen_idn (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: specimen_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY specimen_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42692,7 +34335,7 @@ COPY specimen_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: specimen_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY specimen_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -42700,7 +34343,7 @@ COPY specimen_idn_period (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: specimen_source; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_source (id, _type, _unknown_attributes, parent_id, resource_id, created_at, relationship) FROM stdin;
+COPY specimen_source (id, _type, _unknown_attributes, parent_id, resource_id, relationship) FROM stdin;
 \.
 
 
@@ -42708,7 +34351,7 @@ COPY specimen_source (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: specimen_source_target; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_source_target (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY specimen_source_target (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42716,7 +34359,7 @@ COPY specimen_source_target (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: specimen_subject; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_subject (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY specimen_subject (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42724,7 +34367,7 @@ COPY specimen_subject (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: specimen_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY specimen_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -42732,7 +34375,7 @@ COPY specimen_text (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: specimen_treatment; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_treatment (id, _type, _unknown_attributes, parent_id, resource_id, created_at, description) FROM stdin;
+COPY specimen_treatment (id, _type, _unknown_attributes, parent_id, resource_id, description) FROM stdin;
 \.
 
 
@@ -42740,7 +34383,7 @@ COPY specimen_treatment (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: specimen_treatment_additive; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_treatment_additive (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY specimen_treatment_additive (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42748,7 +34391,7 @@ COPY specimen_treatment_additive (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: specimen_treatment_procedure; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_treatment_procedure (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY specimen_treatment_procedure (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -42756,7 +34399,7 @@ COPY specimen_treatment_procedure (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: specimen_treatment_procedure_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_treatment_procedure_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY specimen_treatment_procedure_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -42764,7 +34407,7 @@ COPY specimen_treatment_procedure_cd (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: specimen_treatment_procedure_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_treatment_procedure_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY specimen_treatment_procedure_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42772,7 +34415,7 @@ COPY specimen_treatment_procedure_cd_vs (id, _type, _unknown_attributes, parent_
 -- Data for Name: specimen_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY specimen_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -42780,7 +34423,7 @@ COPY specimen_type (id, _type, _unknown_attributes, parent_id, resource_id, crea
 -- Data for Name: specimen_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY specimen_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -42788,7 +34431,7 @@ COPY specimen_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: specimen_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY specimen_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY specimen_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42796,7 +34439,7 @@ COPY specimen_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: substance; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY substance (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, description) FROM stdin;
+COPY substance (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, description) FROM stdin;
 \.
 
 
@@ -42804,7 +34447,7 @@ COPY substance (id, _type, _unknown_attributes, resource_type, language, contain
 -- Data for Name: substance_ingredient; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY substance_ingredient (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY substance_ingredient (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -42812,7 +34455,7 @@ COPY substance_ingredient (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: substance_ingredient_quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY substance_ingredient_quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at) FROM stdin;
+COPY substance_ingredient_quantity (id, _type, _unknown_attributes, parent_id, resource_id) FROM stdin;
 \.
 
 
@@ -42820,7 +34463,7 @@ COPY substance_ingredient_quantity (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: substance_ingredient_quantity_denominator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY substance_ingredient_quantity_denominator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY substance_ingredient_quantity_denominator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -42828,7 +34471,7 @@ COPY substance_ingredient_quantity_denominator (id, _type, _unknown_attributes, 
 -- Data for Name: substance_ingredient_quantity_numerator; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY substance_ingredient_quantity_numerator (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY substance_ingredient_quantity_numerator (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -42836,7 +34479,7 @@ COPY substance_ingredient_quantity_numerator (id, _type, _unknown_attributes, pa
 -- Data for Name: substance_ingredient_substance; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY substance_ingredient_substance (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY substance_ingredient_substance (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42844,7 +34487,7 @@ COPY substance_ingredient_substance (id, _type, _unknown_attributes, parent_id, 
 -- Data for Name: substance_instance; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY substance_instance (id, _type, _unknown_attributes, parent_id, resource_id, created_at, expiry) FROM stdin;
+COPY substance_instance (id, _type, _unknown_attributes, parent_id, resource_id, expiry) FROM stdin;
 \.
 
 
@@ -42852,7 +34495,7 @@ COPY substance_instance (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: substance_instance_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY substance_instance_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY substance_instance_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -42860,7 +34503,7 @@ COPY substance_instance_idn (id, _type, _unknown_attributes, parent_id, resource
 -- Data for Name: substance_instance_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY substance_instance_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY substance_instance_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42868,7 +34511,7 @@ COPY substance_instance_idn_assigner (id, _type, _unknown_attributes, parent_id,
 -- Data for Name: substance_instance_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY substance_instance_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY substance_instance_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -42876,7 +34519,7 @@ COPY substance_instance_idn_period (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: substance_instance_quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY substance_instance_quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY substance_instance_quantity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -42884,7 +34527,7 @@ COPY substance_instance_quantity (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: substance_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY substance_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY substance_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -42892,7 +34535,7 @@ COPY substance_text (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: substance_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY substance_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY substance_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -42900,7 +34543,7 @@ COPY substance_type (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: substance_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY substance_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY substance_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -42908,7 +34551,7 @@ COPY substance_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: substance_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY substance_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY substance_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42916,7 +34559,7 @@ COPY substance_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: supply; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, status) FROM stdin;
+COPY supply (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, status) FROM stdin;
 \.
 
 
@@ -42924,7 +34567,7 @@ COPY supply (id, _type, _unknown_attributes, resource_type, language, container_
 -- Data for Name: supply_dispense; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_dispense (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status) FROM stdin;
+COPY supply_dispense (id, _type, _unknown_attributes, parent_id, resource_id, status) FROM stdin;
 \.
 
 
@@ -42932,7 +34575,7 @@ COPY supply_dispense (id, _type, _unknown_attributes, parent_id, resource_id, cr
 -- Data for Name: supply_dispense_destination; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_dispense_destination (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY supply_dispense_destination (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42940,7 +34583,7 @@ COPY supply_dispense_destination (id, _type, _unknown_attributes, parent_id, res
 -- Data for Name: supply_dispense_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_dispense_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY supply_dispense_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -42948,7 +34591,7 @@ COPY supply_dispense_idn (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: supply_dispense_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_dispense_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY supply_dispense_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42956,7 +34599,7 @@ COPY supply_dispense_idn_assigner (id, _type, _unknown_attributes, parent_id, re
 -- Data for Name: supply_dispense_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_dispense_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY supply_dispense_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -42964,7 +34607,7 @@ COPY supply_dispense_idn_period (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: supply_dispense_quantity; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_dispense_quantity (id, _type, _unknown_attributes, parent_id, resource_id, created_at, value, comparator, units, system, code) FROM stdin;
+COPY supply_dispense_quantity (id, _type, _unknown_attributes, parent_id, resource_id, value, comparator, units, system, code) FROM stdin;
 \.
 
 
@@ -42972,7 +34615,7 @@ COPY supply_dispense_quantity (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: supply_dispense_receiver; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_dispense_receiver (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY supply_dispense_receiver (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42980,7 +34623,7 @@ COPY supply_dispense_receiver (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: supply_dispense_supplied_item; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_dispense_supplied_item (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY supply_dispense_supplied_item (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42988,7 +34631,7 @@ COPY supply_dispense_supplied_item (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: supply_dispense_supplier; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_dispense_supplier (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY supply_dispense_supplier (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -42996,7 +34639,7 @@ COPY supply_dispense_supplier (id, _type, _unknown_attributes, parent_id, resour
 -- Data for Name: supply_dispense_type; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_dispense_type (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY supply_dispense_type (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -43004,7 +34647,7 @@ COPY supply_dispense_type (id, _type, _unknown_attributes, parent_id, resource_i
 -- Data for Name: supply_dispense_type_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_dispense_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY supply_dispense_type_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -43012,7 +34655,7 @@ COPY supply_dispense_type_cd (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: supply_dispense_type_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_dispense_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY supply_dispense_type_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -43020,7 +34663,7 @@ COPY supply_dispense_type_cd_vs (id, _type, _unknown_attributes, parent_id, reso
 -- Data for Name: supply_dispense_when_handed_over; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_dispense_when_handed_over (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY supply_dispense_when_handed_over (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -43028,7 +34671,7 @@ COPY supply_dispense_when_handed_over (id, _type, _unknown_attributes, parent_id
 -- Data for Name: supply_dispense_when_prepared; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_dispense_when_prepared (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY supply_dispense_when_prepared (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -43036,7 +34679,7 @@ COPY supply_dispense_when_prepared (id, _type, _unknown_attributes, parent_id, r
 -- Data for Name: supply_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY supply_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -43044,7 +34687,7 @@ COPY supply_idn (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: supply_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY supply_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -43052,7 +34695,7 @@ COPY supply_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: supply_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY supply_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -43060,7 +34703,7 @@ COPY supply_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: supply_kind; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_kind (id, _type, _unknown_attributes, parent_id, resource_id, created_at, text) FROM stdin;
+COPY supply_kind (id, _type, _unknown_attributes, parent_id, resource_id, text) FROM stdin;
 \.
 
 
@@ -43068,7 +34711,7 @@ COPY supply_kind (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: supply_kind_cd; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_kind_cd (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, version, code, display, "primary") FROM stdin;
+COPY supply_kind_cd (id, _type, _unknown_attributes, parent_id, resource_id, system, version, code, display, "primary") FROM stdin;
 \.
 
 
@@ -43076,7 +34719,7 @@ COPY supply_kind_cd (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: supply_kind_cd_vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_kind_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY supply_kind_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -43084,7 +34727,7 @@ COPY supply_kind_cd_vs (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: supply_ordered_item; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_ordered_item (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY supply_ordered_item (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -43092,7 +34735,7 @@ COPY supply_ordered_item (id, _type, _unknown_attributes, parent_id, resource_id
 -- Data for Name: supply_patient; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_patient (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY supply_patient (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -43100,7 +34743,7 @@ COPY supply_patient (id, _type, _unknown_attributes, parent_id, resource_id, cre
 -- Data for Name: supply_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY supply_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY supply_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
@@ -43108,7 +34751,7 @@ COPY supply_text (id, _type, _unknown_attributes, parent_id, resource_id, create
 -- Data for Name: vs; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, created_at, experimental, extensible, status, date, publisher, name, copyright, description, version, identifier) FROM stdin;
+COPY vs (id, _type, _unknown_attributes, resource_type, language, container_id, contained_id, experimental, extensible, status, date, publisher, name, copyright, description, version, identifier) FROM stdin;
 \.
 
 
@@ -43116,7 +34759,7 @@ COPY vs (id, _type, _unknown_attributes, resource_type, language, container_id, 
 -- Data for Name: vs_compose; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs_compose (id, _type, _unknown_attributes, parent_id, resource_id, created_at, import) FROM stdin;
+COPY vs_compose (id, _type, _unknown_attributes, parent_id, resource_id, import) FROM stdin;
 \.
 
 
@@ -43124,7 +34767,7 @@ COPY vs_compose (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: vs_compose_include; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs_compose_include (id, _type, _unknown_attributes, parent_id, resource_id, created_at, code, version, system) FROM stdin;
+COPY vs_compose_include (id, _type, _unknown_attributes, parent_id, resource_id, code, version, system) FROM stdin;
 \.
 
 
@@ -43132,7 +34775,7 @@ COPY vs_compose_include (id, _type, _unknown_attributes, parent_id, resource_id,
 -- Data for Name: vs_compose_include_filter; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs_compose_include_filter (id, _type, _unknown_attributes, parent_id, resource_id, created_at, op, property, value) FROM stdin;
+COPY vs_compose_include_filter (id, _type, _unknown_attributes, parent_id, resource_id, op, property, value) FROM stdin;
 \.
 
 
@@ -43140,7 +34783,7 @@ COPY vs_compose_include_filter (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: vs_define; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs_define (id, _type, _unknown_attributes, parent_id, resource_id, created_at, case_sensitive, version, system) FROM stdin;
+COPY vs_define (id, _type, _unknown_attributes, parent_id, resource_id, case_sensitive, version, system) FROM stdin;
 \.
 
 
@@ -43148,7 +34791,7 @@ COPY vs_define (id, _type, _unknown_attributes, parent_id, resource_id, created_
 -- Data for Name: vs_define_concept; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs_define_concept (id, _type, _unknown_attributes, parent_id, resource_id, created_at, abstract, code, definition, display) FROM stdin;
+COPY vs_define_concept (id, _type, _unknown_attributes, parent_id, resource_id, abstract, code, definition, display) FROM stdin;
 \.
 
 
@@ -43156,7 +34799,7 @@ COPY vs_define_concept (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: vs_expansion; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs_expansion (id, _type, _unknown_attributes, parent_id, resource_id, created_at, "timestamp") FROM stdin;
+COPY vs_expansion (id, _type, _unknown_attributes, parent_id, resource_id, "timestamp") FROM stdin;
 \.
 
 
@@ -43164,7 +34807,7 @@ COPY vs_expansion (id, _type, _unknown_attributes, parent_id, resource_id, creat
 -- Data for Name: vs_expansion_contains; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs_expansion_contains (id, _type, _unknown_attributes, parent_id, resource_id, created_at, code, display, system) FROM stdin;
+COPY vs_expansion_contains (id, _type, _unknown_attributes, parent_id, resource_id, code, display, system) FROM stdin;
 \.
 
 
@@ -43172,7 +34815,7 @@ COPY vs_expansion_contains (id, _type, _unknown_attributes, parent_id, resource_
 -- Data for Name: vs_expansion_idn; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs_expansion_idn (id, _type, _unknown_attributes, parent_id, resource_id, created_at, use, label, system, value) FROM stdin;
+COPY vs_expansion_idn (id, _type, _unknown_attributes, parent_id, resource_id, use, label, system, value) FROM stdin;
 \.
 
 
@@ -43180,7 +34823,7 @@ COPY vs_expansion_idn (id, _type, _unknown_attributes, parent_id, resource_id, c
 -- Data for Name: vs_expansion_idn_assigner; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs_expansion_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, created_at, reference, display) FROM stdin;
+COPY vs_expansion_idn_assigner (id, _type, _unknown_attributes, parent_id, resource_id, reference, display) FROM stdin;
 \.
 
 
@@ -43188,7 +34831,7 @@ COPY vs_expansion_idn_assigner (id, _type, _unknown_attributes, parent_id, resou
 -- Data for Name: vs_expansion_idn_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs_expansion_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY vs_expansion_idn_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -43196,7 +34839,7 @@ COPY vs_expansion_idn_period (id, _type, _unknown_attributes, parent_id, resourc
 -- Data for Name: vs_telecom; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs_telecom (id, _type, _unknown_attributes, parent_id, resource_id, created_at, system, value, use) FROM stdin;
+COPY vs_telecom (id, _type, _unknown_attributes, parent_id, resource_id, system, value, use) FROM stdin;
 \.
 
 
@@ -43204,7 +34847,7 @@ COPY vs_telecom (id, _type, _unknown_attributes, parent_id, resource_id, created
 -- Data for Name: vs_telecom_period; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, created_at, start, "end") FROM stdin;
+COPY vs_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, start, "end") FROM stdin;
 \.
 
 
@@ -43212,7 +34855,7 @@ COPY vs_telecom_period (id, _type, _unknown_attributes, parent_id, resource_id, 
 -- Data for Name: vs_text; Type: TABLE DATA; Schema: fhir; Owner: -
 --
 
-COPY vs_text (id, _type, _unknown_attributes, parent_id, resource_id, created_at, status, div) FROM stdin;
+COPY vs_text (id, _type, _unknown_attributes, parent_id, resource_id, status, div) FROM stdin;
 \.
 
 
