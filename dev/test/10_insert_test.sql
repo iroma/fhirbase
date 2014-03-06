@@ -11,6 +11,7 @@ BEGIN;
 \ir ../sql/07_schema.sql
 \ir ../sql/08_generate_schema.sql
 \ir ../sql/09_views.sql
+\ir ../sql/10__insert_helpers.sql
 \ir ../sql/10_insert.sql
 
 \set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`

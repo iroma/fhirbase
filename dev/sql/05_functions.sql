@@ -1,18 +1,18 @@
 --create schema functions;
 set search_path = fhir, pg_catalog;
+
 CREATE OR REPLACE
 FUNCTION underscore(str varchar)
   returns varchar
-  language plpgsql
+  language sql
   as $$
-  BEGIN
-   return lower(
+  SELECT
+   lower(
     replace(
       regexp_replace(
         regexp_replace(str, '([a-z\d])([A-Z]+)', '\1_\2', 'g'),
         '[-\s]+', '_', 'g'),
       '.', '')); -- problem with path: {schedule,repeat} with type Schedule.repeat
-  END
 $$ IMMUTABLE;
 
 -- remove last item from array
@@ -49,6 +49,8 @@ RETURNS varchar LANGUAGE plpythonu AS $$
   return GD['underscore']('_'.join(acc[0:-1]))
 $$ IMMUTABLE;
 
+
+
 CREATE OR REPLACE
 FUNCTION resource_table_name(path varchar[])
 RETURNS varchar LANGUAGE plpythonu AS $$
@@ -64,6 +66,41 @@ RETURNS varchar LANGUAGE plpythonu AS $$
   acc = GD['prepare_path'](path)
   return GD['underscore']('_'.join(acc))
 $$ IMMUTABLE;
+
+/* CREATE TABLE fhir.short_names (name varchar, alias varchar); */
+/* INSERT INTO fhir.short_names (name, alias) */
+/* VALUES */
+/*     ('capabilities', 'cap'), */
+/*     ('chanel', 'chnl'), */
+/*     ('codeable_concept', 'cc'), */
+/*     ('coding', 'cd'), */
+/*     ('identifier', 'idn'), */
+/*     ('immunization', 'imm'), */
+/*     ('immunization_recommendation', 'imm_rec'), */
+/*     ('location', 'loc'), */
+/*     ('medication', 'med'), */
+/*     ('medication_administration', 'med_adm'), */
+/*     ('medication_dispense', 'med_disp'), */
+/*     ('medication_prescription', 'med_prs'), */
+/*     ('medication_statement', 'med_st'), */
+/*     ('observation', 'obs'), */
+/*     ('prescription', 'prs'), */
+/*     ('recommentdaton', 'rcm'), */
+/*     ('resource_reference', 'res_ref'), */
+/*     ('value', 'val'), */
+/*     ('value_set', 'vs') */
+/* ; */
+/* CREATE OR REPLACE */
+/* FUNCTION fhir.table_name(path varchar[]) */
+/* RETURNS varchar AS $$ */
+/*   SELECT string_agg(part, '_') FROM ( */
+/*     SELECT fhir.underscore(coalesce(sn.alias, pth.unnest)) as part */
+/*       FROM (SELECT *, row_number() OVER () FROM unnest(path)) pth */
+/*       LEFT JOIN fhir.short_names sn */
+/*       ON sn.name = pth.unnest */
+/*       ORDER BY row_number */
+/*     ) _; */
+/* $$ LANGUAGE sql IMMUTABLE; */
 
 CREATE OR REPLACE FUNCTION indent(t text, l integer)
   RETURNS text LANGUAGE plpgsql AS $$
