@@ -5,12 +5,11 @@
 BEGIN;
 
 \ir ../sql/01_extensions.sql
-\ir ../sql/02_py_init.sql
 \ir ../sql/03_meta.sql
 \ir ../sql/04_load_meta.sql
 \ir ../sql/05_functions.sql
 
-SELECT plan(7);
+SELECT plan(8);
 
 SELECT is(
   (SELECT fhir.array_last(ARRAY['a','b','c'])),
@@ -43,15 +42,21 @@ SELECT is(
 );
 
 SELECT is(
+  (SELECT fhir.table_name(ARRAY['immunization_recommendation','codeable_concept']::varchar[])),
+  'imm_rec_cc',
+  'table_name'
+);
+
+SELECT is(
   (SELECT fhir.table_name(ARRAY['xang','abay','baran','cidr']::varchar[])),
   'xang_abay_baran_cidr',
   'table_name'
 );
 
 SELECT is(
-  fhir.merge_json('{"a": 42, "b": 12}'::json, '{"c": 55}'::json)::varchar,
-  '{"a": 42, "c": 55, "b": 12}'::json::varchar,
-  'fhir.merge_json'
+  (SELECT fhir.camelize('here_is_my_string')),
+  'hereIsMyString',
+  'camelize'
 );
 
 SELECT * FROM finish();
