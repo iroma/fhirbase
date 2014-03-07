@@ -9,7 +9,7 @@ BEGIN;
 \ir ../sql/04_load_meta.sql
 \ir ../sql/05_functions.sql
 
-SELECT plan(8);
+SELECT plan(9);
 
 SELECT is(
   (SELECT fhir.array_last(ARRAY['a','b','c'])),
@@ -57,6 +57,16 @@ SELECT is(
   (SELECT fhir.camelize('here_is_my_string')),
   'hereIsMyString',
   'camelize'
+);
+
+SELECT is(
+  (SELECT fhir.eval_template(
+      'SELECT * FROM {{name}} WHERE second={{second}}',
+      'name','Max',
+      'second', 'Second')
+  ),
+  'SELECT * FROM Max WHERE second=Second',
+  'eval_template'
 );
 
 SELECT * FROM finish();

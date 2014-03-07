@@ -15,7 +15,8 @@ FUNCTION meta.eval_insert(str text)
 RETURNS text AS
 $$
   BEGIN
-    EXECUTE str; RETURN 'inserted';
+    EXECUTE str;
+    RETURN 'inserted';
   END;
 $$ LANGUAGE plpgsql VOLATILE;
 
@@ -46,6 +47,7 @@ FUNCTION build_insert_statment(_table_name text, _obj json, _id text, _parent_id
 RETURNS text
 AS $$
 
+-- TODO: support _unknown fields
 WITH vals AS ( -- split json into key-value filter only columns
   SELECT fhir.underscore(a.key) as key,
          a.value as value,

@@ -20,7 +20,10 @@ FUNCTION camelize(str varchar)
   returns varchar
   language sql
   as $$
-  SELECT replace(replace(initcap(replace('xxx' || str,'_',' ')), ' ', ''), 'Xxx', '');
+  SELECT replace(
+    replace(
+      initcap(
+        replace('xxx' || str,'_',' ')), ' ', ''), 'Xxx', '');
 $$ IMMUTABLE;
 
 -- remove last item from array
@@ -92,6 +95,7 @@ RETURNS varchar AS $$
   SELECT fhir.table_name(ARRAY[fhir.array_pop(path)]);
 $$ LANGUAGE sql IMMUTABLE;
 
+-- used for view sql generation
 CREATE OR REPLACE FUNCTION indent(t text, l integer)
   RETURNS text LANGUAGE sql AS $$
     SELECT regexp_replace(t, '^', repeat('  ', l), 'gm');
@@ -116,5 +120,18 @@ FUNCTION column_ddl(column_name varchar, pg_type varchar, min varchar, max varch
         else ''
       end;
 $$ IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION
+eval_template(_tpl text, variadic _bindings varchar[])
+RETURNS text LANGUAGE plpgsql AS $$
+DECLARE
+result text := _tpl;
+BEGIN
+  FOR i IN 1..(array_upper(_bindings, 1)/2) LOOP
+    result := replace(result, '{{' || _bindings[i*2 - 1] || '}}', _bindings[i*2]);
+  END LOOP;
+  RETURN result;
+END
+$$;
 
 set search_path = public, pg_catalog;

@@ -1,45 +1,74 @@
 --db: fhir_build
 --{{{
+
+-- get_nested_entity_from_json(max, path)
 CREATE OR REPLACE
-FUNCTION def_insert_function(fn_name text, body text)
+FUNCTION fhir.json_extract_value_ddl(max varchar, key varchar)
 RETURNS text
 AS $$
-      SELECT 'DROP FUNCTION IF EXISTS fhir.insert_' || fn_name || '(json);
-      CREATE OR REPLACE FUNCTION fhir.insert_' || fn_name || '(json)
-      RETURNS TABLE(resource_id uuid, id uuid, path text[], parent_id uuid, value json) AS
-      $fn$ ' || body || E';\n$fn$ LANGUAGE sql;';
+  SELECT CASE WHEN max='*'
+    THEN 'json_array_elements((p.value::json)->''' || key || ''')'
+    ELSE '((p.value::json)->''' || key || ''')'
+  END;
 $$ IMMUTABLE LANGUAGE sql;
 
-CREATE OR REPLACE VIEW insert_ddls AS (
-SELECT path[1] as resource,
-       def_insert_function(
-        fhir.underscore(path[1]),
-        'WITH ' || string_agg(cte, E',\n') || E'\n'
-        || string_agg('SELECT * FROM _' || fhir.table_name(path), E'\n UNION ALL ') || ';'
-       ) as ddl
-FROM (SELECT
+
+CREATE OR REPLACE VIEW insert_ctes AS (
+SELECT
   path,
-  '_' || table_name || ' AS ('
-  || CASE WHEN array_length(path,1)=1
-      THEN
-       'SELECT uuid as resource_id, uuid, path, parent_id, value
-          FROM ( SELECT uuid_generate_v4() as uuid ,ARRAY[''' || path[1] || '''] as path ,null::uuid as parent_id ,$1 as value ) _)'
-      ELSE
-      E'\nSELECT'
-      || E'\n    p.resource_id as resource_id,'
-      || E'\n    uuid_generate_v4() as uuid,'
-      || E'\n    ' || quote_literal(path::text) || '::varchar[] as path,'
-      || E'\n    p.uuid as parent_id,'
-      || CASE WHEN max='*'
-          THEN E'\n    json_array_elements((p.value::json)->''' || fhir.array_last(path) || ''') as value'
-          ELSE E'\n    ((p.value::json)->''' || fhir.array_last(path) || ''') as value'
-        END
-      || E'\n  FROM _' || fhir.table_name(fhir.array_pop(path)) || ' p '
-      || ' WHERE p.value IS NOT NULL)'
+  CASE WHEN array_length(path,1)=1
+    THEN
+     fhir.eval_template($SQL$
+       _{{table_name}}  AS (
+         SELECT uuid as resource_id, uuid, path, parent_id, value
+            FROM (
+              SELECT uuid_generate_v4() as uuid , ARRAY['{{resource}}'] as path , null::uuid as parent_id , $1 as value
+         ) _
+      )
+     $SQL$,
+     'resource', path[1],
+     'table_name', table_name)
+    ELSE
+      fhir.eval_template($SQL$
+         _{{table_name}}  AS (
+           SELECT
+             p.resource_id as resource_id,
+             uuid_generate_v4() as uuid,
+             {{path}}::varchar[] as path,
+             p.uuid as parent_id,
+             {{value}} as value
+           FROM _{{parent_table}} p
+           WHERE p.value IS NOT NULL
+        )
+        $SQL$,
+        'table_name', table_name,
+        'path', quote_literal(path::text),
+        'value', fhir.json_extract_value_ddl(max, fhir.array_last(path)),
+        'parent_table', fhir.table_name(fhir.array_pop(path))
+      )
     END as cte
-from meta.resource_tables
+FROM meta.resource_tables
 ORDER BY PATH
-) _
+);
+
+CREATE OR REPLACE VIEW insert_ddls AS (
+SELECT
+  path[1] as resource,
+  fhir.eval_template($SQL$
+     DROP FUNCTION IF EXISTS fhir.insert_{{fn_name}}(json);
+     CREATE OR REPLACE FUNCTION fhir.insert_{{fn_name}}(json)
+     RETURNS TABLE(resource_id uuid, id uuid, path text[], parent_id uuid, value json) AS
+     $fn$
+        WITH {{ctes}}
+        {{selects}};
+     $fn$
+     LANGUAGE sql;
+  $SQL$,
+   'fn_name', fhir.underscore(path[1]),
+   'ctes',string_agg(cte, E',\n'),
+   'selects', string_agg('SELECT * FROM _' || fhir.table_name(path), E'\n UNION ALL ')
+  ) as ddl
+ FROM insert_ctes
  GROUP BY PATH[1]
 );
 
@@ -70,4 +99,3 @@ $BODY$
 $BODY$
 LANGUAGE plpgsql VOLATILE;
 --}}}
-
