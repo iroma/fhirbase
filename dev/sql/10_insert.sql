@@ -82,18 +82,19 @@ RETURNS uuid AS
 $BODY$
   DECLARE uuid_ uuid;
   BEGIN
-    EXECUTE 'SELECT resource_id FROM
-      (SELECT resource_id,
-      count(
-      meta.eval_insert(
-        build_insert_statment(fhir.table_name(path)::text, value, id::text, parent_id::text, resource_id::text)
-      ))
-      FROM fhir.insert_' || fhir.underscore(resource_->>'resourceType') || '($1)
-      WHERE value is NOT NULL
-      group by resource_id) _'
+    EXECUTE
+      fhir.eval_template($SQL$
+        SELECT resource_id FROM
+        (SELECT resource_id,
+          count(
+          meta.eval_insert(
+            build_insert_statment(fhir.table_name(path)::text, value, id::text, parent_id::text, resource_id::text)))
+        FROM fhir.insert_{{resource}}($1)
+        WHERE value is NOT NULL
+        group by resource_id) _
+      $SQL$, 'resource', fhir.underscore(resource_->>'resourceType'))
       INTO uuid_
-      USING resource_
-      ;
+      USING resource_ ;
     RETURN uuid_;
   END;
 $BODY$
