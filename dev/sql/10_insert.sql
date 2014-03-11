@@ -81,7 +81,17 @@ SELECT
 
 -- generate insert functions
 
-SELECT meta.eval_function(ddl) FROM insert_ddls;
+--SELECT meta.eval_function(ddl) FROM insert_ddls;
+
+DO $$
+  DECLARE
+    r RECORD;
+  BEGIN
+    FOR r IN SELECT * FROM insert_ddls LOOP
+      PERFORM meta.eval_function(r.ddl);
+    END LOOP;
+  END
+$$;
 
 
 CREATE OR REPLACE FUNCTION
