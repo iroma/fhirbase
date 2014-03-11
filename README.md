@@ -1,4 +1,19 @@
-# FHIRBase
+# FHIRbase
+
+Relational storage for [FHIR](http://hl7.org/implement/standards/fhir/) with document API
+
+
+#### Why Relational
+
+Проблемы с хранением в документных базах данных: невозможность/сложность поиска по атрибутам, сложность соблюдения целостность данных, большие размеры базы данных
+
+* Fine-Granularity of data control - Rich Query & Data Abstraction capabilities - power of Relational Algebra
+* Storage Efficiency - calculate rate for document storages
+* Enhanced Data Consistency - applying most of FHIR contstraints on database level
+
+#### Why Document API
+... we need describe problems and examples
+
 
 ## Synopsis
 
@@ -41,13 +56,20 @@ for infrastructure management, that all data tables are inherited from two base 
 * resource
   * id
   * _type
+  * _unknown_attributes
+  * resource_type
+  * language
   * container_id
+  * contained_id
+  * created_at
 * resource_component
   * id
   * _type
+  * _unknown_attributes
   * parent_id
   * resource_id
   * container_id
+  * created_at
 
 ## API
 
@@ -62,15 +84,23 @@ for infrastructure management, that all data tables are inherited from two base 
 ## Demo
 
 You can try upload resources and query storage using simple demo site ...
+http://try-fhirbase.hospital-systems.com
+
 
 ## Installation
 
+* requirements:
+  * postgresql 9.3
+  * postgresql-contrib
+  * plpython
+* create databae
+* execute fhirbase.sql script
 
 ## Contribution
 
 * Star us on github
 * Create issue - for bug report or enhancment
-* Contribute to FHIRbase
+* Contribute to FHIRbase (see dev/README.md to prepare development environment)
 
 ## Plans
 
