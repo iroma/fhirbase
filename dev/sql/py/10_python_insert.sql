@@ -1,4 +1,4 @@
-create or replace function fhir.insert_resource(jdata json) returns uuid language plpythonu as $$
+create or replace function fhir.insert_resource_py(jdata json) returns uuid language plpythonu as $$
   import json
   import re
 
