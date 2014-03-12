@@ -27,7 +27,7 @@ SELECT
        _{{table_name}}  AS (
          SELECT uuid as resource_id, uuid, path, _container_id as container_id, null::uuid as parent_id, value
             FROM (
-              SELECT uuid_generate_v4() as uuid , ARRAY['{{resource}}'] as path, _data as value
+              SELECT coalesce(_resource_id, uuid_generate_v4()) as uuid , ARRAY['{{resource}}'] as path, _data as value
          ) _
       )
      $SQL$,
@@ -63,7 +63,7 @@ SELECT
   path[1] as resource,
   fhir.eval_template($SQL$
      --DROP FUNCTION IF EXISTS fhir.insert_{{fn_name}}(json, uuid);
-     CREATE OR REPLACE FUNCTION fhir.insert_{{fn_name}}(_data json, _container_id uuid default null)
+     CREATE OR REPLACE FUNCTION fhir.insert_{{fn_name}}(_data json, _container_id uuid default null, _resource_id uuid default null)
      RETURNS TABLE(resource_id uuid, id uuid, path text[], container_id uuid, parent_id uuid, value json) AS
      $fn$
         WITH {{ctes}}
@@ -95,7 +95,7 @@ $$;
 
 
 CREATE OR REPLACE FUNCTION
-fhir.insert_resource(_resource json, _container_id uuid default null)
+fhir.insert_resource(_resource json, _container_id uuid default null, _resource_id uuid default null)
 RETURNS uuid AS
 $BODY$
   DECLARE
@@ -108,12 +108,12 @@ $BODY$
         (
           SELECT resource_id,
                  meta.eval_insert(build_insert_statment( fhir.table_name(path)::text, value, id::text, parent_id::text, resource_id::text, container_id::text ))
-          FROM fhir.insert_{{resource}}($1, $2)
+          FROM fhir.insert_{{resource}}($1, $2, $3)
           WHERE value IS NOT NULL
           ORDER BY path
         ) _;
       $SQL$, 'resource', fhir.underscore(_resource->>'resourceType'))
-    INTO uuid_ USING _resource, _container_id ;
+    INTO uuid_ USING _resource, _container_id, _resource_id;
 
       FOR r IN SELECT * FROM json_array_elements(_resource->'contained') LOOP
         PERFORM fhir.insert_resource(r.value, uuid_);

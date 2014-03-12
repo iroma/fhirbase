@@ -12,7 +12,7 @@ SELECT plan(4);
 SELECT fhir.insert_resource(:'pt_json'::json) AS resource_id \gset
 
 SELECT is(COUNT(*)::integer, 1, 'patient was inserted')
-       FROM fhir.view_patient WHERE id = :'resource_id';
+       FROM fhir.view_patient WHERE _id = :'resource_id';
 
 SELECT is(
        (SELECT text::varchar
