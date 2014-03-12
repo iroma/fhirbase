@@ -88,9 +88,9 @@ function test_cmd {
 function ttest_cmd {
     echo "Running fhirbase tests..."
 
-    export TEST_DB_NAME=$TEST_DB_NAME
+    export TEST_DB_NAME
     cd $FHIRBASE_HOME/test
-    time psql $PSQL_ARGS -d $TEST_DB_NAME < 10_insert_test.sql
+    time psql $PSQL_ARGS -d $TEST_DB_NAME < 05_functions_test.sql
 
     exit $? # return test subprocess exit code
 }
@@ -125,10 +125,6 @@ case "$CMD" in
     "install" )
         install_cmd $2 install.sql
         ;;
-    "t" )
-        ttest_cmd
-        ;;
-
     "build" )
         build_cmd
         ;;
