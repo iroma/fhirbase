@@ -36,7 +36,7 @@ Usage: $0 [-c config_file.sh] [command] [args]
 Available commands:
 
 -h || help                this help text
-test [test1, test2, ...]  run tests from dev/test dir. if test names are provided, run specified tests
+test [part_of_test_name]  run tests from dev/test dir. if test name is provided, run specified tests
 install dbname            generate and install fhirbase schema into specified DB
 build                     build fhirbase.sql file
 EOF

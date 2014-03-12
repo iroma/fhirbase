@@ -93,8 +93,8 @@ $BODY$
         WHERE value is NOT NULL
         group by resource_id) _
       $SQL$, 'resource', fhir.underscore(resource_->>'resourceType'))
-      INTO uuid_
-      USING resource_ ;
+    INTO uuid_
+    USING resource_ ;
     RETURN uuid_;
   END;
 $BODY$

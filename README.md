@@ -2,56 +2,94 @@
 
 Relational storage for [FHIR](http://hl7.org/implement/standards/fhir/) with document API
 
+## Motivation
 
-#### Why Relational
-
-Проблемы с хранением в документных базах данных: невозможность/сложность поиска по атрибутам, сложность соблюдения целостность данных, большие размеры базы данных
-
-* Fine-Granularity of data control - Rich Query & Data Abstraction capabilities - power of Relational Algebra
-* Storage Efficiency - calculate rate for document storages
-* Enhanced Data Consistency - applying most of FHIR contstraints on database level
-
-#### Why Document API
-... we need describe problems and examples
+While crafting health IT systems you start understand value of right domain model.
+FHIR is open source new generation lightweight standard for health data interop, which (we hope)
+could be used as internal model for health IT systems. FHIR is based on concept of __resource__.
 
 
-## Synopsis
+>> FHIR® is a next generation standards framework created by HL7.
+>> FHIR combines the best features of HL7 Version 2,
+>> Version 3 and CDA® product lines while leveraging the latest
+>> web standards and applying a tight focus on implementability.
+>> In terms of [Domain Driven Design]() __resource__ is an [aggregate](), which consist of __root entity__
+>> (having identity) and set of aggregated __value objects__.
 
-Open source Relational medical storage
-based on FHIR standard & postgresql
-suitable for health IT applications.
+There is concern - how to persist __resources__.
 
-## FHIR
+The simplest solution is just save them as text blobs in RDBMS or in distributed file storage system like (S3, Riak & Hadoop).
+This solution simple and scalable, but has trade-offs:
 
-FHIR® is a next generation standards framework created by HL7.
-FHIR combines the best features of HL7 Version 2,
-Version 3 and CDA® product lines while leveraging the latest
-web standards and applying a tight focus on implementability.
+* You should implement search and querying by creating hand-made indexes or using index engines like elastic search, solr etc
+* query language will be very limited (in comparison with SQL)
+* weak data consistency control - type checks, referential integrity, aggregate invariants
+* complicated batch transformations
 
-FHIR solutions are built from a set of modular components called Resources
-These resources can easily be assembled into working systems that solve real world clinical and administrative problems at a fraction of the price of existing alternatives.
-FHIR is suitable for use in a wide variety of contexts mobile phone apps, cloud communications,
-EHR-based data sharing, server communication in large institutional healthcare providers, and much more.
+Second option is usage of document databases like MongoDb, CouchDb, RethinkDb etc. They feat better (removing some part
+of hand work), but share some of trade-offs.
 
-## Motivation & Features
+* Transaction consistency often works only on document level granularity, so you need manage complex transactions manually.
+* Querying is less powerful and declarative then for relational databases (joins, aggregations)
+* Document Databases sometimes are not yet really matured for enterprise (read mongo fails reports)
 
-The most straightforward implementation of FHIR resources storage is document databases (like MongoDB, CouchDB, RethinkDB etc).
+Third option - relational schema - solve most of this problems and bring new ones :)
 
-* Fine-Granularity of data control - Rich Query & Data Abstraction capabilities - power of Relational Algebra
-* Storage Efficiency - calculate rate for document storages
-* Enhanced Data Consistency - applying most of FHIR contstraints on database level
+* How to create such a complex schema?
+* How to simplify aggregates (__resource__) operations (persistence, retrieval)?
+* How to scale?
 
-## Scope
+But we believe, that solving this problems we will get:
 
-The only current limitation is scalability,
-postgresql. Possible solution - good sharding algorithm.
+* Fine-Granularity of data control
+* Rich Querying & Data Abstraction capabilities
+* Enhanced Data Consistency - applying most of FHIR constraints on database level
+* Storage Efficiency
 
-## Architecture
+Most of it required or desirable while programming Health IT systems.
 
-We parse machine-readable resource definitions and load it in relational form into meta schema.
-For each resource we generate set of tables to save it's data in relations.
-We use postgresql [inheritance](http://www.postgresql.org/docs/9.3/static/tutorial-inheritance.html)
-for infrastructure management, that all data tables are inherited from two base tables
+## Why postgresq?
+
+>> PostgreSQL is a powerful, open source object-relational database system.
+>> It has more than 15 years of active development and a proven architecture
+>> that has earned it a strong reputation for reliability, data integrity, and correctness.
+
+
+## Schema generation
+
+We use code generation based on FHIR machine readable specification to generate database schema and
+CRUD procedures. All generation done in postgresql. We use advanced postgresql features
+
+* xml
+* json
+* enum type
+* arrays
+* [inheritance](http://www.postgresql.org/docs/9.3/static/tutorial-inheritance.html)
+* materialized views
+* pgtap
+* uuid extension
+* plpython extension
+
+Generation steps:
+
+* Convert FHIR meta specification from XML into more convenient relational form
+* Generate schema using meta information
+  * generate base tables - resource and resource_component
+  * generate datatype's tables, inheriting from resource_component
+  * generate enums for FHIR system enumerator types
+  * generate tables for each resource
+     * root entity table inherits from resource base table
+     * components & complex type tables inhrits from resource base table
+* Generate views & procedures for CRUD
+  * generate views, which return resource as json aggregate
+  * generate insert_resource(resource json) - put resource data in
+  * create delete procedure
+  * create update procedure as delete & insert
+* Run tests
+* Dump resulting database as end-user sql script
+
+## Schema Overview
+
 
 * resource
   * id
@@ -71,21 +109,15 @@ for infrastructure management, that all data tables are inherited from two base 
   * container_id
   * created_at
 
-## API
+## Usage
 
 * insert, update & delete procedures
 * aggregated resources views
 * querying
 
-## Performance Notes
-
-...
-
 ## Demo
 
-You can try upload resources and query storage using simple demo site ...
-http://try-fhirbase.hospital-systems.com
-
+You can try upload resources and query storage using demo site - http://try-fhirbase.hospital-systems.com
 
 ## Installation
 

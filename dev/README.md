@@ -11,18 +11,25 @@ Document/Relational hybryde database for FHIR
 
 ## Installation
 
+### The simple way
+
+You can setup vagrant virtual machine in minutes.
+
+##
+
 * checkout project
 * cd dev/
-* bundle install
-* configure generation/connection.yml
-* rspec generation_spec/
+* ./bootstrap.sh
+* cp fbdev_config.sh.template fbdev_config.sh
+* # edit fbdev_config.sh and change configuration
+* ./fbdev -h
 
 ## Project Layout
 
 * development environment
   * requirements (see requirements)
   * database structure (dev/install.sql)
-  * tests (dev/test.sql)
+  * tests (dev/tests/*_test.sql)
 
 * end user build
   * build script (fhirbase.sql)
