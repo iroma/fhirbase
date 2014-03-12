@@ -114,10 +114,12 @@ and all resource components in __resource_component__.
 
 ### Description of resource table
 
+Base table for all resource aggregate root tables
+
 ```sql
   CREATE TABLE resource (
       id uuid NOT NULL, -- surrogate resource id
-      _type, -- real table name (i.e. where data are saved)
+      _type varchar , -- real table name (i.e. where data are saved)
       _unknown_attributes json, -- json where all unknown attributes will be saved
       resource_type character varying, -- resourceType see FHIR documentation
       language character varying, -- see FHIR documentation
@@ -127,27 +129,151 @@ and all resource components in __resource_component__.
   );
 ```
 
+### Description resource_component table
 
-### resource_component table
+Base table for all resource components
+
+```sql
+  CREATE TABLE resource_component (
+      id uuid NOT NULL, -- surrogate component id
+      _type character varying NOT NULL, -- real table name
+      _unknown_attributes json, -- json where all unknown attributes will be saved
+      parent_id uuid NOT NULL, -- reference to parent component if present
+      resource_id uuid NOT NULL -- denormalized reference to resource root table, see explanations below
+  );
+```
+
+### Primitive datatype attributes
+
+Here is mapping table for primitive types from FHIR to postgresql:
+
+```sql
+
+  CREATE TABLE type_to_pg_type (
+      type character varying,
+      pg_type character varying
+  );
+
+  COPY type_to_pg_type (type, pg_type) FROM stdin;
+  code         	varchar
+  date_time         	timestamp
+  string         	varchar
+  text         	text
+  uri                  	varchar
+  datetime         	timestamp
+  instant      	timestamp
+  boolean       	boolean
+  base64_binary	bytea
+  integer         	integer
+  decimal         	decimal
+  sampled_data_data_type	text
+  date         	date
+  id                  	varchar
+  oid	               varchar
+  \.
 
 ```
-CREATE TABLE resource_component (
-    id uuid NOT NULL, -- surrogate component id
-    _type character varying NOT NULL, -- real table name
-    _unknown_attributes json, -- json where all unknown attributes will be saved
-    parent_id uuid NOT NULL, -- reference to parent component if present
-    resource_id uuid NOT NULL -- reference on resource root table, all components have it, even when nested depper then 1 level
-);
+
+### Enumerations
+
+For FHIR system enumerated types we create postgresql ENUMs:
+
+```sql
+  CREATE TYPE "AddressUse" AS ENUM (
+      'home',
+      'work',
+      'temp',
+      'old'
+  );
 
 ```
 
-### Treating complex datatypes
+### Complex datatype attributes
+
+We create table for each compound datatype,
+inheriting from resource_component table.
+
+Here is how table for address type created:
+
+```sql
+
+  CREATE TABLE address (
+      use "AddressUse",
+      text character varying,
+      line character varying[],
+      city character varying,
+      state character varying,
+      zip character varying,
+      country character varying
+  )
+  INHERITS (resource_component);
+
+```
+
+For resource attributes with such compound type we create separate
+tables (for the sake of separation of storage and consistency) and
+inherits it from type base table:
+
+```sql
+
+  CREATE TABLE organization_address ()
+  INHERITS (address);
+
+```
 
 ### Tables abbreviations
 
+Postgresql with default configuration limit length of table names.
+So we don't want require postgresql rebuild and shortening table names
+using following abbreviation table:
+
+
+```sql
+
+CREATE TABLE short_names (name varchar, alias varchar);
+INSERT INTO short_names (name, alias)
+VALUES
+    ('capabilities', 'cap'),
+    ('chanel', 'chnl'),
+    ('codeable_concept', 'cc'),
+    ('coding', 'cd'),
+    ('identifier', 'idn'),
+    ('immunization', 'imm'),
+    ('immunization_recommendation', 'imm_rec'),
+    ('location', 'loc'),
+    ('medication', 'med'),
+    ('medication_administration', 'med_adm'),
+    ('medication_dispense', 'med_disp'),
+    ('medication_prescription', 'med_prs'),
+    ('medication_statement', 'med_st'),
+    ('observation', 'obs'),
+    ('prescription', 'prs'),
+    ('recommentdaton', 'rcm'),
+    ('resource_reference', 'res_ref'),
+    ('value', 'val'),
+    ('value_set', 'vs')
+;
+
+```
+
 ### Contained Resources
 
+FHIR allows on level resource - resource aggregation,
+see http://www.hl7.org/implement/standards/fhir/references.html.
+
+We save __contained resources___ same way as resources, but saving
+in __container_id__ reference to parent resource, and preserving symbolic local resource id
+in __contained_id__ field.
+
+### Resource References
+
+Now resource references saved as other compound types, but we
+are looking for more relational solution for referential integrity
+and reference traversing.
+
 ### Extensions
+
+TODO: working on solution
 
 ### Views
 
@@ -176,7 +302,6 @@ where you can upload and query fhirbase.
 * insert, update & delete procedures
 * aggregated resources views
 * querying
-
 
 ## Contribution
 
