@@ -42,7 +42,7 @@ of hand work), but share some of trade-offs.
 * Querying is less powerful and declarative then for relational databases (joins, aggregations)
 * Document Databases sometimes are not yet really matured for enterprise (read mongo fails reports)
 
-Third option - relational schema - solve most of this problems and bring new ones :)
+Third option - relational schema - solves most of the problems and brings new ones :)
 
 * How to create such a complex schema?
 * How to simplify aggregates (__resource__) operations (persistence, retrieval)?
@@ -55,9 +55,9 @@ But we believe, that solving this problems we will get:
 * Enhanced Data Consistency - applying most of FHIR constraints on database level
 * Storage Efficiency
 
-Most of it required or desirable while programming Health IT systems.
+Most of it is required or desired while programming Health IT systems.
 
-## Why postgresq?
+## Why postgresql?
 
 > PostgreSQL is a powerful, open source object-relational database system.
 > It has more than 15 years of active development and a proven architecture
@@ -74,6 +74,7 @@ We actively use advanced postgresql features
 * [pgtap](http://pgtap.org/)
 * [uuid-ossp](http://www.postgresql.org/docs/9.3/static/uuid-ossp.html)
 
+
 ## Schema generation
 
 We code-generate database schema & CRUD views & procedures from
@@ -82,21 +83,21 @@ All generation done in postgresql.
 
 Generation steps:
 
-* Convert FHIR meta specification from XML into more convenient relational form
+* Convert FHIR meta specification from XML to more convenient relational form
 * Generate schema using meta information
   * generate base tables - resource and resource_component
-  * generate datatype's tables, inheriting from resource_component
+  * generate data types tables, inheriting from resource_component
   * generate enums for FHIR system enumerator types
   * generate tables for each resource
      * root entity table inherits from resource base table
-     * components & complex type tables inhrits from resource base table
+     * components & complex type tables inherits from resource base table
 * Generate views & procedures for CRUD
   * generate views, which return resource as json aggregate
   * generate insert_resource(resource json) - put resource data in
   * create delete procedure
   * create update procedure as delete & insert
 * Run tests
-* Dump resulting database as end-user sql script
+* Dump resulting database as an end-user sql script
 
 ## Schema Overview
 
@@ -108,7 +109,7 @@ There are two base tables:
 * resource_component - base table for all __value objects__ (resource components)
 
 Each resource represented as __root entity__ table (for example 'patient')
-and table per component (for exampl: patient.contact is saved in `patient_contact` table).
+and table per component (for example: patient.contact is saved in `patient_contact` table).
 
 This point is illustrated on picture bellow:
 
@@ -151,7 +152,7 @@ Base table for all resource components
   );
 ```
 
-### Primitive datatype attributes
+### Primitive data types attributes
 
 Here is mapping table for primitive types from FHIR to postgresql:
 
@@ -197,9 +198,9 @@ For FHIR system enumerated types we create postgresql ENUMs:
 
 ```
 
-### Complex datatype attributes
+### Complex data type attributes
 
-We create table for each compound datatype,
+We create table for each compound data type,
 inheriting from resource_component table.
 
 Here is how table for address type created:
@@ -232,9 +233,9 @@ inherits it from type base table:
 
 ### Tables abbreviations
 
-Postgresql with default configuration limit length of table names.
-So we don't want require postgresql rebuild and shortening table names
-using following abbreviation table:
+Postgresql with default configuration limits length of table names.
+We didn't want to rebuild postgresql so we shortened table names
+using the following abbreviation table:
 
 
 ```sql
@@ -257,7 +258,7 @@ VALUES
     ('medication_statement', 'med_st'),
     ('observation', 'obs'),
     ('prescription', 'prs'),
-    ('recommentdaton', 'rcm'),
+    ('recommendation', 'rcm'),
     ('resource_reference', 'res_ref'),
     ('value', 'val'),
     ('value_set', 'vs')
@@ -366,9 +367,6 @@ psql -d mydb < fhirbase_test.sql
 
 ```
 
-or you can use [vagrant](http://www.vagrantup.com/) box to setup virtual
-machine with fhirbase installed (See dev/README.md)
-
 ## Usage
 
 * all resource tables lay in __fhir__ schema
@@ -379,12 +377,12 @@ machine with fhirbase installed (See dev/README.md)
 ## Contribution
 
 * Star us on github
-* Create issue - for bug report or enhancment
+* Create an issue - for a bug report or enhancment
 * Contribute to FHIRbase  - see dev/README.md
 
-## TODO
+## Roadmap
 
-* Support FHIR extensions
+* Extensions
 * FHIR server implementation
-* FHIR versions migrations
-* [Oracle, MS SQL & Mysql support]
+* FHIR version migrations
+* Oracle, MS SQL & Mysql support
