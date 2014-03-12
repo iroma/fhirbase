@@ -2,6 +2,13 @@
 
 Relational storage for [FHIR](http://hl7.org/implement/standards/fhir/) with document API
 
+[![Build Status](https://travis-ci.org/fhirbase/fhirbase.png?branch=refactor)](https://travis-ci.org/fhirbase/fhirbase)
+
+## Live Demo
+
+Here are interactive demo - http://try-fhirbase.hospital-systems.com,
+where you can upload and query fhirbase.
+
 ## Motivation
 
 While crafting health IT systems you start understand value of right domain model.
@@ -13,8 +20,10 @@ could be used as internal model for health IT systems. FHIR is based on concept 
 > FHIR combines the best features of HL7 Version 2,
 > Version 3 and CDA® product lines while leveraging the latest
 > web standards and applying a tight focus on implementability.
-> In terms of [Domain Driven Design]() __resource__ is an [aggregate](), which consist of __root entity__
-> (having identity) and set of aggregated __value objects__.
+
+In terms of [Domain Driven Design]() __resource__ is an [aggregate](), which consist of __root entity__
+(having identity) and set of aggregated __value objects__. In this readme we sometimes use DDD terminology,
+so don't be confused.
 
 There is concern - how to persist __resources__.
 
@@ -179,6 +188,7 @@ Here is mapping table for primitive types from FHIR to postgresql:
 For FHIR system enumerated types we create postgresql ENUMs:
 
 ```sql
+
   CREATE TYPE "AddressUse" AS ENUM (
       'home',
       'work',
@@ -275,18 +285,22 @@ and reference traversing.
 
 TODO: working on solution
 
-### Views
+### views
+
+Relational schema is good for querying.
+Here is query illustrating this point:
+
+```sql
+
+
+```
+
 
 ### insert_resource(resource json)
 
 ### delete_resource(id uuid)
 
 ### update_resource(resource json)
-
-## Demo
-
-Here are interactive demo - http://try-fhirbase.hospital-systems.com,
-where you can upload and query fhirbase.
 
 ## Installation
 
