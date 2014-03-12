@@ -39,8 +39,8 @@ SELECT
            SELECT
              p.resource_id as resource_id,
              uuid_generate_v4() as uuid,
-             {{path}}::varchar[] as path,
-            _container_id as container_id,
+             {{path}}::text[] as path,
+             null::uuid as container_id,
              p.uuid as parent_id,
              {{value}} as value
            FROM _{{parent_table}} p
@@ -62,7 +62,7 @@ CREATE OR REPLACE VIEW insert_ddls AS (
 SELECT
   path[1] as resource,
   fhir.eval_template($SQL$
-     DROP FUNCTION IF EXISTS fhir.insert_{{fn_name}}(json, uuid);
+     --DROP FUNCTION IF EXISTS fhir.insert_{{fn_name}}(json, uuid);
      CREATE OR REPLACE FUNCTION fhir.insert_{{fn_name}}(_data json, _container_id uuid default null)
      RETURNS TABLE(resource_id uuid, id uuid, path text[], container_id uuid, parent_id uuid, value json) AS
      $fn$
@@ -72,11 +72,11 @@ SELECT
      LANGUAGE sql;
   $SQL$,
    'fn_name', fhir.underscore(path[1]),
-   'ctes',string_agg(cte, E',\n'),
+   'ctes',array_to_string(array_agg(cte order by path), E',\n'),
    'selects', string_agg('SELECT * FROM _' || fhir.table_name(path), E'\n UNION ALL ')
   ) as ddl
  FROM insert_ctes
- GROUP BY PATH[1]
+ GROUP BY path[1]
 );
 
 -- generate insert functions
@@ -95,24 +95,29 @@ $$;
 
 
 CREATE OR REPLACE FUNCTION
-fhir.insert_resource(resource_ json)
+fhir.insert_resource(_resource json, _container_id uuid default null)
 RETURNS uuid AS
 $BODY$
-  DECLARE uuid_ uuid;
+  DECLARE
+    uuid_ uuid;
+    r record;
+    sql text;
   BEGIN
-    EXECUTE
-      fhir.eval_template($SQL$
-        SELECT resource_id FROM
-        (SELECT resource_id,
-          count(
-          meta.eval_insert(
-            build_insert_statment(fhir.table_name(path)::text, value, id::text, parent_id::text, resource_id::text)))
-        FROM fhir.insert_{{resource}}($1)
-        WHERE value is NOT NULL
-        group by resource_id) _
-      $SQL$, 'resource', fhir.underscore(resource_->>'resourceType'))
-    INTO uuid_
-    USING resource_ ;
+     EXECUTE fhir.eval_template($SQL$
+        SELECT DISTINCT resource_id FROM
+        (
+          SELECT resource_id,
+                 meta.eval_insert(build_insert_statment( fhir.table_name(path)::text, value, id::text, parent_id::text, resource_id::text, container_id::text ))
+          FROM fhir.insert_{{resource}}($1, $2)
+          WHERE value IS NOT NULL
+          ORDER BY path
+        ) _;
+      $SQL$, 'resource', fhir.underscore(_resource->>'resourceType'))
+    INTO uuid_ USING _resource, _container_id ;
+
+      FOR r IN SELECT * FROM json_array_elements(_resource->'contained') LOOP
+        PERFORM fhir.insert_resource(r.value, uuid_);
+      END LOOP;
     RETURN uuid_;
   END;
 $BODY$

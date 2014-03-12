@@ -74,7 +74,7 @@
     {"system":"http://hl7.org/fhir/v3/MaritalStatus",
       "code":"M"}]
   },
-  "multipleBirthBoolean":false,
+  "multipleBirthInteger":3,
   "photo":[
   {"contentType":"image/jpeg",
     "url":"binary/@f006"}],
