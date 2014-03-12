@@ -22,22 +22,22 @@ CREATE VIEW meta.enums_ddl AS(
 SELECT  meta.eval_ddl(ddl) FROM meta.enums_ddl;
 
 CREATE TABLE fhir.resource (
-  id UUID PRIMARY KEY,
+  _id UUID PRIMARY KEY,
   _type VARCHAR NOT NULL,
   _unknown_attributes json,
   resource_type varchar,
   language VARCHAR,
-  container_id UUID REFERENCES fhir.resource (id) ON DELETE CASCADE,
-  contained_id VARCHAR,
+  container_id UUID REFERENCES fhir.resource (_id) ON DELETE CASCADE,
+  id VARCHAR,
   created_at timestamp DEFAULT now()
 );
 
 CREATE TABLE fhir.resource_component (
-  id uuid PRIMARY KEY,
+  _id uuid PRIMARY KEY,
   _type VARCHAR NOT NULL,
   _unknown_attributes json,
-  parent_id UUID NOT NULL REFERENCES fhir.resource_component (id) ON DELETE CASCADE,
-  resource_id UUID NOT NULL REFERENCES fhir.resource (id) ON DELETE CASCADE,
+  parent_id UUID NOT NULL REFERENCES fhir.resource_component (_id) ON DELETE CASCADE,
+  resource_id UUID NOT NULL REFERENCES fhir.resource (_id) ON DELETE CASCADE,
   created_at timestamp DEFAULT now()
 );
 
@@ -62,13 +62,13 @@ SELECT
     || '(' || array_to_string(columns, ',') || ')'
     || ' INHERITS (fhir.' || base_table || ')'
   , 'ALTER TABLE fhir.' || table_name || ' ALTER COLUMN _type SET DEFAULT $$' || table_name || '$$'
-  ,'ALTER TABLE fhir.' || table_name || ' ADD PRIMARY KEY (id)'
+  ,'ALTER TABLE fhir.' || table_name || ' ADD PRIMARY KEY (_id)'
   ,CASE WHEN base_table = 'resource'
-     THEN  --   'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (container_id) REFERENCES fhir.resource (id) ON DELETE CASCADE;' || -- problem with inheretance & foreign keys
+     THEN  --   'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (container_id) REFERENCES fhir.resource (_id) ON DELETE CASCADE;' || -- problem with inheretance & foreign keys
           'CREATE INDEX ON fhir.' || table_name || ' (container_id);'
-     ELSE    'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (resource_id) REFERENCES fhir.' || resource_table_name || ' (id) ON DELETE CASCADE;'
+     ELSE    'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (resource_id) REFERENCES fhir.' || resource_table_name || ' (_id) ON DELETE CASCADE;'
           || 'CREATE INDEX ON fhir.' || table_name || ' (resource_id);'
-          || 'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (parent_id) REFERENCES fhir.' || parent_table_name || ' (id) ON DELETE CASCADE;'
+          || 'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (parent_id) REFERENCES fhir.' || parent_table_name || ' (_id) ON DELETE CASCADE;'
           || 'CREATE INDEX ON fhir.' || table_name || ' (parent_id);'
      END
   ] AS ddls

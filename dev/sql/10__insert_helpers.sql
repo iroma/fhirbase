@@ -65,7 +65,7 @@ WITH vals AS ( -- split json into key-value filter only columns
           END AS value
       FROM vals
       UNION
-        SELECT 'id' AS key, quote_literal(_id) AS value
+        SELECT '_id' AS key, quote_literal(_id) AS value
       UNION
         SELECT 'parent_id' AS key, quote_literal(_parent_id) AS value
         WHERE _parent_id IS NOT NULL
