@@ -1,71 +1,25 @@
-# FHIRBase
-
-Document/Relational hybryde database for FHIR
+# FHIRBase Developers Guide
 
 ## Requirements
 
 * postgresql 9.3
 * postgresql-contrib
-* plpython
-* pgtap (for development)
+* pgtap
 
 ## Installation
 
-### The simple way
+### Vagrant box
+
+### Ubuntu
 
 You can setup vagrant virtual machine in minutes.
-
-##
 
 * checkout project
 * cd dev/
 * ./bootstrap.sh
-* cp fbdev_config.sh.template fbdev_config.sh
-* # edit fbdev_config.sh and change configuration
-* ./fbdev -h
-
-## Project Layout
-
-* development environment
-  * requirements (see requirements)
-  * database structure (dev/install.sql)
-  * tests (dev/tests/*_test.sql)
-
-* end user build
-  * build script (fhirbase.sql)
-  * documentation (plpython installation & postgresql configuration)
-
-## Development
-
-* classic postgresql views for manipulating fhir structure data
-
-## Build
-
-1. create meta schema (datatype & resource desc tables)
-1. load data from xml:  fhir-base.xsd (datatypes) & profiles-resources.xml (resource descriptinos)
-1. generate views (comprehensive for schema generation)
-1. generate datatypes & resources schema
-1. generate view & insert
-1. generate sql for end-user build
-
-## Meta schema description
-
-There are two base tables:
-
-* meta.datatypes -
-* meta.datatype_elements -
-* meta.datatype_enums -
-* meta.resource_elements -
-* meta.type_to_pg_type -
-
-## Schema
-
-### Base tables
-
-table resource - base table for all resource tables
-table resource_component - base table for all nested into resource value objects & base table for all complex datatypes tables
-
-## Installation instructions
+* cp cfg/config.sh.template config.sh
+* # edit cfg/config.sh and change configuration
+* ./runme -h
 
 
 ```bash

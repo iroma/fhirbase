@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# set configuration file or use fbdev_config.sh
-CFG_FILE='fbdev_config.sh'
+# set configuration file or use config.sh
+CFG_FILE='cfg/config.sh'
 while getopts ":c:" opt; do
     case $opt in
         c)
@@ -21,8 +21,8 @@ ARGV=$@
 if [ -f ./$CFG_FILE ]; then
     . ./$CFG_FILE
 else
-    echo "ERROR: No fbdev_config.sh file found!"
-    echo "Please create your own config from template file fbdev_config.sh.template"
+    echo "ERROR: No $CFG_FILE file found!"
+    echo "Please create your own config from template file cfg/config.sh.template"
     exit 1
 fi
 
@@ -85,6 +85,16 @@ function test_cmd {
     exit $? # return test subprocess exit code
 }
 
+function ttest_cmd {
+    echo "Running fhirbase tests..."
+
+    export TEST_DB_NAME=$TEST_DB_NAME
+    cd $FHIRBASE_HOME/test
+    time psql $PSQL_ARGS -d $TEST_DB_NAME < 10_insert_test.sql
+
+    exit $? # return test subprocess exit code
+}
+
 function build_cmd {
     echo "Building fhirbase.sql"
 
@@ -114,6 +124,9 @@ case "$CMD" in
         ;;
     "install" )
         install_cmd $2 install.sql
+        ;;
+    "t" )
+        ttest_cmd
         ;;
 
     "build" )

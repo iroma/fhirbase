@@ -29,4 +29,4 @@ fi
 
 
 # only for vagrant
-sudo su -l vagrant -c 'cd /home/vagrant/fhirbase  && ./fbdev -c fbdev_config.sh.vagrant test'
+sudo su -l vagrant -c 'cd /home/vagrant/fhirbase  && ./fbdev -c cfg/config.sh.vagrant test'

@@ -71,8 +71,8 @@ We actively use advanced postgresql features
 * [arrays](http://www.postgresql.org/docs/9.3/static/arrays.html)
 * [inheritance](http://www.postgresql.org/docs/9.3/static/tutorial-inheritance.html)
 * [materialized views](http://www.postgresql.org/docs/9.3/static/sql-altermaterializedview.html)
-* [pgtap] extension (http://pgtap.org/)
-* [uuid-ossp] extension (http://www.postgresql.org/docs/9.3/static/uuid-ossp.html)
+* [pgtap](http://pgtap.org/)
+* [uuid-ossp](http://www.postgresql.org/docs/9.3/static/uuid-ossp.html)
 
 ## Schema generation
 
