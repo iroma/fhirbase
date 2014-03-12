@@ -65,15 +65,14 @@ Most of it required or desirable while programming Health IT systems.
 
 We actively use advanced postgresql features
 
-* xml
-* json
-* enum type
-* arrays
+* [xml](http://www.postgresql.org/docs/9.3/static/functions-xml.html)
+* [json](http://www.postgresql.org/docs/9.3/static/functions-json.html)
+* [enums](http://www.postgresql.org/docs/9.3/static/datatype-enum.html)
+* [arrays](http://www.postgresql.org/docs/9.3/static/arrays.html)
 * [inheritance](http://www.postgresql.org/docs/9.3/static/tutorial-inheritance.html)
-* materialized views
-* pgtap
-* uuid extension
-* plpython extension ???
+* [materialized views](http://www.postgresql.org/docs/9.3/static/sql-altermaterializedview.html)
+* [pgtap] extension (http://pgtap.org/)
+* [uuid-ossp] extension (http://www.postgresql.org/docs/9.3/static/uuid-ossp.html)
 
 ## Schema generation
 
@@ -367,6 +366,9 @@ psql -d mydb < fhirbase_test.sql
 
 ```
 
+or you can use [vagrant](http://www.vagrantup.com/) box to setup virtual
+machine with fhirbase installed (See dev/README.md)
+
 ## Usage
 
 * all resource tables lay in __fhir__ schema
@@ -380,9 +382,9 @@ psql -d mydb < fhirbase_test.sql
 * Create issue - for bug report or enhancment
 * Contribute to FHIRbase  - see dev/README.md
 
-## Roadmap
+## TODO
 
-* Extensions
+* Support FHIR extensions
 * FHIR server implementation
-* FHIR version migrations
-* Oracle, MS SQL & Mysql support
+* FHIR versions migrations
+* [Oracle, MS SQL & Mysql support]
