@@ -1,6 +1,6 @@
 # FHIRbase
 
-Relational storage for [FHIR](http://hl7.org/implement/standards/fhir/) with document API
+Open Source relational storage for [FHIR](http://hl7.org/implement/standards/fhir/) with document API
 
 [![Build Status](https://travis-ci.org/fhirbase/fhirbase.png?branch=refactor)](https://travis-ci.org/fhirbase/fhirbase)
 
@@ -118,7 +118,7 @@ This point is illustrated on picture bellow:
 [edit](http://yuml.me/edit/1f3c8e92)
 
 Due to inheritance we can access all resources throughout  __resource__ table
-and all resource components in __resource_component__.
+and all resource components by __resource_component__ table.
 
 
 ### Description of resource table
@@ -287,43 +287,100 @@ TODO: working on solution
 
 ### views
 
-Relational schema is good for querying.
-Here is query illustrating this point:
+Relational schema is perfect for querying.
+
+Example - select patients with recent visits:
 
 ```sql
 
+SELECT p.*
+  FROM fhir.encounter_hospitalization_period ehp
+    JOIN fhir.encounter_subject es
+     ON es.resource_id = ehp.resource_id
+    JOIN fhir.patient p
+     ON p.id = es.reference::uuid
+  WHERE  ehp.start BETWEEN LOCALTIMESTAMP - INTERVAL '1 week' AND LOCALTIMESTAMP
 
 ```
 
+But after searching we want to get resource as whole
+(i.e. collect resource aggregate from relational tables).
+
+To simplify this, we generate views with names view_<resource_name>,
+which returns FHIR compliant json resource representation. So to
+accomplish query we can replace __patient__ table with __view_patient__ view,
+and get resource json in one hop.
+
+
+```sql
+
+SELECT vp.id as id, vp.json as resource
+  FROM fhir.encounter_hospitalization_period ehp
+    JOIN fhir.encounter_subject es
+     ON es.resource_id = ehp.resource_id
+    JOIN fhir.view_patient vp
+     ON vp.id = es.reference::uuid
+  WHERE  ehp.start BETWEEN LOCALTIMESTAMP - INTERVAL '1 week' AND LOCALTIMESTAMP
+
+```
 
 ### insert_resource(resource json)
 
+Manually inserting resource aggregate into relations is also tricky.
+To simplify this we generate procedure
+`insert_resource(_resource json)`, which put resource components
+into right relations and return new resource id (uuid).
+
 ### delete_resource(id uuid)
+
+There are also procedure to delete resource
 
 ### update_resource(resource json)
 
+Update resource is implemented as delete, insert with same id.
+
+TODO: we should think about versioning!
+
 ## Installation
 
-* requirements:
-  * postgresql 9.3
-  * postgresql-contrib
-  * plpython
-* create databae
-* execute fhirbase.sql script
+```bash
+
+# Install postgresql-9.3 and postgresql-contrib
+# if you use debian linux or ubuntu see dev/apt.postgresql.org.sh
+
+# Create database
+psql -d postgres -e 'create database mydb'`
+
+# Download fhirbase.sql from repository backup and restore using psql
+curl https://raw.github.com/fhirbase/fhirbase/refactor/fhirbase.sql | psql -d mydb
+
+# check installation
+
+psql -d mydb -e '\dt fhir.*'
+
+# You can install checkout repository,
+# install pgtap extension and run tests
+
+git clone git@github.com:fhirbase/fhirbase.git
+cd fhirbase
+psql -d mydb < fhirbase_test.sql
+
+```
 
 ## Usage
 
-* insert, update & delete procedures
-* aggregated resources views
-* querying
+* all resource tables lay in __fhir__ schema
+* insert_resource(res json) - store resource
+* use SQL for querying (select, join, group)
+* use resource views to retrieve json aggregates
 
 ## Contribution
 
 * Star us on github
 * Create issue - for bug report or enhancment
-* Contribute to FHIRbase (see dev/README.md to prepare development environment)
+* Contribute to FHIRbase  - see dev/README.md
 
-## Plans
+## Roadmap
 
 * Extensions
 * FHIR server implementation

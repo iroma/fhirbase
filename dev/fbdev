@@ -85,6 +85,29 @@ function test_cmd {
     exit $? # return test subprocess exit code
 }
 
+function build_cmd {
+    echo "Building fhirbase.sql"
+
+    BUILD_DB_NAME='fhir_build'
+    recreate_db $BUILD_DB_NAME
+    install_cmd $BUILD_DB_NAME install.sql
+    exit 0
+
+    pg_dump $PSQL_ARGS \
+            --format=plain \
+            --no-owner \
+            --file=$FHIRBASE_HOME/../fhirbase.sql \
+            $BUILD_DB_NAME && echo "FhirBase schema successfully dumped to $FHIRBASE_HOME/../fhirbase.sql"
+
+    recreate_db $BUILD_DB_NAME
+    cd $FHIRBASE_HOME/.. && time psql $PSQL_ARGS -v ON_ERROR_STOP=1 -1 -q -d $BUILD_DB_NAME < fhirbase.sql
+    cd $FHIRBASE_HOME/.. && time psql $PSQL_ARGS -v ON_ERROR_STOP=1 -1 -q -d $BUILD_DB_NAME < fhirbase_test.sql
+    # cd $FHIRBASE_HOME/bench && time psql $PSQL_ARGS -v ON_ERROR_STOP=1 -1 -q -d $BUILD_DB_NAME < bench.sql
+    cd $FHIRBASE_HOME
+
+    exit $? # return tests exit status
+}
+
 case "$CMD" in
     "test" )
         test_cmd
@@ -94,26 +117,7 @@ case "$CMD" in
         ;;
 
     "build" )
-        echo "Building fhirbase.sql"
-
-        BUILD_DB_NAME='fhir_build'
-        recreate_db $BUILD_DB_NAME
-        install_cmd $BUILD_DB_NAME install.sql
-        exit 0
-
-        pg_dump $PSQL_ARGS \
-                --format=plain \
-                --no-owner \
-                --file=$FHIRBASE_HOME/../fhirbase.sql \
-                $BUILD_DB_NAME && echo "FhirBase schema successfully dumped to $FHIRBASE_HOME/../fhirbase.sql"
-
-        recreate_db $BUILD_DB_NAME
-        cd $FHIRBASE_HOME/.. && time psql $PSQL_ARGS -v ON_ERROR_STOP=1 -1 -q -d $BUILD_DB_NAME < fhirbase.sql
-        cd $FHIRBASE_HOME/.. && time psql $PSQL_ARGS -v ON_ERROR_STOP=1 -1 -q -d $BUILD_DB_NAME < fhirbase_test.sql
-        # cd $FHIRBASE_HOME/bench && time psql $PSQL_ARGS -v ON_ERROR_STOP=1 -1 -q -d $BUILD_DB_NAME < bench.sql
-        cd $FHIRBASE_HOME
-
-        exit $? # return tests exit status
+        build_cmd
         ;;
     *)
         help_cmd
