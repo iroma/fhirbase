@@ -13,7 +13,7 @@ BEGIN;
 \ir ../sql/10__insert_helpers.sql
 \ir ../sql/10_insert.sql
 
-SELECT plan(8);
+SELECT plan(9);
 
 \set pt_json `cat $FHIRBASE_HOME/test/fixtures/patient.json`
 
@@ -35,8 +35,13 @@ SELECT is(
          FROM fhir.view_patient LIMIT 1),
        '1960-03-13 00:00:00'::varchar,
        'receive correct birth_date from patient view');
+SELECT is(
+       (SELECT (json->>'multipleBirthInteger')::varchar
+         FROM fhir.view_patient LIMIT 1),
+       '3'::varchar,
+       'receive correct multipleBirthInteger from patient view');
 
-SELECT is_empty('SELECT id FROM fhir.view_organization
+SELECT is_empty('SELECT _id FROM fhir.view_organization
                         WHERE (json->>''name'')::varchar = ''ACME''::varchar',
                 'contained resource is not available as regular resource');
 

@@ -15,15 +15,20 @@ FUNCTION underscore(str varchar)
       '.', '')); -- problem with path: {schedule,repeat} with type Schedule.repeat
 $$ IMMUTABLE;
 
+create or replace
+function initcap_(str text) returns text
+language sql
+as $$
+  select upper(substring(str from 1 for 1)) || substring(str from 2);
+$$ immutable;
+
 CREATE OR REPLACE
-FUNCTION camelize(str varchar)
+FUNCTION camelize(_str varchar)
   returns varchar
   language sql
   as $$
-  SELECT replace(
-    replace(
-      initcap(
-        replace('xxx' || str,'_',' ')), ' ', ''), 'Xxx', '');
+  select string_agg(replace(initcap_(str), 'Xxx', ''), '') from unnest(string_to_array('xxx' || _str, '_')) as str;
+  --SELECT replace( replace( initcap_( replace('xxx' || str, '_', ' ')), ' ', ''), 'Xxx', '');
 $$ IMMUTABLE;
 
 -- remove last item from array

@@ -19,7 +19,7 @@ SELECT plan(8);
 
 select fhir.insert_resource(:'pt_json'::json) as resource_id \gset
 
-SELECT :'resource_id';
+\echo :'resource_id';
 
 SELECT is(count(*)::integer, 1, 'insert patient')
        FROM fhir.patient;

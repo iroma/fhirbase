@@ -36,8 +36,7 @@ CREATE OR REPLACE FUNCTION select_contained(rid uuid, resource_type varchar)
     contained json;
   BEGIN
     EXECUTE
-      'SELECT fhir.merge_json(t.json, (''{"id": "'' || t.id::varchar || ''"}'')::json)' ||
-      ' FROM fhir."view_' || resource_type || '_with_containeds" t WHERE t._id = $1 LIMIT 1'
+      'SELECT t.json FROM fhir."view_' || resource_type || '_with_containeds" t WHERE t._id = $1 LIMIT 1'
     INTO contained
     USING rid;
 
@@ -100,7 +99,22 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
          END;
 
       IF level = 1 THEN
-        RETURN 'select t1._id, t1.resource_type as "resourceType", (CASE WHEN t1.container_id IS NULL THEN (SELECT array_to_json(array_agg(fhir.select_contained(r._id, fhir.table_name(ARRAY[r.resource_type])))) FROM fhir.resource r WHERE r.container_id = t1._id) ELSE NULL END) as "contained", ' || subselect;
+        RETURN $SELECT$
+          SELECT t1._id,
+                 t1.id,
+                 t1.resource_type as "resourceType",
+                 CASE
+                     WHEN t1.container_id IS NULL THEN
+                       (
+                         SELECT array_to_json(array_agg(fhir.select_contained(r._id, fhir.table_name(ARRAY[r.resource_type]))))
+                         FROM fhir.resource r
+                         WHERE r.container_id = t1._id
+                       )
+                     ELSE NULL
+                 END AS "contained",
+        $SELECT$
+        || subselect;
+
       ELSE
         RETURN
           CASE WHEN isArray THEN
@@ -131,7 +145,13 @@ CREATE OR REPLACE FUNCTION create_resource_view(resource_name varchar, schm varc
 
     EXECUTE
       'CREATE OR REPLACE VIEW "' || schm ||'"."view_' || res_table_name || '_with_containeds" AS ' ||
-      'SELECT t_1._id, row_to_json(t_1, true) AS json, res_table.container_id AS container_id , res_table.id AS id FROM (' ||
+      $SELECT$
+        SELECT t_1._id,
+               row_to_json(t_1, true) AS json,
+               res_table.container_id AS container_id ,
+               res_table.id AS id
+        FROM (
+      $SELECT$ ||
       E'\n' || indent(gen_select_sql(ARRAY[resource_name], schm), 1) ||
       ') t_1 JOIN fhir.' || res_table_name || ' res_table ON res_table._id = t_1._id;';
 

@@ -27,7 +27,7 @@ CREATE TABLE fhir.resource (
   _unknown_attributes json,
   resource_type varchar,
   language VARCHAR,
-  container_id UUID REFERENCES fhir.resource (_id) ON DELETE CASCADE,
+  container_id UUID, --REFERENCES fhir.resource (_id) ON DELETE CASCADE DEFERRABLE,
   id VARCHAR,
   created_at timestamp DEFAULT now()
 );
@@ -36,8 +36,8 @@ CREATE TABLE fhir.resource_component (
   _id uuid PRIMARY KEY,
   _type VARCHAR NOT NULL,
   _unknown_attributes json,
-  parent_id UUID NOT NULL REFERENCES fhir.resource_component (_id) ON DELETE CASCADE,
-  resource_id UUID NOT NULL REFERENCES fhir.resource (_id) ON DELETE CASCADE,
+  parent_id UUID NOT NULL, --REFERENCES fhir.resource_component (_id) ON DELETE CASCADE DEFERRABLE,
+  resource_id UUID NOT NULL, -- REFERENCES fhir.resource (_id) ON DELETE CASCADE DEFERRABLE,
   created_at timestamp DEFAULT now()
 );
 
@@ -66,9 +66,9 @@ SELECT
   ,CASE WHEN base_table = 'resource'
      THEN  --   'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (container_id) REFERENCES fhir.resource (_id) ON DELETE CASCADE;' || -- problem with inheretance & foreign keys
           'CREATE INDEX ON fhir.' || table_name || ' (container_id);'
-     ELSE    'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (resource_id) REFERENCES fhir.' || resource_table_name || ' (_id) ON DELETE CASCADE;'
+     ELSE    ''--'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (resource_id) REFERENCES fhir.' || resource_table_name || ' (_id) ON DELETE CASCADE DEFERRABLE;'
           || 'CREATE INDEX ON fhir.' || table_name || ' (resource_id);'
-          || 'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (parent_id) REFERENCES fhir.' || parent_table_name || ' (_id) ON DELETE CASCADE;'
+          --|| 'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (parent_id) REFERENCES fhir.' || parent_table_name || ' (_id) ON DELETE CASCADE DEFERRABLE;'
           || 'CREATE INDEX ON fhir.' || table_name || ' (parent_id);'
      END
   ] AS ddls
