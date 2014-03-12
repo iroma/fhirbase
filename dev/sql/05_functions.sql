@@ -27,8 +27,7 @@ FUNCTION camelize(_str varchar)
   returns varchar
   language sql
   as $$
-  select string_agg(replace(initcap_(str), 'Xxx', ''), '') from unnest(string_to_array('xxx' || _str, '_')) as str;
-  --SELECT replace( replace( initcap_( replace('xxx' || str, '_', ' ')), ' ', ''), 'Xxx', '');
+  select string_agg(replace((upper(substring(str from 1 for 1)) || substring(str from 2)), 'Xxx', ''), '') from unnest(string_to_array('xxx' || _str, '_')) as str;
 $$ IMMUTABLE;
 
 -- remove last item from array
