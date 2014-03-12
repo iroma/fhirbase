@@ -9,12 +9,12 @@ FHIR is open source new generation lightweight standard for health data interop,
 could be used as internal model for health IT systems. FHIR is based on concept of __resource__.
 
 
->> FHIR® is a next generation standards framework created by HL7.
->> FHIR combines the best features of HL7 Version 2,
->> Version 3 and CDA® product lines while leveraging the latest
->> web standards and applying a tight focus on implementability.
->> In terms of [Domain Driven Design]() __resource__ is an [aggregate](), which consist of __root entity__
->> (having identity) and set of aggregated __value objects__.
+> FHIR® is a next generation standards framework created by HL7.
+> FHIR combines the best features of HL7 Version 2,
+> Version 3 and CDA® product lines while leveraging the latest
+> web standards and applying a tight focus on implementability.
+> In terms of [Domain Driven Design]() __resource__ is an [aggregate](), which consist of __root entity__
+> (having identity) and set of aggregated __value objects__.
 
 There is concern - how to persist __resources__.
 
@@ -50,15 +50,11 @@ Most of it required or desirable while programming Health IT systems.
 
 ## Why postgresq?
 
->> PostgreSQL is a powerful, open source object-relational database system.
->> It has more than 15 years of active development and a proven architecture
->> that has earned it a strong reputation for reliability, data integrity, and correctness.
+> PostgreSQL is a powerful, open source object-relational database system.
+> It has more than 15 years of active development and a proven architecture
+> that has earned it a strong reputation for reliability, data integrity, and correctness.
 
-
-## Schema generation
-
-We use code generation based on FHIR machine readable specification to generate database schema and
-CRUD procedures. All generation done in postgresql. We use advanced postgresql features
+We actively use advanced postgresql features
 
 * xml
 * json
@@ -68,7 +64,13 @@ CRUD procedures. All generation done in postgresql. We use advanced postgresql f
 * materialized views
 * pgtap
 * uuid extension
-* plpython extension
+* plpython extension ???
+
+## Schema generation
+
+We code-generate database schema & CRUD views & procedures from
+FHIR machine readable specification (http://www.hl7.org/implement/standards/fhir/downloads.html).
+All generation done in postgresql.
 
 Generation steps:
 
@@ -90,6 +92,9 @@ Generation steps:
 
 ## Schema Overview
 
+[!schema1](doc/schema1.png)
+
+[edit](http://yuml.me/edit/1f3c8e92)
 
 * resource
   * id
