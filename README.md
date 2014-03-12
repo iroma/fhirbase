@@ -92,37 +92,75 @@ Generation steps:
 
 ## Schema Overview
 
+We heavily use postgresql inheritance for schema infrastructure.
+
+There are two base tables:
+
+* resource - base table for all __root entities__ of resources
+* resource_component - base table for all __value objects__ (resource components)
+
+Each resource represented as __root entity__ table (for example 'patient')
+and table per component (for exampl: patient.contact is saved in `patient_contact` table).
+
+This point is illustrated on picture bellow:
+
 ![schema1](doc/schema1.png)
 
 [edit](http://yuml.me/edit/1f3c8e92)
 
-* resource
-  * id
-  * _type
-  * _unknown_attributes
-  * resource_type
-  * language
-  * container_id
-  * contained_id
-  * created_at
-* resource_component
-  * id
-  * _type
-  * _unknown_attributes
-  * parent_id
-  * resource_id
-  * container_id
-  * created_at
+Due to inheritance we can access all resources throughout  __resource__ table
+and all resource components in __resource_component__.
 
-## Usage
 
-* insert, update & delete procedures
-* aggregated resources views
-* querying
+### Description of resource table
+
+```sql
+  CREATE TABLE resource (
+      id uuid NOT NULL, -- surrogate resource id
+      _type, -- real table name (i.e. where data are saved)
+      _unknown_attributes json, -- json where all unknown attributes will be saved
+      resource_type character varying, -- resourceType see FHIR documentation
+      language character varying, -- see FHIR documentation
+      container_id uuid, -- not null and references aggregating resource if resource is contained
+      contained_id character varying, -- original contained id from resource aggregate
+      created_at timestamp without time zone DEFAULT now() -- timestamp field
+  );
+```
+
+
+### resource_component table
+
+```
+CREATE TABLE resource_component (
+    id uuid NOT NULL, -- surrogate component id
+    _type character varying NOT NULL, -- real table name
+    _unknown_attributes json, -- json where all unknown attributes will be saved
+    parent_id uuid NOT NULL, -- reference to parent component if present
+    resource_id uuid NOT NULL -- reference on resource root table, all components have it, even when nested depper then 1 level
+);
+
+```
+
+### Treating complex datatypes
+
+### Tables abbreviations
+
+### Contained Resources
+
+### Extensions
+
+### Views
+
+### insert_resource(resource json)
+
+### delete_resource(id uuid)
+
+### update_resource(resource json)
 
 ## Demo
 
-You can try upload resources and query storage using demo site - http://try-fhirbase.hospital-systems.com
+Here are interactive demo - http://try-fhirbase.hospital-systems.com,
+where you can upload and query fhirbase.
 
 ## Installation
 
@@ -132,6 +170,13 @@ You can try upload resources and query storage using demo site - http://try-fhir
   * plpython
 * create databae
 * execute fhirbase.sql script
+
+## Usage
+
+* insert, update & delete procedures
+* aggregated resources views
+* querying
+
 
 ## Contribution
 
