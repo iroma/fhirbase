@@ -92,7 +92,7 @@ Generation steps:
 
 ## Schema Overview
 
-[!schema1](doc/schema1.png)
+![schema1](doc/schema1.png)
 
 [edit](http://yuml.me/edit/1f3c8e92)
 
