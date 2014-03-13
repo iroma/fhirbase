@@ -1,5 +1,6 @@
 dev/test/tmp
 dev/fbdev_config.sh
+dev/cfg/config.sh
 tmp
 *sw?
 *~
