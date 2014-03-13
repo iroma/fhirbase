@@ -2,64 +2,114 @@
 
 ## Installation
 
-## Using vagrant
+### Clone & Configure
 
-The simplest way to install development environment  is using vagrant
+```bash
 
-* install vagrant - https://docs.vagrantup.com/v2/installation/
+git clone https://github.com/fhirbase/fhirbase.git`
+cd dev
 
-## Install locally
+# copy configuration template
+cp cfg/config.sh.template cfg/config.sh
 
-## Requirements
+# edit configuration
+```
 
-* postgresql 9.3
+### Using vagrant
+
+The simplest way to install development environment is using vagrant.
+So you will get virtual sandbox with everything installed inside and not interfering
+you local env.
+
+Install vagrant - https://docs.vagrantup.com/v2/installation/
+
+
+``` bash
+  cd dev && vagrant up
+```
+
+If you are on linux, you can skip performance trade-offs using lxc containers
+instead virtual box virtualization.
+
+Install vagrant-lxc - https://github.com/fgrehm/vagrant-lxc
+
+```bash
+ cd dev && vagrant up --provider lxc
+```
+
+Vagrant will downloads box (virtual or lxc - depends on your system),
+start it and provisions with bootstrap.sh script,
+which will install everything you need.
+
+TODO: ports from vagrant to local machine
+TODO: ports from vagrant to local machine
+
+
+### Install locally & manually
+
+Install deps:
+
+* postgresql-9.3
 * postgresql-contrib
 * pgtap
 
-## Installation
+`HINT: look at dev/bootstrap.sh`
 
-### Vagrant box
+Configure connection in config.sh and run `./runme install`
 
-### Ubuntu
+## Project structure description
 
-You can setup vagrant virtual machine in minutes.
+  cfg/                   - folder with configuration for runme unit
+  fhir/                  - FHIR metadata from official site
+  sql/                   - sql generation code
+  test/                  - pg_tap tests
+  .vimrc                 - helpers for vim users
+  Vagrantfile            - vagrant manifest
+  apt.postgresql.org.sh* - copy of postgresql installation on ubuntu, should be moved to scripts
+  bootstrap.sh           - bash script to install all deps, should be moved to scripts
+  install.sql            - sql for installation, should be moved to sql
+  pg_prove*              - pgtap test runner, should be moved to scripts
+  runme*                 - bash util for development [build, tests, installation]
 
-* checkout project
-* cd dev/
-* ./bootstrap.sh
-* cp cfg/config.sh.template config.sh
-* # edit cfg/config.sh and change configuration
-* ./runme -h
+### Code Structure
+
+01_extensions.sql        - create extensions and schemas
+03_meta.sql              - create schema for FHIR metainformation
+04_load_meta.sql         - load meta data from FHIR xml
+05_functions.sql         - create helper functions
+06_datatypes.sql         - views for more convenient datatype's schema generation
+07_schema.sql            - views for schema generation
+08_generate_schema.sql   - generate schema script
+09_views.sql             - generate resource views sript
+10__insert_helpers.sql   - helper functions for insert procedure generation
+10_insert.sql            - insert procedure generation
+11_delete.sql            - delete procedure
+12_update.sql            - update procedure
+
+### Development workflow
+
+Main util for developers is `./runme` bash script.
+
+  Usage: ./runme [-c cfg/config_file.sh] [command] [args]
+
+  Available commands:
+
+  -h || help                this help text
+  test [part_of_test_name]  run tests from dev/test dir. if test name is provided, run specified tests
+  install dbname            generate and install fhirbase schema into specified DB
+  build                     build fhirbase.sql file
 
 
-```bash
+We are addicted to TDD.
+Tests written with pgtap is placed in tests/.
+See more about [pgtap](http://pgtap.org/).
 
-sudo apt-get install libpq
-sudo apt-get install postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3
-sudo apt-get install libpq-dev
+You can run tests with `./runme test [test_name_part]`
+or in vagrant
+`vagrant ssh -c 'cd fhirbase && ./runme -c cfg/config.sh.vagrant test [test_name_part]`.
 
-ubuntu 13.10
+### Contribution
 
-sudo add-apt-repository ppa:chris-lea/postgresql-9.3
-sudo apt-get install postgresql-server-dev-9.3
-sudo apt-get install postgresql-contrib-9.3
-
-```
-
-on ubuntu 14.04 (trusty)
-sudo apt-get install postgresql-9.3
-
-sudo vim /etc/postgresql/9.3/main/postgresql.conf
-
-
-install pgTap (xUnit for SQL)
-
-```bash
-  cd tmp
-  git clone git@github.com:theory/pgtap.git
-  cd pgtap
-
-  make
-  make installcheck
-  sudo make install
-```
+We are very interested in your collaboration & contribution.
+You can contribute by creating [issues](https://github.com/fhirbase/fhirbase/issues?state=open)
+and by [pull requests](https://help.github.com/articles/using-pull-requests).
