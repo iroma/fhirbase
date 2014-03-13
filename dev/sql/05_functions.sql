@@ -15,13 +15,6 @@ FUNCTION underscore(str varchar)
       '.', '')); -- problem with path: {schedule,repeat} with type Schedule.repeat
 $$ IMMUTABLE;
 
-create or replace
-function initcap_(str text) returns text
-language sql
-as $$
-  select upper(substring(str from 1 for 1)) || substring(str from 2);
-$$ immutable;
-
 CREATE OR REPLACE
 FUNCTION camelize(_str varchar)
   returns varchar
