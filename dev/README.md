@@ -25,19 +25,19 @@ You can setup vagrant virtual machine in minutes.
 ```bash
 
 sudo apt-get install libpq
-sudo apt-get install postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3 postgresql-plpython-9.3
+sudo apt-get install postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3
 sudo apt-get install libpq-dev
 
 ubuntu 13.10
 
 sudo add-apt-repository ppa:chris-lea/postgresql-9.3
 sudo apt-get install postgresql-server-dev-9.3
-sudo apt-get install postgresql-contrib-9.3 postgresql-plpython-9.3
+sudo apt-get install postgresql-contrib-9.3
 
 ```
 
 on ubuntu 14.04 (trusty)
-sudo apt-get install postgresql-9.3 postgresql-plpython-9.3
+sudo apt-get install postgresql-9.3
 
 sudo vim /etc/postgresql/9.3/main/postgresql.conf
 

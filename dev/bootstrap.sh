@@ -9,7 +9,7 @@ if [ ! -d /etc/postgresql/9.3 ]; then
   sudo /home/vagrant/fhirbase/apt.postgresql.org.sh
 fi
 
-sudo apt-get install -y curl build-essential git libpq-dev postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3 postgresql-plpython-9.3
+sudo apt-get install -y curl build-essential git libpq-dev postgresql-9.3 postgresql-contrib-9.3 postgresql-server-dev-9.3
 
 sudo su postgres -c 'createuser -s root'
 sudo su postgres -c 'createuser -s vagrant'
