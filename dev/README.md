@@ -1,5 +1,15 @@
 # FHIRBase Developers Guide
 
+## Installation
+
+## Using vagrant
+
+The simplest way to install development environment  is using vagrant
+
+* install vagrant - https://docs.vagrantup.com/v2/installation/
+
+## Install locally
+
 ## Requirements
 
 * postgresql 9.3
