@@ -39,9 +39,7 @@ create or replace function fhir.insert_resource_py(jdata json) returns uuid lang
     #   log('Skip %s with path %s' % (table_name, pth))
 
   def insert_record(schema, table_name, attrs):
-    import datetime
     attrs['_type'] = table_name
-    attrs['created_at'] = str(datetime.datetime.utcnow())
     query = """
       INSERT INTO %(schema)s.%(table)s
       SELECT * FROM json_populate_recordset(null::%(schema)s.%(table)s, '%(json)s'::json)
