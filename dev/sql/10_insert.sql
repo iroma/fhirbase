@@ -82,7 +82,7 @@ SELECT
 
 -- generate insert functions
 
-SELECT 'create insert functions...' FROM (
+SELECT 'create insert functions...', count(*)  FROM (
    SELECT meta.eval_function(ddl) FROM insert_ddls
 ) _;
 
