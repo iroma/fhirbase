@@ -1,6 +1,6 @@
 # FHIRbase
 
-Open Source relational storage for [FHIR](http://hl7.org/implement/standards/fhir/) with document API
+Open source relational storage for [FHIR](http://hl7.org/implement/standards/fhir/) with document API
 
 [![Build Status](https://travis-ci.org/fhirbase/fhirbase.png?branch=refactor)](https://travis-ci.org/fhirbase/fhirbase)
 
@@ -20,7 +20,7 @@ FHIR is an open source new generation lightweight standard for health data inter
 > Version 3 and CDA® product lines while leveraging the latest
 > web standards and applying a tight focus on implementability.
 
-In terms of [Domain Driven Design]() __resource__ is an [aggregate](), which consist of __root entity__
+In terms of [Domain Driven Design](), __resource__ is an [aggregate]() which consists of a __root entity__
 (having identity) and a set of aggregated __value objects__. In this readme we sometimes use DDD terminology
 so don't be confused.
 
@@ -269,19 +269,19 @@ VALUES
 FHIR allows on level resource - resource aggregation,
 see http://www.hl7.org/implement/standards/fhir/references.html.
 
-We save __contained resources___ same way as resources, but saving
-in __container_id__ reference to parent resource, and preserving symbolic local resource id
+We save __contained resources___ same way as resources, but 
+in __container_id__ reference to parent resource, and preserve symbolic local resource id
 in __contained_id__ field.
 
 ### Resource References
 
-Now resource references saved as other compound types, but we
-are looking for more relational solution for referential integrity
+Now resource references are saved as other compound types, but we
+are looking for a more relational solution for referential integrity
 and reference traversing.
 
 ### Extensions
 
-TODO: working on solution
+TODO: we are working on a solution
 
 ### views
 
@@ -304,8 +304,8 @@ SELECT p.*
 But after searching we want to get resource as whole
 (i.e. collect resource aggregate from relational tables).
 
-To simplify this, we generate views with names view_<resource_name>,
-which returns FHIR compliant json resource representation. So to
+To simplify this, we generate views with names view_<resource_name>
+which return FHIR compliant json resource representation. So to
 accomplish query we can replace __patient__ table with __view_patient__ view,
 and get resource json in one hop.
 
@@ -325,17 +325,17 @@ SELECT vp.id as id, vp.json as resource
 ### insert_resource(resource json)
 
 Manually inserting resource aggregate into relations is also tricky.
-To simplify this we generate procedure
-`insert_resource(_resource json)`, which put resource components
+To simplify this we generated procedure
+`insert_resource(_resource json)` which puts resource components
 into right relations and return new resource id (uuid).
 
 ### delete_resource(id uuid)
 
-There are also procedure to delete resource
+There are also procedures to delete resource
 
 ### update_resource(resource json)
 
-Update resource is implemented as delete, insert with same id.
+Update resource is implemented as delete and insert with same id.
 
 TODO: we should think about versioning!
 
