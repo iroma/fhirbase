@@ -59,6 +59,7 @@ Configure connection in config.sh and run `./runme install`
 
 ## Project structure description
 
+```
   cfg/                   - folder with configuration for runme unit
   fhir/                  - FHIR metadata from official site
   sql/                   - sql generation code
@@ -70,21 +71,24 @@ Configure connection in config.sh and run `./runme install`
   install.sql            - sql for installation, should be moved to sql
   pg_prove*              - pgtap test runner, should be moved to scripts
   runme*                 - bash util for development [build, tests, installation]
+```
 
 ### Code Structure
 
-01_extensions.sql        - create extensions and schemas
-03_meta.sql              - create schema for FHIR metainformation
-04_load_meta.sql         - load meta data from FHIR xml
-05_functions.sql         - create helper functions
-06_datatypes.sql         - views for more convenient datatype's schema generation
-07_schema.sql            - views for schema generation
-08_generate_schema.sql   - generate schema script
-09_views.sql             - generate resource views sript
-10__insert_helpers.sql   - helper functions for insert procedure generation
-10_insert.sql            - insert procedure generation
-11_delete.sql            - delete procedure
-12_update.sql            - update procedure
+```
+  01_extensions.sql        - create extensions and schemas
+  03_meta.sql              - create schema for FHIR metainformation
+  04_load_meta.sql         - load meta data from FHIR xml
+  05_functions.sql         - create helper functions
+  06_datatypes.sql         - views for more convenient datatype's schema generation
+  07_schema.sql            - views for schema generation
+  08_generate_schema.sql   - generate schema script
+  09_views.sql             - generate resource views sript
+  10__insert_helpers.sql   - helper functions for insert procedure generation
+  10_insert.sql            - insert procedure generation
+  11_delete.sql            - delete procedure
+  12_update.sql            - update procedure
+```
 
 ### Development workflow
 
