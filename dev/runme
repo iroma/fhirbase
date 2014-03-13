@@ -80,7 +80,7 @@ function test_cmd {
     export TEST_DB_NAME
     recreate_db $TEST_DB_NAME
     cd $FHIRBASE_HOME/test &&
-    time $FHIRBASE_HOME/pg_prove $PSQL_ARGS $pg_prove_args -d $TEST_DB_NAME $glob
+    $FHIRBASE_HOME/pg_prove $PSQL_ARGS $pg_prove_args -d $TEST_DB_NAME $glob
 
     exit $? # return test subprocess exit code
 }

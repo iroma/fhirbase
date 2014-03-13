@@ -17,16 +17,16 @@ sudo su postgres -c 'createuser -s vagrant'
 grep -v 'max_locks_per_transaction = 200' /etc/postgresql/9.3/main/postgresql.conf && (sudo bash -c "echo 'max_locks_per_transaction = 200' >> /etc/postgresql/9.3/main/postgresql.conf" && sudo service postgresql restart)
 
 if [ ! -d /tmp/pgtap ]; then
-  echo y | sudo perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP'
+  echo y | sudo perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP' || echo 'CPAN :( - hope it will work'
   git clone https://github.com/theory/pgtap.git /tmp/pgtap
   cd /tmp/pgtap
   make
   sudo make install
   sudo make installcheck
   sudo service postgresql restart
-  echo y | sudo perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP'
+  echo y | sudo perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP' || echo 'CPAN :( - hope it will work'
 fi
 
 
 # only for vagrant
-sudo su -l vagrant -c 'cd /home/vagrant/fhirbase  && ./fbdev -c cfg/config.sh.vagrant test'
+sudo su -l vagrant -c 'cd /home/vagrant/fhirbase  && ./runme -c cfg/config.sh.vagrant test'

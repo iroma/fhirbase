@@ -17,7 +17,7 @@ $$ IMMUTABLE LANGUAGE sql;
 
 --{{{
 
-drop view if exists insert_ctes cascade;
+/* DROP VIEW IF EXISTS insert_ctes cascade; */
 CREATE OR REPLACE VIEW insert_ctes AS (
 SELECT
   path,
@@ -77,21 +77,24 @@ SELECT
   ) as ddl
  FROM insert_ctes
  GROUP BY path[1]
+ HAVING path[1] <> 'Profile' -- fix profile
 );
 
 -- generate insert functions
 
---SELECT meta.eval_function(ddl) FROM insert_ddls;
+SELECT 'create insert functions...' FROM (
+   SELECT meta.eval_function(ddl) FROM insert_ddls
+) _;
 
-DO $$
-  DECLARE
-    r RECORD;
-  BEGIN
-    FOR r IN SELECT * FROM insert_ddls LOOP
-      PERFORM meta.eval_function(r.ddl);
-    END LOOP;
-  END
-$$;
+/* DO $$ */
+/*   DECLARE */
+/*     r RECORD; */
+/*   BEGIN */
+/*     FOR r IN SELECT * FROM insert_ddls LOOP */
+/*       PERFORM meta.eval_function(r.ddl); */
+/*     END LOOP; */
+/*   END */
+/* $$; */
 
 
 CREATE OR REPLACE FUNCTION

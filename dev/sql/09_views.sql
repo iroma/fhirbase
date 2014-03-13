@@ -27,7 +27,7 @@ CREATE INDEX resource_elements_expanded_with_types_type_idx
 CREATE INDEX resource_elements_expanded_with_types_popped_path_idx
        ON meta.resource_elements_expanded_with_types (fhir.array_pop(path));
 
-DROP FUNCTION IF EXISTS select_contained(uuid, varchar) CASCADE;
+/* DROP FUNCTION IF EXISTS select_contained(uuid, varchar) CASCADE; */
 CREATE OR REPLACE FUNCTION select_contained(rid uuid, resource_type varchar)
   RETURNS json
   LANGUAGE plpgsql
@@ -44,7 +44,7 @@ CREATE OR REPLACE FUNCTION select_contained(rid uuid, resource_type varchar)
   END
 $$;
 
-DROP FUNCTION IF EXISTS gen_select_sql(varchar[], varchar) CASCADE;
+/* DROP FUNCTION IF EXISTS gen_select_sql(varchar[], varchar) CASCADE; */
 CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
   RETURNS varchar
   LANGUAGE plpgsql
@@ -131,7 +131,7 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
   END
 $$;
 
-DROP FUNCTION IF EXISTS create_resource_view(varchar, varchar) CASCADE;
+/* DROP FUNCTION IF EXISTS create_resource_view(varchar, varchar) CASCADE; */
 CREATE OR REPLACE FUNCTION create_resource_view(resource_name varchar, schm varchar)
   RETURNS void
   LANGUAGE plpgsql
