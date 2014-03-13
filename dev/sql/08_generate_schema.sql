@@ -27,7 +27,7 @@ CREATE TABLE fhir.resource (
   _unknown_attributes json,
   resource_type varchar,
   language VARCHAR,
-  container_id UUID, --REFERENCES fhir.resource (_id) ON DELETE CASCADE DEFERRABLE,
+  container_id UUID REFERENCES fhir.resource (_id) ON DELETE CASCADE DEFERRABLE,
   id VARCHAR
 );
 
@@ -35,8 +35,8 @@ CREATE TABLE fhir.resource_component (
   _id uuid PRIMARY KEY,
   _type VARCHAR NOT NULL,
   _unknown_attributes json,
-  parent_id UUID NOT NULL, --REFERENCES fhir.resource_component (_id) ON DELETE CASCADE DEFERRABLE,
-  resource_id UUID NOT NULL -- REFERENCES fhir.resource (_id) ON DELETE CASCADE DEFERRABLE,
+  parent_id UUID NOT NULL REFERENCES fhir.resource_component (_id) ON DELETE CASCADE DEFERRABLE,
+  resource_id UUID NOT NULL REFERENCES fhir.resource (_id) ON DELETE CASCADE DEFERRABLE
 );
 
 CREATE VIEW meta.datatypes_ddl AS (
@@ -62,11 +62,11 @@ SELECT
   , 'ALTER TABLE fhir.' || table_name || ' ALTER COLUMN _type SET DEFAULT $$' || table_name || '$$'
   ,'ALTER TABLE fhir.' || table_name || ' ADD PRIMARY KEY (_id)'
   ,CASE WHEN base_table = 'resource'
-     THEN  --   'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (container_id) REFERENCES fhir.resource (_id) ON DELETE CASCADE;' || -- problem with inheretance & foreign keys
+     THEN  --'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (container_id) REFERENCES fhir.resource (_id) ON DELETE CASCADE DEFERRABLE;' || -- problem with inheretance & foreign keys
           'CREATE INDEX ON fhir.' || table_name || ' (container_id);'
-     ELSE    ''--'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (resource_id) REFERENCES fhir.' || resource_table_name || ' (_id) ON DELETE CASCADE DEFERRABLE;'
+     ELSE    'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (resource_id) REFERENCES fhir.' || resource_table_name || ' (_id) ON DELETE CASCADE DEFERRABLE;'
           || 'CREATE INDEX ON fhir.' || table_name || ' (resource_id);'
-          --|| 'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (parent_id) REFERENCES fhir.' || parent_table_name || ' (_id) ON DELETE CASCADE DEFERRABLE;'
+          || 'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (parent_id) REFERENCES fhir.' || parent_table_name || ' (_id) ON DELETE CASCADE DEFERRABLE;'
           || 'CREATE INDEX ON fhir.' || table_name || ' (parent_id);'
      END
   ] AS ddls
