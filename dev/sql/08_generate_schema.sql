@@ -28,8 +28,7 @@ CREATE TABLE fhir.resource (
   resource_type varchar,
   language VARCHAR,
   container_id UUID, --REFERENCES fhir.resource (_id) ON DELETE CASCADE DEFERRABLE,
-  id VARCHAR,
-  created_at timestamp DEFAULT now()
+  id VARCHAR
 );
 
 CREATE TABLE fhir.resource_component (
@@ -37,8 +36,7 @@ CREATE TABLE fhir.resource_component (
   _type VARCHAR NOT NULL,
   _unknown_attributes json,
   parent_id UUID NOT NULL, --REFERENCES fhir.resource_component (_id) ON DELETE CASCADE DEFERRABLE,
-  resource_id UUID NOT NULL, -- REFERENCES fhir.resource (_id) ON DELETE CASCADE DEFERRABLE,
-  created_at timestamp DEFAULT now()
+  resource_id UUID NOT NULL -- REFERENCES fhir.resource (_id) ON DELETE CASCADE DEFERRABLE,
 );
 
 CREATE VIEW meta.datatypes_ddl AS (
