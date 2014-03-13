@@ -6,14 +6,13 @@ Open Source relational storage for [FHIR](http://hl7.org/implement/standards/fhi
 
 ## Live Demo
 
-Here are interactive demo - http://try-fhirbase.hospital-systems.com,
-where you can upload and query fhirbase.
+Here is an [interactive demo](http://try-fhirbase.hospital-systems.com)
+where you can get some practice in preparing and executing arbitrary queries on a demo database.
 
 ## Motivation
 
-While crafting health IT systems you start understand value of right domain model.
-FHIR is open source new generation lightweight standard for health data interop, which (we hope)
-could be used as internal model for health IT systems. FHIR is based on concept of __resource__.
+While crafting Health IT systems you begin to understand a value of properly chosen domain model.
+FHIR is an open source new generation lightweight standard for health data interoperability, which (we hope) could be used as an internal model for Health IT systems. FHIR is based on a concept of __resource__.
 
 
 > FHIR® is a next generation standards framework created by HL7.
@@ -22,25 +21,24 @@ could be used as internal model for health IT systems. FHIR is based on concept 
 > web standards and applying a tight focus on implementability.
 
 In terms of [Domain Driven Design]() __resource__ is an [aggregate](), which consist of __root entity__
-(having identity) and set of aggregated __value objects__. In this readme we sometimes use DDD terminology,
+(having identity) and a set of aggregated __value objects__. In this readme we sometimes use DDD terminology
 so don't be confused.
 
-There is concern - how to persist __resources__.
+There is a concern - how to persist __resources__.
 
-The simplest solution is just save them as text blobs in RDBMS or in distributed file storage system like (S3, Riak & Hadoop).
-This solution simple and scalable, but has trade-offs:
+The simplest solution is just to save them as text blobs in RDBMS or in a distributed file storage system like (S3, Riak & Hadoop).
+This solution is simple and scalable but has trade-offs:
 
-* You should implement search and querying by creating hand-made indexes or using index engines like elastic search, solr etc
-* query language will be very limited (in comparison with SQL)
-* weak data consistency control - type checks, referential integrity, aggregate invariants
-* complicated batch transformations
+* you will have to implement search and querying by creating hand-made indexes or using index engines like elastic search, solr, etc;
+* query language will be very limited (in comparison with SQL);
+* weak data consistency control - type checks, referential integrity, aggregate invariants;
+* complicated batch transformations.
 
-Second option is usage of document databases like MongoDb, CouchDb, RethinkDb etc. They feat better (removing some part
-of hand work), but share some of trade-offs.
+Second option is a usage of document databases like MongoDb, CouchDb, RethinkDb etc. They feat better (removing some part of hand work) but share some of trade-offs.
 
-* Transaction consistency often works only on document level granularity, so you need manage complex transactions manually.
-* Querying is less powerful and declarative then for relational databases (joins, aggregations)
-* Document Databases sometimes are not yet really matured for enterprise (read mongo fails reports)
+* Transaction consistency often works only on a document level granularity so you have to manage complex transactions manually.
+* Querying is less powerful and declarative than for relational databases (joins, aggregations).
+* Document databases sometimes are not yet really matured for enterprise (read mongo fails reports).
 
 Third option - relational schema - solves most of the problems and brings new ones :)
 
@@ -48,12 +46,12 @@ Third option - relational schema - solves most of the problems and brings new on
 * How to simplify aggregates (__resource__) operations (persistence, retrieval)?
 * How to scale?
 
-But we believe, that solving this problems we will get:
+But we believe that after solving this problems we will get:
 
-* Fine-Granularity of data control
-* Rich Querying & Data Abstraction capabilities
-* Enhanced Data Consistency - applying most of FHIR constraints on database level
-* Storage Efficiency
+* fine-Granularity of data control;
+* Rich Querying & Data Abstraction capabilities;
+* Enhanced Data Consistency - applying most of FHIR constraints on a database level;
+* storage Efficiency.
 
 Most of it is required or desired while programming Health IT systems.
 
