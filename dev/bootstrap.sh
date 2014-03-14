@@ -14,7 +14,9 @@ sudo apt-get install -y curl build-essential git libpq-dev postgresql-9.3 postgr
 sudo su postgres -c 'createuser -s root'
 sudo su postgres -c 'createuser -s vagrant'
 
-grep -v 'max_locks_per_transaction = 200' /etc/postgresql/9.3/main/postgresql.conf && (sudo bash -c "echo 'max_locks_per_transaction = 200' >> /etc/postgresql/9.3/main/postgresql.conf" && sudo service postgresql restart)
+sudo cp /home/vagrant/fhirbase/postgresql.conf /etc/postgresql/9.3/main/postgresql.conf
+sudo cp /home/vagrant/fhirbase/pg_hba.conf /etc/postgresql/9.3/main/pg_hba.conf
+sudo service postgresql restart
 
 if [ ! -d /tmp/pgtap ]; then
   echo y | sudo perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP' || echo 'CPAN :( - hope it will work'
