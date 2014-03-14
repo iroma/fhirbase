@@ -99,7 +99,7 @@ function ttest_cmd {
 function build_cmd {
     echo "Building fhirbase.sql"
 
-    BUILD_DB_NAME='fhir_build'
+    #BUILD_DB_NAME='fhir_build'
     recreate_db $BUILD_DB_NAME
     install_cmd $BUILD_DB_NAME install.sql
 

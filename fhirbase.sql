@@ -14388,277 +14388,6 @@ CREATE FUNCTION insert_procedure(_data json, _container_id uuid DEFAULT NULL::uu
 
 
 --
--- Name: insert_profile(json, uuid, uuid); Type: FUNCTION; Schema: fhir; Owner: -
---
-
-CREATE FUNCTION insert_profile(_data json, _container_id uuid DEFAULT NULL::uuid, _resource_id uuid DEFAULT NULL::uuid) RETURNS TABLE(resource_id uuid, id uuid, path text[], container_id uuid, parent_id uuid, value json)
-    LANGUAGE sql
-    AS $$
-        WITH 
-       _profile  AS (
-         SELECT uuid as resource_id, uuid, path, _container_id as container_id, null::uuid as parent_id, value
-            FROM (
-              SELECT coalesce(_resource_id, uuid_generate_v4()) as uuid , ARRAY['Profile'] as path, _data as value
-         ) _
-      )
-     ,
-
-         _profile_code  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,code}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             json_array_elements((p.value::json)->'code') as value
-           FROM _profile p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_code_vs  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,code,valueSet}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             ((p.value::json)->'valueSet') as value
-           FROM _profile_code p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_extension_defn  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,extensionDefn}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             json_array_elements((p.value::json)->'extensionDefn') as value
-           FROM _profile p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_mapping  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,mapping}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             json_array_elements((p.value::json)->'mapping') as value
-           FROM _profile p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_query  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,query}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             json_array_elements((p.value::json)->'query') as value
-           FROM _profile p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_structure  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,structure}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             json_array_elements((p.value::json)->'structure') as value
-           FROM _profile p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_structure_element  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,structure,element}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             json_array_elements((p.value::json)->'element') as value
-           FROM _profile_structure p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_structure_element_definition  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,structure,element,definition}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             ((p.value::json)->'definition') as value
-           FROM _profile_structure_element p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_structure_element_definition_binding  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,structure,element,definition,binding}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             ((p.value::json)->'binding') as value
-           FROM _profile_structure_element_definition p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_structure_element_definition_binding_reference_resource_reference  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,structure,element,definition,binding,reference_ResourceReference}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             ((p.value::json)->'reference_ResourceReference') as value
-           FROM _profile_structure_element_definition_binding p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_structure_element_definition_constraint  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,structure,element,definition,constraint}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             json_array_elements((p.value::json)->'constraint') as value
-           FROM _profile_structure_element_definition p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_structure_element_definition_mapping  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,structure,element,definition,mapping}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             json_array_elements((p.value::json)->'mapping') as value
-           FROM _profile_structure_element_definition p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_structure_element_definition_type  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,structure,element,definition,type}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             json_array_elements((p.value::json)->'type') as value
-           FROM _profile_structure_element_definition p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_structure_element_slicing  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,structure,element,slicing}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             ((p.value::json)->'slicing') as value
-           FROM _profile_structure_element p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_structure_search_param  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,structure,searchParam}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             json_array_elements((p.value::json)->'searchParam') as value
-           FROM _profile_structure p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_telecom  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,telecom}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             json_array_elements((p.value::json)->'telecom') as value
-           FROM _profile p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_telecom_period  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,telecom,period}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             ((p.value::json)->'period') as value
-           FROM _profile_telecom p
-           WHERE p.value IS NOT NULL
-        )
-        ,
-
-         _profile_text  AS (
-           SELECT
-             p.resource_id as resource_id,
-             uuid_generate_v4() as uuid,
-             '{Profile,text}'::text[] as path,
-             null::uuid as container_id,
-             p.uuid as parent_id,
-             ((p.value::json)->'text') as value
-           FROM _profile p
-           WHERE p.value IS NOT NULL
-        )
-        
-        SELECT * FROM _profile
- UNION ALL SELECT * FROM _profile_code
- UNION ALL SELECT * FROM _profile_code_vs
- UNION ALL SELECT * FROM _profile_extension_defn
- UNION ALL SELECT * FROM _profile_mapping
- UNION ALL SELECT * FROM _profile_query
- UNION ALL SELECT * FROM _profile_structure
- UNION ALL SELECT * FROM _profile_structure_element
- UNION ALL SELECT * FROM _profile_structure_element_definition
- UNION ALL SELECT * FROM _profile_structure_element_definition_binding
- UNION ALL SELECT * FROM _profile_structure_element_definition_binding_reference_resource_reference
- UNION ALL SELECT * FROM _profile_structure_element_definition_constraint
- UNION ALL SELECT * FROM _profile_structure_element_definition_mapping
- UNION ALL SELECT * FROM _profile_structure_element_definition_type
- UNION ALL SELECT * FROM _profile_structure_element_slicing
- UNION ALL SELECT * FROM _profile_structure_search_param
- UNION ALL SELECT * FROM _profile_telecom
- UNION ALL SELECT * FROM _profile_telecom_period
- UNION ALL SELECT * FROM _profile_text;
-     $$;
-
-
---
 -- Name: insert_provenance(json, uuid, uuid); Type: FUNCTION; Schema: fhir; Owner: -
 --
 
@@ -28703,8 +28432,8 @@ CREATE VIEW view_adverse_reaction_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM adverse_reaction_symptom_code_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -28768,8 +28497,8 @@ CREATE VIEW view_alert_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM alert_category_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -28944,8 +28673,8 @@ CREATE VIEW view_care_plan_with_containeds AS
                                                                             t5.version,
                                                                             t5.display,
                                                                             t5.code,
-                                                                            t5.system,
-                                                                            t5."primary"
+                                                                            t5."primary",
+                                                                            t5.system
                                                                            FROM care_plan_activity_simple_code_cd t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS coding,
                                                             t4.text
@@ -28954,9 +28683,9 @@ CREATE VIEW view_care_plan_with_containeds AS
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM care_plan_activity_simple_daily_amount t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS "dailyAmount",
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
@@ -28977,9 +28706,9 @@ CREATE VIEW view_care_plan_with_containeds AS
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM care_plan_activity_simple_quantity t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS quantity,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
@@ -28994,12 +28723,12 @@ CREATE VIEW view_care_plan_with_containeds AS
                                                                            FROM care_plan_activity_simple_timing_schedule_event t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS event,
                                                             ( SELECT row_to_json(t_5.*, true) AS row_to_json
-                                                                   FROM ( SELECT t5.units,
+                                                                   FROM ( SELECT t5."end",
+                                                                            t5.units,
                                                                             t5.frequency,
                                                                             t5.count,
                                                                             t5."when",
-                                                                            t5.duration,
-                                                                            t5."end"
+                                                                            t5.duration
                                                                            FROM care_plan_activity_simple_timing_schedule_repeat t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS repeat
                                                            FROM care_plan_activity_simple_timing_schedule t4
@@ -29063,8 +28792,8 @@ CREATE VIEW view_care_plan_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM care_plan_participant_role_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -29148,8 +28877,8 @@ CREATE VIEW view_composition_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM composition_class_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -29164,8 +28893,8 @@ CREATE VIEW view_composition_with_containeds AS
                             t2.version,
                             t2.display,
                             t2.code,
-                            t2.system,
-                            t2."primary"
+                            t2."primary",
+                            t2.system
                            FROM composition_confidentiality t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS confidentiality,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -29189,8 +28918,8 @@ CREATE VIEW view_composition_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM composition_event_code_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -29236,8 +28965,8 @@ CREATE VIEW view_composition_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM composition_section_code_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -29277,8 +29006,8 @@ CREATE VIEW view_composition_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM composition_type_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -29423,8 +29152,8 @@ CREATE VIEW view_condition_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM condition_category_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -29440,8 +29169,8 @@ CREATE VIEW view_condition_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM condition_certainty_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -29457,8 +29186,8 @@ CREATE VIEW view_condition_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM condition_code_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -29480,8 +29209,8 @@ CREATE VIEW view_condition_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM condition_evidence_code_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -29522,8 +29251,8 @@ CREATE VIEW view_condition_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM condition_loc_code_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -29544,8 +29273,8 @@ CREATE VIEW view_condition_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM condition_related_item_code_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -29569,8 +29298,8 @@ CREATE VIEW view_condition_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM condition_severity_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -29592,8 +29321,8 @@ CREATE VIEW view_condition_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM condition_stage_summary_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -29676,8 +29405,8 @@ CREATE VIEW view_conformance_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM conformance_messaging_event_code t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS code,
                                             ( SELECT array_to_json(array_agg(row_to_json(t_4.*, true)), true) AS array_to_json
@@ -29689,8 +29418,8 @@ CREATE VIEW view_conformance_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM conformance_messaging_event_protocol t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS protocol,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
@@ -29774,8 +29503,8 @@ CREATE VIEW view_conformance_with_containeds AS
                                                                             t5.version,
                                                                             t5.display,
                                                                             t5.code,
-                                                                            t5.system,
-                                                                            t5."primary"
+                                                                            t5."primary",
+                                                                            t5.system
                                                                            FROM conformance_rest_security_service_cd t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS coding,
                                                             t4.text
@@ -29914,8 +29643,8 @@ CREATE VIEW view_device_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM device_type_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -30005,8 +29734,8 @@ CREATE VIEW view_device_observation_report_with_containeds AS
                                                                             t5.version,
                                                                             t5.display,
                                                                             t5.code,
-                                                                            t5.system,
-                                                                            t5."primary"
+                                                                            t5."primary",
+                                                                            t5.system
                                                                            FROM device_observation_report_virtual_device_channel_code_cd t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS coding,
                                                             t4.text
@@ -30032,8 +29761,8 @@ CREATE VIEW view_device_observation_report_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM device_observation_report_virtual_device_code_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -30096,8 +29825,8 @@ CREATE VIEW view_diagnostic_order_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM diagnostic_order_event_description_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -30135,8 +29864,8 @@ CREATE VIEW view_diagnostic_order_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM diagnostic_order_item_body_site_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -30152,8 +29881,8 @@ CREATE VIEW view_diagnostic_order_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM diagnostic_order_item_code_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -30234,8 +29963,8 @@ CREATE VIEW view_diagnostic_report_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM diagnostic_report_coded_diagnosis_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -30287,8 +30016,8 @@ CREATE VIEW view_diagnostic_report_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM diagnostic_report_name_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -30329,8 +30058,8 @@ CREATE VIEW view_diagnostic_report_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM diagnostic_report_service_category_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -30403,8 +30132,8 @@ CREATE VIEW view_document_manifest_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_manifest_confidentiality_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -30479,8 +30208,8 @@ CREATE VIEW view_document_manifest_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_manifest_type_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -30488,8 +30217,8 @@ CREATE VIEW view_document_manifest_with_containeds AS
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS type,
             t1.description,
             t1.status,
-            t1.source,
-            t1.created
+            t1.created,
+            t1.source
            FROM document_manifest t1) t_1
    JOIN document_manifest res_table ON ((res_table._id = t_1._id)));
 
@@ -30543,8 +30272,8 @@ CREATE VIEW view_document_reference_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_reference_class_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -30560,8 +30289,8 @@ CREATE VIEW view_document_reference_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_reference_confidentiality_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -30578,8 +30307,8 @@ CREATE VIEW view_document_reference_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM document_reference_context_event_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -30595,8 +30324,8 @@ CREATE VIEW view_document_reference_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM document_reference_context_facility_type_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -30624,8 +30353,8 @@ CREATE VIEW view_document_reference_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_reference_doc_status_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -30690,8 +30419,8 @@ CREATE VIEW view_document_reference_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM document_reference_service_type_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -30720,8 +30449,8 @@ CREATE VIEW view_document_reference_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM document_reference_type_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -30729,15 +30458,15 @@ CREATE VIEW view_document_reference_with_containeds AS
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS type,
             t1.hash,
             t1.description,
+            t1.indexed,
             t1.status,
             t1.primary_language AS "primaryLanguage",
             t1.mime_type AS "mimeType",
+            t1.created,
             t1.size,
             t1.policy_manager AS "policyManager",
             t1.location,
-            t1.format,
-            t1.indexed,
-            t1.created
+            t1.format
            FROM document_reference t1) t_1
    JOIN document_reference res_table ON ((res_table._id = t_1._id)));
 
@@ -30795,8 +30524,8 @@ CREATE VIEW view_encounter_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM encounter_hospitalization_admit_source_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -30817,8 +30546,8 @@ CREATE VIEW view_encounter_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM encounter_hospitalization_diet_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -30839,8 +30568,8 @@ CREATE VIEW view_encounter_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM encounter_hospitalization_discharge_disposition_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -30883,8 +30612,8 @@ CREATE VIEW view_encounter_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM encounter_hospitalization_special_arrangement_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -30900,8 +30629,8 @@ CREATE VIEW view_encounter_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM encounter_hospitalization_special_courtesy_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -30962,8 +30691,8 @@ CREATE VIEW view_encounter_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM encounter_participant_type_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -30991,8 +30720,8 @@ CREATE VIEW view_encounter_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM encounter_priority_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -31008,8 +30737,8 @@ CREATE VIEW view_encounter_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM encounter_reason_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -31040,8 +30769,8 @@ CREATE VIEW view_encounter_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM encounter_type_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -31111,17 +30840,17 @@ CREATE VIEW view_family_history_with_containeds AS
                                                    FROM ( SELECT ( SELECT row_to_json(t_5.*, true) AS row_to_json
                                                                    FROM ( SELECT t5.units,
                                                                             t5.code,
+                                                                            t5.comparator,
                                                                             t5.system,
-                                                                            t5.value,
-                                                                            t5.comparator
+                                                                            t5.value
                                                                            FROM family_history_relation_condition_onset_range_high t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS high,
                                                             ( SELECT row_to_json(t_5.*, true) AS row_to_json
                                                                    FROM ( SELECT t5.units,
                                                                             t5.code,
+                                                                            t5.comparator,
                                                                             t5.system,
-                                                                            t5.value,
-                                                                            t5.comparator
+                                                                            t5.value
                                                                            FROM family_history_relation_condition_onset_range_low t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS low
                                                            FROM family_history_relation_condition_onset_range t4
@@ -31136,8 +30865,8 @@ CREATE VIEW view_family_history_with_containeds AS
                                                                             t5.version,
                                                                             t5.display,
                                                                             t5.code,
-                                                                            t5.system,
-                                                                            t5."primary"
+                                                                            t5."primary",
+                                                                            t5.system
                                                                            FROM family_history_relation_condition_outcome_cd t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS coding,
                                                             t4.text
@@ -31153,8 +30882,8 @@ CREATE VIEW view_family_history_with_containeds AS
                                                                             t5.version,
                                                                             t5.display,
                                                                             t5.code,
-                                                                            t5.system,
-                                                                            t5."primary"
+                                                                            t5."primary",
+                                                                            t5.system
                                                                            FROM family_history_relation_condition_type_cd t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS coding,
                                                             t4.text
@@ -31169,17 +30898,17 @@ CREATE VIEW view_family_history_with_containeds AS
                                    FROM ( SELECT ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM family_history_relation_deceased_range_high t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS high,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM family_history_relation_deceased_range_low t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS low
                                            FROM family_history_relation_deceased_range t3
@@ -31194,8 +30923,8 @@ CREATE VIEW view_family_history_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM family_history_relation_relationship_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -31265,8 +30994,8 @@ CREATE VIEW view_group_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM group_characteristic_code_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -31282,8 +31011,8 @@ CREATE VIEW view_group_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM group_characteristic_value_codeable_concept_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -31292,26 +31021,26 @@ CREATE VIEW view_group_with_containeds AS
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM group_characteristic_value_quantity t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS "valueQuantity",
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM group_characteristic_value_range_high t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS high,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM group_characteristic_value_range_low t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS low
                                            FROM group_characteristic_value_range t3
@@ -31330,8 +31059,8 @@ CREATE VIEW view_group_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM group_code_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -31454,8 +31183,8 @@ CREATE VIEW view_imaging_study_with_containeds AS
                             t2.version,
                             t2.display,
                             t2.code,
-                            t2.system,
-                            t2."primary"
+                            t2."primary",
+                            t2.system
                            FROM imaging_study_procedure t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS procedure,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -31473,8 +31202,8 @@ CREATE VIEW view_imaging_study_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM imaging_study_series_body_site t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS "bodySite",
                             ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
@@ -31483,22 +31212,22 @@ CREATE VIEW view_imaging_study_with_containeds AS
                                                             t4.display
                                                            FROM imaging_study_series_instance_attachment t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS attachment,
+                                            t3.uid,
+                                            t3.sopclass,
                                             t3.type,
                                             t3.title,
                                             t3.number,
-                                            t3.url,
-                                            t3.uid,
-                                            t3.sopclass
+                                            t3.url
                                            FROM imaging_study_series_instance t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS instance,
+                            t2.uid,
                             t2.description,
                             t2.modality,
                             t2.availability,
+                            t2.date_time AS "dateTime",
                             t2.number_of_instances AS "numberOfInstances",
                             t2.number,
-                            t2.url,
-                            t2.uid,
-                            t2.date_time AS "dateTime"
+                            t2.url
                            FROM imaging_study_series t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS series,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -31511,15 +31240,15 @@ CREATE VIEW view_imaging_study_with_containeds AS
                             t2.status
                            FROM imaging_study_text t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS text,
+            t1.uid,
             t1.description,
             t1.clinical_information AS "clinicalInformation",
             t1.modality,
             t1.availability,
+            t1.date_time AS "dateTime",
             t1.number_of_series AS "numberOfSeries",
             t1.number_of_instances AS "numberOfInstances",
-            t1.url,
-            t1.uid,
-            t1.date_time AS "dateTime"
+            t1.url
            FROM imaging_study t1) t_1
    JOIN imaging_study res_table ON ((res_table._id = t_1._id)));
 
@@ -31556,9 +31285,9 @@ CREATE VIEW view_imm_with_containeds AS
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.units,
                             t2.code,
+                            t2.comparator,
                             t2.system,
-                            t2.value,
-                            t2.comparator
+                            t2.value
                            FROM imm_dose_quantity t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS "doseQuantity",
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -31572,8 +31301,8 @@ CREATE VIEW view_imm_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM imm_explanation_reason_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -31589,8 +31318,8 @@ CREATE VIEW view_imm_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM imm_explanation_refusal_reason_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -31655,8 +31384,8 @@ CREATE VIEW view_imm_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM imm_route_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -31672,8 +31401,8 @@ CREATE VIEW view_imm_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM imm_site_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -31705,8 +31434,8 @@ CREATE VIEW view_imm_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM imm_vaccination_protocol_dose_status_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -31722,8 +31451,8 @@ CREATE VIEW view_imm_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM imm_vaccination_protocol_dose_status_reason_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -31739,8 +31468,8 @@ CREATE VIEW view_imm_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM imm_vaccination_protocol_dose_target_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -31762,8 +31491,8 @@ CREATE VIEW view_imm_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM imm_vaccine_type_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -31836,8 +31565,8 @@ CREATE VIEW view_imm_rec_with_containeds AS
                                                                             t5.version,
                                                                             t5.display,
                                                                             t5.code,
-                                                                            t5.system,
-                                                                            t5."primary"
+                                                                            t5."primary",
+                                                                            t5.system
                                                                            FROM imm_rec_recommendation_date_criterion_code_cd t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS coding,
                                                             t4.text
@@ -31856,8 +31585,8 @@ CREATE VIEW view_imm_rec_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM imm_rec_recommendation_forecast_status_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -31894,15 +31623,15 @@ CREATE VIEW view_imm_rec_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM imm_rec_recommendation_vaccine_type_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
                                            FROM imm_rec_recommendation_vaccine_type t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS "vaccineType",
-                            t2.dose_number AS "doseNumber",
-                            t2.date
+                            t2.date,
+                            t2.dose_number AS "doseNumber"
                            FROM imm_rec_recommendation t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS recommendation,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -31958,8 +31687,8 @@ CREATE VIEW view_list_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM list_code_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -31975,8 +31704,8 @@ CREATE VIEW view_list_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM list_empty_reason_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -31993,8 +31722,8 @@ CREATE VIEW view_list_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM list_entry_flag_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -32083,13 +31812,13 @@ CREATE VIEW view_loc_with_containeds AS
                                             t3."end"
                                            FROM loc_address_period t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS period,
+                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city,
-                            t2.use
+                            t2.city
                            FROM loc_address t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS address,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -32129,8 +31858,8 @@ CREATE VIEW view_loc_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM loc_physical_type_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -32168,8 +31897,8 @@ CREATE VIEW view_loc_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM loc_type_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -32222,8 +31951,8 @@ CREATE VIEW view_med_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM med_code_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -32245,8 +31974,8 @@ CREATE VIEW view_med_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_package_container_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -32256,9 +31985,9 @@ CREATE VIEW view_med_with_containeds AS
                                    FROM ( SELECT ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM med_package_content_amount t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS amount,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
@@ -32281,8 +32010,8 @@ CREATE VIEW view_med_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_product_form_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -32293,17 +32022,17 @@ CREATE VIEW view_med_with_containeds AS
                                                    FROM ( SELECT ( SELECT row_to_json(t_5.*, true) AS row_to_json
                                                                    FROM ( SELECT t5.units,
                                                                             t5.code,
+                                                                            t5.comparator,
                                                                             t5.system,
-                                                                            t5.value,
-                                                                            t5.comparator
+                                                                            t5.value
                                                                            FROM med_product_ingredient_amount_denominator t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS denominator,
                                                             ( SELECT row_to_json(t_5.*, true) AS row_to_json
                                                                    FROM ( SELECT t5.units,
                                                                             t5.code,
+                                                                            t5.comparator,
                                                                             t5.system,
-                                                                            t5.value,
-                                                                            t5.comparator
+                                                                            t5.value
                                                                            FROM med_product_ingredient_amount_numerator t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS numerator
                                                            FROM med_product_ingredient_amount t4
@@ -32374,8 +32103,8 @@ CREATE VIEW view_med_adm_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_adm_dosage_as_needed_codeable_concept_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -32385,17 +32114,17 @@ CREATE VIEW view_med_adm_with_containeds AS
                                    FROM ( SELECT ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM med_adm_dosage_max_dose_per_period_denominator t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS denominator,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM med_adm_dosage_max_dose_per_period_numerator t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS numerator
                                            FROM med_adm_dosage_max_dose_per_period t3
@@ -32410,8 +32139,8 @@ CREATE VIEW view_med_adm_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_adm_dosage_method_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -32420,26 +32149,26 @@ CREATE VIEW view_med_adm_with_containeds AS
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM med_adm_dosage_quantity t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS quantity,
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM med_adm_dosage_rate_denominator t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS denominator,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM med_adm_dosage_rate_numerator t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS numerator
                                            FROM med_adm_dosage_rate t3
@@ -32454,8 +32183,8 @@ CREATE VIEW view_med_adm_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_adm_dosage_route_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -32471,8 +32200,8 @@ CREATE VIEW view_med_adm_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_adm_dosage_site_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -32539,8 +32268,8 @@ CREATE VIEW view_med_adm_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM med_adm_reason_not_given_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -32613,8 +32342,8 @@ CREATE VIEW view_med_disp_with_containeds AS
                                                                             t5.version,
                                                                             t5.display,
                                                                             t5.code,
-                                                                            t5.system,
-                                                                            t5."primary"
+                                                                            t5."primary",
+                                                                            t5.system
                                                                            FROM med_disp_dispense_dosage_additional_instructions_cd t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS coding,
                                                             t4.text
@@ -32630,8 +32359,8 @@ CREATE VIEW view_med_disp_with_containeds AS
                                                                             t5.version,
                                                                             t5.display,
                                                                             t5.code,
-                                                                            t5.system,
-                                                                            t5."primary"
+                                                                            t5."primary",
+                                                                            t5.system
                                                                            FROM med_disp_dispense_dosage_as_needed_codeable_concept_cd t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS coding,
                                                             t4.text
@@ -32641,17 +32370,17 @@ CREATE VIEW view_med_disp_with_containeds AS
                                                    FROM ( SELECT ( SELECT row_to_json(t_5.*, true) AS row_to_json
                                                                    FROM ( SELECT t5.units,
                                                                             t5.code,
+                                                                            t5.comparator,
                                                                             t5.system,
-                                                                            t5.value,
-                                                                            t5.comparator
+                                                                            t5.value
                                                                            FROM med_disp_dispense_dosage_max_dose_per_period_denominator t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS denominator,
                                                             ( SELECT row_to_json(t_5.*, true) AS row_to_json
                                                                    FROM ( SELECT t5.units,
                                                                             t5.code,
+                                                                            t5.comparator,
                                                                             t5.system,
-                                                                            t5.value,
-                                                                            t5.comparator
+                                                                            t5.value
                                                                            FROM med_disp_dispense_dosage_max_dose_per_period_numerator t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS numerator
                                                            FROM med_disp_dispense_dosage_max_dose_per_period t4
@@ -32666,8 +32395,8 @@ CREATE VIEW view_med_disp_with_containeds AS
                                                                             t5.version,
                                                                             t5.display,
                                                                             t5.code,
-                                                                            t5.system,
-                                                                            t5."primary"
+                                                                            t5."primary",
+                                                                            t5.system
                                                                            FROM med_disp_dispense_dosage_method_cd t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS coding,
                                                             t4.text
@@ -32676,26 +32405,26 @@ CREATE VIEW view_med_disp_with_containeds AS
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM med_disp_dispense_dosage_quantity t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS quantity,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT ( SELECT row_to_json(t_5.*, true) AS row_to_json
                                                                    FROM ( SELECT t5.units,
                                                                             t5.code,
+                                                                            t5.comparator,
                                                                             t5.system,
-                                                                            t5.value,
-                                                                            t5.comparator
+                                                                            t5.value
                                                                            FROM med_disp_dispense_dosage_rate_denominator t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS denominator,
                                                             ( SELECT row_to_json(t_5.*, true) AS row_to_json
                                                                    FROM ( SELECT t5.units,
                                                                             t5.code,
+                                                                            t5.comparator,
                                                                             t5.system,
-                                                                            t5.value,
-                                                                            t5.comparator
+                                                                            t5.value
                                                                            FROM med_disp_dispense_dosage_rate_numerator t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS numerator
                                                            FROM med_disp_dispense_dosage_rate t4
@@ -32710,8 +32439,8 @@ CREATE VIEW view_med_disp_with_containeds AS
                                                                             t5.version,
                                                                             t5.display,
                                                                             t5.code,
-                                                                            t5.system,
-                                                                            t5."primary"
+                                                                            t5."primary",
+                                                                            t5.system
                                                                            FROM med_disp_dispense_dosage_route_cd t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS coding,
                                                             t4.text
@@ -32727,8 +32456,8 @@ CREATE VIEW view_med_disp_with_containeds AS
                                                                             t5.version,
                                                                             t5.display,
                                                                             t5.code,
-                                                                            t5.system,
-                                                                            t5."primary"
+                                                                            t5."primary",
+                                                                            t5.system
                                                                            FROM med_disp_dispense_dosage_site_cd t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS coding,
                                                             t4.text
@@ -32746,12 +32475,12 @@ CREATE VIEW view_med_disp_with_containeds AS
                                                                            FROM med_disp_dispense_dosage_timing_schedule_event t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS event,
                                                             ( SELECT row_to_json(t_5.*, true) AS row_to_json
-                                                                   FROM ( SELECT t5.units,
+                                                                   FROM ( SELECT t5."end",
+                                                                            t5.units,
                                                                             t5.frequency,
                                                                             t5.count,
                                                                             t5."when",
-                                                                            t5.duration,
-                                                                            t5."end"
+                                                                            t5.duration
                                                                            FROM med_disp_dispense_dosage_timing_schedule_repeat t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS repeat
                                                            FROM med_disp_dispense_dosage_timing_schedule t4
@@ -32785,9 +32514,9 @@ CREATE VIEW view_med_disp_with_containeds AS
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM med_disp_dispense_quantity t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS quantity,
                             ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
@@ -32805,8 +32534,8 @@ CREATE VIEW view_med_disp_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_disp_dispense_type_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -32855,8 +32584,8 @@ CREATE VIEW view_med_disp_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_disp_substitution_reason_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -32877,8 +32606,8 @@ CREATE VIEW view_med_disp_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_disp_substitution_type_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -32935,9 +32664,9 @@ CREATE VIEW view_med_prs_with_containeds AS
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM med_prs_dispense_quantity t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS quantity,
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
@@ -32959,8 +32688,8 @@ CREATE VIEW view_med_prs_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_prs_dosage_instruction_additional_instructions_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -32976,8 +32705,8 @@ CREATE VIEW view_med_prs_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_prs_dosage_instruction_as_needed_codeable_concept_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -32986,26 +32715,26 @@ CREATE VIEW view_med_prs_with_containeds AS
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM med_prs_dosage_instruction_dose_quantity t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS "doseQuantity",
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM med_prs_dosage_instruction_max_dose_per_period_denominator t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS denominator,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM med_prs_dosage_instruction_max_dose_per_period_numerator t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS numerator
                                            FROM med_prs_dosage_instruction_max_dose_per_period t3
@@ -33020,8 +32749,8 @@ CREATE VIEW view_med_prs_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_prs_dosage_instruction_method_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -33031,17 +32760,17 @@ CREATE VIEW view_med_prs_with_containeds AS
                                    FROM ( SELECT ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM med_prs_dosage_instruction_rate_denominator t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS denominator,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM med_prs_dosage_instruction_rate_numerator t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS numerator
                                            FROM med_prs_dosage_instruction_rate t3
@@ -33056,8 +32785,8 @@ CREATE VIEW view_med_prs_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_prs_dosage_instruction_route_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -33073,8 +32802,8 @@ CREATE VIEW view_med_prs_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_prs_dosage_instruction_site_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -33092,12 +32821,12 @@ CREATE VIEW view_med_prs_with_containeds AS
                                                            FROM med_prs_dosage_instruction_timing_schedule_event t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS event,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
-                                                   FROM ( SELECT t4.units,
+                                                   FROM ( SELECT t4."end",
+                                                            t4.units,
                                                             t4.frequency,
                                                             t4.count,
                                                             t4."when",
-                                                            t4.duration,
-                                                            t4."end"
+                                                            t4.duration
                                                            FROM med_prs_dosage_instruction_timing_schedule_repeat t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS repeat
                                            FROM med_prs_dosage_instruction_timing_schedule t3
@@ -33154,8 +32883,8 @@ CREATE VIEW view_med_prs_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM med_prs_reason_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -33177,8 +32906,8 @@ CREATE VIEW view_med_prs_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_prs_substitution_reason_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -33194,8 +32923,8 @@ CREATE VIEW view_med_prs_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_prs_substitution_type_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -33259,8 +32988,8 @@ CREATE VIEW view_med_st_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_st_dosage_as_needed_codeable_concept_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -33270,17 +32999,17 @@ CREATE VIEW view_med_st_with_containeds AS
                                    FROM ( SELECT ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM med_st_dosage_max_dose_per_period_denominator t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS denominator,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM med_st_dosage_max_dose_per_period_numerator t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS numerator
                                            FROM med_st_dosage_max_dose_per_period t3
@@ -33295,8 +33024,8 @@ CREATE VIEW view_med_st_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_st_dosage_method_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -33305,26 +33034,26 @@ CREATE VIEW view_med_st_with_containeds AS
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM med_st_dosage_quantity t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS quantity,
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM med_st_dosage_rate_denominator t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS denominator,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM med_st_dosage_rate_numerator t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS numerator
                                            FROM med_st_dosage_rate t3
@@ -33339,8 +33068,8 @@ CREATE VIEW view_med_st_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_st_dosage_route_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -33356,8 +33085,8 @@ CREATE VIEW view_med_st_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM med_st_dosage_site_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -33370,12 +33099,12 @@ CREATE VIEW view_med_st_with_containeds AS
                                                            FROM med_st_dosage_timing_event t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS event,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
-                                                   FROM ( SELECT t4.units,
+                                                   FROM ( SELECT t4."end",
+                                                            t4.units,
                                                             t4.frequency,
                                                             t4.count,
                                                             t4."when",
-                                                            t4.duration,
-                                                            t4."end"
+                                                            t4.duration
                                                            FROM med_st_dosage_timing_repeat t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS repeat
                                            FROM med_st_dosage_timing t3
@@ -33420,8 +33149,8 @@ CREATE VIEW view_med_st_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM med_st_reason_not_given_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -33518,8 +33247,8 @@ CREATE VIEW view_media_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM media_subtype_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -33540,8 +33269,8 @@ CREATE VIEW view_media_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM media_view_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -33549,11 +33278,11 @@ CREATE VIEW view_media_with_containeds AS
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS view,
             t1.device_name AS "deviceName",
             t1.type,
+            t1.date_time AS "dateTime",
             t1.width,
             t1.length,
             t1.height,
-            t1.frames,
-            t1.date_time AS "dateTime"
+            t1.frames
            FROM media t1) t_1
    JOIN media res_table ON ((res_table._id = t_1._id)));
 
@@ -33621,8 +33350,8 @@ CREATE VIEW view_message_header_with_containeds AS
                             t2.version,
                             t2.display,
                             t2.code,
-                            t2.system,
-                            t2."primary"
+                            t2."primary",
+                            t2.system
                            FROM message_header_event t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS event,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -33635,8 +33364,8 @@ CREATE VIEW view_message_header_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM message_header_reason_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -33735,8 +33464,8 @@ CREATE VIEW view_obs_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM obs_body_site_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -33769,8 +33498,8 @@ CREATE VIEW view_obs_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM obs_interpretation_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -33786,8 +33515,8 @@ CREATE VIEW view_obs_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM obs_method_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -33803,8 +33532,8 @@ CREATE VIEW view_obs_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM obs_name_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -33820,17 +33549,17 @@ CREATE VIEW view_obs_with_containeds AS
                                    FROM ( SELECT ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM obs_reference_range_age_high t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS high,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM obs_reference_range_age_low t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS low
                                            FROM obs_reference_range_age t3
@@ -33838,17 +33567,17 @@ CREATE VIEW view_obs_with_containeds AS
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM obs_reference_range_high t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS high,
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM obs_reference_range_low t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS low,
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
@@ -33861,8 +33590,8 @@ CREATE VIEW view_obs_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM obs_reference_range_meaning_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -33914,8 +33643,8 @@ CREATE VIEW view_obs_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM obs_value_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -33929,26 +33658,26 @@ CREATE VIEW view_obs_with_containeds AS
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT t2.units,
                             t2.code,
+                            t2.comparator,
                             t2.system,
-                            t2.value,
-                            t2.comparator
+                            t2.value
                            FROM obs_value_quantity t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS "valueQuantity",
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
                    FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM obs_value_ratio_denominator t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS denominator,
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM obs_value_ratio_numerator t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS numerator
                            FROM obs_value_ratio t2
@@ -33957,9 +33686,9 @@ CREATE VIEW view_obs_with_containeds AS
                    FROM ( SELECT ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM obs_value_sampled_data_origin t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS origin,
                             t2.data,
@@ -33972,9 +33701,9 @@ CREATE VIEW view_obs_with_containeds AS
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS "valueSampledData",
             t1.value_string AS "valueString",
             t1.comments,
+            t1.issued,
             t1.status,
             t1.reliability,
-            t1.issued,
             t1.applies_date_time AS "appliesDateTime"
            FROM obs t1) t_1
    JOIN obs res_table ON ((res_table._id = t_1._id)));
@@ -34019,8 +33748,8 @@ CREATE VIEW view_operation_outcome_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM operation_outcome_issue_type t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS type,
                             t2.location,
@@ -34103,8 +33832,8 @@ CREATE VIEW view_order_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM order_reason_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -34146,8 +33875,8 @@ CREATE VIEW view_order_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM order_when_code_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -34160,12 +33889,12 @@ CREATE VIEW view_order_with_containeds AS
                                                            FROM order_when_schedule_event t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS event,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
-                                                   FROM ( SELECT t4.units,
+                                                   FROM ( SELECT t4."end",
+                                                            t4.units,
                                                             t4.frequency,
                                                             t4.count,
                                                             t4."when",
-                                                            t4.duration,
-                                                            t4."end"
+                                                            t4.duration
                                                            FROM order_when_schedule_repeat t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS repeat
                                            FROM order_when_schedule t3
@@ -34216,8 +33945,8 @@ CREATE VIEW view_order_response_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM order_response_authority_codeable_concept_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -34307,13 +34036,13 @@ CREATE VIEW view_organization_with_containeds AS
                                             t3."end"
                                            FROM organization_address_period t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS period,
+                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city,
-                            t2.use
+                            t2.city
                            FROM organization_address t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS address,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
@@ -34323,13 +34052,13 @@ CREATE VIEW view_organization_with_containeds AS
                                                             t4."end"
                                                            FROM organization_contact_address_period t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS period,
+                                            t3.use,
                                             t3.zip,
                                             t3.text,
                                             t3.state,
                                             t3.line,
                                             t3.country,
-                                            t3.city,
-                                            t3.use
+                                            t3.city
                                            FROM organization_contact_address t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS address,
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
@@ -34342,8 +34071,8 @@ CREATE VIEW view_organization_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM organization_contact_gender_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -34373,8 +34102,8 @@ CREATE VIEW view_organization_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM organization_contact_purpose_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -34446,8 +34175,8 @@ CREATE VIEW view_organization_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM organization_type_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -34503,8 +34232,8 @@ CREATE VIEW view_other_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM other_code_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -34577,13 +34306,13 @@ CREATE VIEW view_patient_with_containeds AS
                                             t3."end"
                                            FROM patient_address_period t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS period,
+                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city,
-                            t2.use
+                            t2.city
                            FROM patient_address t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS address,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -34597,8 +34326,8 @@ CREATE VIEW view_patient_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM patient_animal_breed_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -34614,8 +34343,8 @@ CREATE VIEW view_patient_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM patient_animal_gender_status_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -34631,8 +34360,8 @@ CREATE VIEW view_patient_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM patient_animal_species_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -34655,8 +34384,8 @@ CREATE VIEW view_patient_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM patient_communication_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -34669,13 +34398,13 @@ CREATE VIEW view_patient_with_containeds AS
                                                             t4."end"
                                                            FROM patient_contact_address_period t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS period,
+                                            t3.use,
                                             t3.zip,
                                             t3.text,
                                             t3.state,
                                             t3.line,
                                             t3.country,
-                                            t3.city,
-                                            t3.use
+                                            t3.city
                                            FROM patient_contact_address t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS address,
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
@@ -34688,8 +34417,8 @@ CREATE VIEW view_patient_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM patient_contact_gender_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -34724,8 +34453,8 @@ CREATE VIEW view_patient_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM patient_contact_relationship_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -34754,8 +34483,8 @@ CREATE VIEW view_patient_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM patient_gender_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -34802,8 +34531,8 @@ CREATE VIEW view_patient_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM patient_marital_status_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -34849,9 +34578,9 @@ CREATE VIEW view_patient_with_containeds AS
                             t2.status
                            FROM patient_text t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS text,
-            t1.multiple_birth_integer AS "multipleBirthInteger",
             t1.deceased_date_time AS "deceasedDateTime",
             t1.birth_date AS "birthDate",
+            t1.multiple_birth_integer AS "multipleBirthInteger",
             t1.multiple_birth_boolean AS "multipleBirthBoolean",
             t1.deceased_boolean AS "deceasedBoolean",
             t1.active
@@ -34894,13 +34623,13 @@ CREATE VIEW view_practitioner_with_containeds AS
                                             t3."end"
                                            FROM practitioner_address_period t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS period,
+                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city,
-                            t2.use
+                            t2.city
                            FROM practitioner_address t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS address,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
@@ -34913,8 +34642,8 @@ CREATE VIEW view_practitioner_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM practitioner_communication_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -34930,8 +34659,8 @@ CREATE VIEW view_practitioner_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM practitioner_gender_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -35004,8 +34733,8 @@ CREATE VIEW view_practitioner_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM practitioner_qualification_code_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -35033,8 +34762,8 @@ CREATE VIEW view_practitioner_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM practitioner_role_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -35050,8 +34779,8 @@ CREATE VIEW view_practitioner_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM practitioner_specialty_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -35117,8 +34846,8 @@ CREATE VIEW view_procedure_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM procedure_body_site_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -35134,8 +34863,8 @@ CREATE VIEW view_procedure_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM procedure_complication_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -35178,8 +34907,8 @@ CREATE VIEW view_procedure_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM procedure_indication_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -35201,8 +34930,8 @@ CREATE VIEW view_procedure_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM procedure_performer_role_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -35244,8 +34973,8 @@ CREATE VIEW view_procedure_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM procedure_type_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -35297,8 +35026,8 @@ CREATE VIEW view_provenance_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM provenance_agent_role t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS role,
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
@@ -35310,8 +35039,8 @@ CREATE VIEW view_provenance_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM provenance_agent_type t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS type,
                             t2.display,
@@ -35329,8 +35058,8 @@ CREATE VIEW view_provenance_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM provenance_entity_type t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS type,
                             t2.display,
@@ -35358,8 +35087,8 @@ CREATE VIEW view_provenance_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM provenance_reason_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -35376,8 +35105,8 @@ CREATE VIEW view_provenance_with_containeds AS
                            FROM provenance_text t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS text,
             t1.integrity_signature AS "integritySignature",
-            t1.policy,
-            t1.recorded
+            t1.recorded,
+            t1.policy
            FROM provenance t1) t_1
    JOIN provenance res_table ON ((res_table._id = t_1._id)));
 
@@ -35483,8 +35212,8 @@ CREATE VIEW view_questionnaire_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM questionnaire_group_name_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -35500,8 +35229,8 @@ CREATE VIEW view_questionnaire_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM questionnaire_group_question_choice t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS choice,
                                             NULL::unknown AS "data*",
@@ -35516,8 +35245,8 @@ CREATE VIEW view_questionnaire_with_containeds AS
                                                                             t5.version,
                                                                             t5.display,
                                                                             t5.code,
-                                                                            t5.system,
-                                                                            t5."primary"
+                                                                            t5."primary",
+                                                                            t5.system
                                                                            FROM questionnaire_group_question_name_cd t5
                                                                           WHERE ((t5.resource_id = t1._id) AND (t5.parent_id = t4._id))) t_5) AS coding,
                                                             t4.text
@@ -35531,12 +35260,12 @@ CREATE VIEW view_questionnaire_with_containeds AS
                                             t3.text,
                                             t3.remarks,
                                             t3.answer_string AS "answerString",
-                                            t3.answer_integer AS "answerInteger",
-                                            t3.answer_decimal AS "answerDecimal",
                                             t3.answer_instant AS "answerInstant",
                                             t3.answer_date_time AS "answerDateTime",
+                                            t3.answer_integer AS "answerInteger",
                                             t3.answer_boolean AS "answerBoolean",
-                                            t3.answer_date AS "answerDate"
+                                            t3.answer_date AS "answerDate",
+                                            t3.answer_decimal AS "answerDecimal"
                                            FROM questionnaire_group_question t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS question,
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
@@ -35575,8 +35304,8 @@ CREATE VIEW view_questionnaire_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM questionnaire_name_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -35638,13 +35367,13 @@ CREATE VIEW view_related_person_with_containeds AS
                                             t3."end"
                                            FROM related_person_address_period t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS period,
+                            t2.use,
                             t2.zip,
                             t2.text,
                             t2.state,
                             t2.line,
                             t2.country,
-                            t2.city,
-                            t2.use
+                            t2.city
                            FROM related_person_address t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS address,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -35657,8 +35386,8 @@ CREATE VIEW view_related_person_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM related_person_gender_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -35720,8 +35449,8 @@ CREATE VIEW view_related_person_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM related_person_relationship_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -35787,8 +35516,8 @@ CREATE VIEW view_security_event_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM security_event_event_subtype_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -35804,17 +35533,17 @@ CREATE VIEW view_security_event_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM security_event_event_type_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
                                            FROM security_event_event_type t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS type,
                             t2.outcome_desc AS "outcomeDesc",
+                            t2.date_time AS "dateTime",
                             t2.outcome,
-                            t2.action,
-                            t2.date_time AS "dateTime"
+                            t2.action
                            FROM security_event_event t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS event,
             ( SELECT array_to_json(array_agg(row_to_json(t_2.*, true)), true) AS array_to_json
@@ -35855,8 +35584,8 @@ CREATE VIEW view_security_event_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM security_event_object_sensitivity_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -35880,8 +35609,8 @@ CREATE VIEW view_security_event_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM security_event_participant_media t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS media,
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
@@ -35904,8 +35633,8 @@ CREATE VIEW view_security_event_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM security_event_participant_role_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -35927,8 +35656,8 @@ CREATE VIEW view_security_event_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM security_event_source_type t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS type,
                             t2.site,
@@ -36011,8 +35740,8 @@ CREATE VIEW view_specimen_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM specimen_collection_method_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -36021,9 +35750,9 @@ CREATE VIEW view_specimen_with_containeds AS
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM specimen_collection_quantity t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS quantity,
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
@@ -36036,8 +35765,8 @@ CREATE VIEW view_specimen_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM specimen_collection_source_site_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -36056,9 +35785,9 @@ CREATE VIEW view_specimen_with_containeds AS
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM specimen_container_capacity t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS capacity,
                             ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
@@ -36081,9 +35810,9 @@ CREATE VIEW view_specimen_with_containeds AS
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM specimen_container_specimen_quantity t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS "specimenQuantity",
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
@@ -36096,8 +35825,8 @@ CREATE VIEW view_specimen_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM specimen_container_type_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -36158,8 +35887,8 @@ CREATE VIEW view_specimen_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM specimen_treatment_procedure_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -36178,8 +35907,8 @@ CREATE VIEW view_specimen_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM specimen_type_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -36224,17 +35953,17 @@ CREATE VIEW view_substance_with_containeds AS
                                    FROM ( SELECT ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM substance_ingredient_quantity_denominator t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS denominator,
                                             ( SELECT row_to_json(t_4.*, true) AS row_to_json
                                                    FROM ( SELECT t4.units,
                                                             t4.code,
+                                                            t4.comparator,
                                                             t4.system,
-                                                            t4.value,
-                                                            t4.comparator
+                                                            t4.value
                                                            FROM substance_ingredient_quantity_numerator t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS numerator
                                            FROM substance_ingredient_quantity t3
@@ -36267,9 +35996,9 @@ CREATE VIEW view_substance_with_containeds AS
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM substance_instance_quantity t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS quantity,
                             t2.expiry
@@ -36290,8 +36019,8 @@ CREATE VIEW view_substance_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM substance_type_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -36357,9 +36086,9 @@ CREATE VIEW view_supply_with_containeds AS
                             ( SELECT row_to_json(t_3.*, true) AS row_to_json
                                    FROM ( SELECT t3.units,
                                             t3.code,
+                                            t3.comparator,
                                             t3.system,
-                                            t3.value,
-                                            t3.comparator
+                                            t3.value
                                            FROM supply_dispense_quantity t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS quantity,
                             ( SELECT array_to_json(array_agg(row_to_json(t_3.*, true)), true) AS array_to_json
@@ -36387,8 +36116,8 @@ CREATE VIEW view_supply_with_containeds AS
                                                             t4.version,
                                                             t4.display,
                                                             t4.code,
-                                                            t4.system,
-                                                            t4."primary"
+                                                            t4."primary",
+                                                            t4.system
                                                            FROM supply_dispense_type_cd t4
                                                           WHERE ((t4.resource_id = t1._id) AND (t4.parent_id = t3._id))) t_4) AS coding,
                                             t3.text
@@ -36434,8 +36163,8 @@ CREATE VIEW view_supply_with_containeds AS
                                             t3.version,
                                             t3.display,
                                             t3.code,
-                                            t3.system,
-                                            t3."primary"
+                                            t3."primary",
+                                            t3.system
                                            FROM supply_kind_cd t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS coding,
                             t2.text
@@ -36671,8 +36400,8 @@ CREATE VIEW view_vs_with_containeds AS
                                            FROM vs_define_concept t3
                                           WHERE ((t3.resource_id = t1._id) AND (t3.parent_id = t2._id))) t_3) AS concept,
                             t2.version,
-                            t2.system,
-                            t2.case_sensitive AS "caseSensitive"
+                            t2.case_sensitive AS "caseSensitive",
+                            t2.system
                            FROM vs_define t2
                           WHERE ((t2.resource_id = t1._id) AND (t2.parent_id = t1._id))) t_2) AS define,
             ( SELECT row_to_json(t_2.*, true) AS row_to_json
@@ -37069,7 +36798,7 @@ CREATE VIEW resources_ddl AS
  SELECT ARRAY[((((((((('CREATE TABLE'::text || ' fhir."'::text) || (resource_tables.table_name)::text) || '"'::text) || '('::text) || array_to_string(resource_tables.columns, ','::text)) || ')'::text) || ' INHERITS (fhir.'::text) || resource_tables.base_table) || ')'::text), (((('ALTER TABLE fhir.'::text || (resource_tables.table_name)::text) || ' ALTER COLUMN _type SET DEFAULT $$'::text) || (resource_tables.table_name)::text) || '$$'::text), (('ALTER TABLE fhir.'::text || (resource_tables.table_name)::text) || ' ADD PRIMARY KEY (_id)'::text),
         CASE
             WHEN (resource_tables.base_table = 'resource'::text) THEN (('CREATE INDEX ON fhir.'::text || (resource_tables.table_name)::text) || ' (container_id);'::text)
-            ELSE ((((((''::text || 'CREATE INDEX ON fhir.'::text) || (resource_tables.table_name)::text) || ' (resource_id);'::text) || 'CREATE INDEX ON fhir.'::text) || (resource_tables.table_name)::text) || ' (parent_id);'::text)
+            ELSE ((((((((((((((('ALTER TABLE fhir.'::text || (resource_tables.table_name)::text) || ' ADD FOREIGN KEY (resource_id) REFERENCES fhir.'::text) || (resource_tables.resource_table_name)::text) || ' (_id) ON DELETE CASCADE DEFERRABLE;'::text) || 'CREATE INDEX ON fhir.'::text) || (resource_tables.table_name)::text) || ' (resource_id);'::text) || 'ALTER TABLE fhir.'::text) || (resource_tables.table_name)::text) || ' ADD FOREIGN KEY (parent_id) REFERENCES fhir.'::text) || (resource_tables.parent_table_name)::text) || ' (_id) ON DELETE CASCADE DEFERRABLE;'::text) || 'CREATE INDEX ON fhir.'::text) || (resource_tables.table_name)::text) || ' (parent_id);'::text)
         END] AS ddls
    FROM resource_tables
   WHERE ((resource_tables.table_name)::text !~ '^profile'::text);
@@ -37142,7 +36871,8 @@ CREATE VIEW insert_ddls AS
 '::text))::character varying, 'selects'::character varying, (string_agg(('SELECT * FROM _'::text || (fhir.table_name(insert_ctes.path))::text), '
  UNION ALL '::text))::character varying]) AS ddl
    FROM insert_ctes
-  GROUP BY insert_ctes.path[1];
+  GROUP BY insert_ctes.path[1]
+ HAVING ((insert_ctes.path[1])::text <> 'Profile'::text);
 
 
 SET search_path = fhir, pg_catalog;
@@ -86386,6 +86116,17872 @@ CREATE INDEX fhir_columns_column_name_idx ON fhir_columns USING btree (column_na
 --
 
 CREATE INDEX fhir_columns_table_name ON fhir_columns USING btree (table_name);
+
+
+SET search_path = fhir, pg_catalog;
+
+--
+-- Name: adverse_reaction_exposure_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_exposure
+    ADD CONSTRAINT adverse_reaction_exposure_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_exposure_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_exposure
+    ADD CONSTRAINT adverse_reaction_exposure_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_exposure_substance_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_exposure_substance
+    ADD CONSTRAINT adverse_reaction_exposure_substance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_exposure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_exposure_substance_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_exposure_substance
+    ADD CONSTRAINT adverse_reaction_exposure_substance_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_idn_assigner
+    ADD CONSTRAINT adverse_reaction_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_idn_assigner
+    ADD CONSTRAINT adverse_reaction_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_idn
+    ADD CONSTRAINT adverse_reaction_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_idn_period
+    ADD CONSTRAINT adverse_reaction_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_idn_period
+    ADD CONSTRAINT adverse_reaction_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_idn
+    ADD CONSTRAINT adverse_reaction_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_recorder_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_recorder
+    ADD CONSTRAINT adverse_reaction_recorder_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_recorder_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_recorder
+    ADD CONSTRAINT adverse_reaction_recorder_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_subject
+    ADD CONSTRAINT adverse_reaction_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_subject
+    ADD CONSTRAINT adverse_reaction_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_symptom_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_symptom_code_cd
+    ADD CONSTRAINT adverse_reaction_symptom_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_symptom_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_symptom_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_symptom_code_cd
+    ADD CONSTRAINT adverse_reaction_symptom_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_symptom_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_symptom_code_cd_vs
+    ADD CONSTRAINT adverse_reaction_symptom_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_symptom_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_symptom_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_symptom_code_cd_vs
+    ADD CONSTRAINT adverse_reaction_symptom_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_symptom_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_symptom_code
+    ADD CONSTRAINT adverse_reaction_symptom_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction_symptom(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_symptom_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_symptom_code
+    ADD CONSTRAINT adverse_reaction_symptom_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_symptom_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_symptom
+    ADD CONSTRAINT adverse_reaction_symptom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_symptom_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_symptom
+    ADD CONSTRAINT adverse_reaction_symptom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_text
+    ADD CONSTRAINT adverse_reaction_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: adverse_reaction_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY adverse_reaction_text
+    ADD CONSTRAINT adverse_reaction_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES adverse_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_author_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_author
+    ADD CONSTRAINT alert_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_author_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_author
+    ADD CONSTRAINT alert_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_category_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_category_cd
+    ADD CONSTRAINT alert_category_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert_category(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_category_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_category_cd
+    ADD CONSTRAINT alert_category_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_category_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_category_cd_vs
+    ADD CONSTRAINT alert_category_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert_category_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_category_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_category_cd_vs
+    ADD CONSTRAINT alert_category_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_category_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_category
+    ADD CONSTRAINT alert_category_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_category_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_category
+    ADD CONSTRAINT alert_category_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_idn_assigner
+    ADD CONSTRAINT alert_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_idn_assigner
+    ADD CONSTRAINT alert_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_idn
+    ADD CONSTRAINT alert_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_idn_period
+    ADD CONSTRAINT alert_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_idn_period
+    ADD CONSTRAINT alert_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_idn
+    ADD CONSTRAINT alert_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_subject
+    ADD CONSTRAINT alert_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_subject
+    ADD CONSTRAINT alert_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_text
+    ADD CONSTRAINT alert_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES alert(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: alert_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY alert_text
+    ADD CONSTRAINT alert_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES alert(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_idn_assigner
+    ADD CONSTRAINT allergy_intolerance_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_idn_assigner
+    ADD CONSTRAINT allergy_intolerance_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_idn
+    ADD CONSTRAINT allergy_intolerance_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_idn_period
+    ADD CONSTRAINT allergy_intolerance_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_idn_period
+    ADD CONSTRAINT allergy_intolerance_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_idn
+    ADD CONSTRAINT allergy_intolerance_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_reaction_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_reaction
+    ADD CONSTRAINT allergy_intolerance_reaction_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_reaction_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_reaction
+    ADD CONSTRAINT allergy_intolerance_reaction_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_recorder_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_recorder
+    ADD CONSTRAINT allergy_intolerance_recorder_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_recorder_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_recorder
+    ADD CONSTRAINT allergy_intolerance_recorder_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_sensitivity_test_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_sensitivity_test
+    ADD CONSTRAINT allergy_intolerance_sensitivity_test_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_sensitivity_test_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_sensitivity_test
+    ADD CONSTRAINT allergy_intolerance_sensitivity_test_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_subject
+    ADD CONSTRAINT allergy_intolerance_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_subject
+    ADD CONSTRAINT allergy_intolerance_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_substance_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_substance
+    ADD CONSTRAINT allergy_intolerance_substance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_substance_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_substance
+    ADD CONSTRAINT allergy_intolerance_substance_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_text
+    ADD CONSTRAINT allergy_intolerance_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: allergy_intolerance_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY allergy_intolerance_text
+    ADD CONSTRAINT allergy_intolerance_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES allergy_intolerance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_action_resulting_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_action_resulting
+    ADD CONSTRAINT care_plan_activity_action_resulting_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_action_resulting_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_action_resulting
+    ADD CONSTRAINT care_plan_activity_action_resulting_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_detail_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_detail
+    ADD CONSTRAINT care_plan_activity_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_detail_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_detail
+    ADD CONSTRAINT care_plan_activity_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity
+    ADD CONSTRAINT care_plan_activity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity
+    ADD CONSTRAINT care_plan_activity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_code_cd
+    ADD CONSTRAINT care_plan_activity_simple_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_code_cd
+    ADD CONSTRAINT care_plan_activity_simple_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_code_cd_vs
+    ADD CONSTRAINT care_plan_activity_simple_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_code_cd_vs
+    ADD CONSTRAINT care_plan_activity_simple_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_code
+    ADD CONSTRAINT care_plan_activity_simple_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_code
+    ADD CONSTRAINT care_plan_activity_simple_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_daily_amount_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_daily_amount
+    ADD CONSTRAINT care_plan_activity_simple_daily_amount_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_daily_amount_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_daily_amount
+    ADD CONSTRAINT care_plan_activity_simple_daily_amount_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_loc_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_loc
+    ADD CONSTRAINT care_plan_activity_simple_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_loc_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_loc
+    ADD CONSTRAINT care_plan_activity_simple_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple
+    ADD CONSTRAINT care_plan_activity_simple_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_performer_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_performer
+    ADD CONSTRAINT care_plan_activity_simple_performer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_performer_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_performer
+    ADD CONSTRAINT care_plan_activity_simple_performer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_product_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_product
+    ADD CONSTRAINT care_plan_activity_simple_product_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_product_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_product
+    ADD CONSTRAINT care_plan_activity_simple_product_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_quantity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_quantity
+    ADD CONSTRAINT care_plan_activity_simple_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_quantity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_quantity
+    ADD CONSTRAINT care_plan_activity_simple_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple
+    ADD CONSTRAINT care_plan_activity_simple_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_timing_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_timing_period
+    ADD CONSTRAINT care_plan_activity_simple_timing_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_timing_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_timing_period
+    ADD CONSTRAINT care_plan_activity_simple_timing_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_timing_schedule_even_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_event
+    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_even_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_timing_schedule_event_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_event
+    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple_timing_schedule(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_timing_schedule_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_timing_schedule
+    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_timing_schedule_repe_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_repeat
+    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_repe_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_timing_schedule_repeat_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_timing_schedule_repeat
+    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_repeat_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_activity_simple_timing_schedule(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_activity_simple_timing_schedule_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_activity_simple_timing_schedule
+    ADD CONSTRAINT care_plan_activity_simple_timing_schedule_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_concern_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_concern
+    ADD CONSTRAINT care_plan_concern_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_concern_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_concern
+    ADD CONSTRAINT care_plan_concern_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_goal_concern_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_goal_concern
+    ADD CONSTRAINT care_plan_goal_concern_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_goal(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_goal_concern_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_goal_concern
+    ADD CONSTRAINT care_plan_goal_concern_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_goal_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_goal
+    ADD CONSTRAINT care_plan_goal_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_goal_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_goal
+    ADD CONSTRAINT care_plan_goal_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_idn_assigner
+    ADD CONSTRAINT care_plan_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_idn_assigner
+    ADD CONSTRAINT care_plan_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_idn
+    ADD CONSTRAINT care_plan_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_idn_period
+    ADD CONSTRAINT care_plan_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_idn_period
+    ADD CONSTRAINT care_plan_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_idn
+    ADD CONSTRAINT care_plan_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_participant_member_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_participant_member
+    ADD CONSTRAINT care_plan_participant_member_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_participant(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_participant_member_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_participant_member
+    ADD CONSTRAINT care_plan_participant_member_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_participant_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_participant
+    ADD CONSTRAINT care_plan_participant_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_participant_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_participant
+    ADD CONSTRAINT care_plan_participant_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_participant_role_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_participant_role_cd
+    ADD CONSTRAINT care_plan_participant_role_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_participant_role(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_participant_role_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_participant_role_cd
+    ADD CONSTRAINT care_plan_participant_role_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_participant_role_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_participant_role_cd_vs
+    ADD CONSTRAINT care_plan_participant_role_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_participant_role_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_participant_role_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_participant_role_cd_vs
+    ADD CONSTRAINT care_plan_participant_role_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_participant_role_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_participant_role
+    ADD CONSTRAINT care_plan_participant_role_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan_participant(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_participant_role_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_participant_role
+    ADD CONSTRAINT care_plan_participant_role_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_patient_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_patient
+    ADD CONSTRAINT care_plan_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_patient_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_patient
+    ADD CONSTRAINT care_plan_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_period
+    ADD CONSTRAINT care_plan_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_period
+    ADD CONSTRAINT care_plan_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_text
+    ADD CONSTRAINT care_plan_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: care_plan_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY care_plan_text
+    ADD CONSTRAINT care_plan_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES care_plan(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_attester_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_attester
+    ADD CONSTRAINT composition_attester_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_attester_party_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_attester_party
+    ADD CONSTRAINT composition_attester_party_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_attester(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_attester_party_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_attester_party
+    ADD CONSTRAINT composition_attester_party_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_attester_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_attester
+    ADD CONSTRAINT composition_attester_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_author_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_author
+    ADD CONSTRAINT composition_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_author_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_author
+    ADD CONSTRAINT composition_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_class_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_class_cd
+    ADD CONSTRAINT composition_class_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_class(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_class_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_class_cd
+    ADD CONSTRAINT composition_class_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_class_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_class_cd_vs
+    ADD CONSTRAINT composition_class_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_class_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_class_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_class_cd_vs
+    ADD CONSTRAINT composition_class_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_class_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_class
+    ADD CONSTRAINT composition_class_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_class_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_class
+    ADD CONSTRAINT composition_class_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_confidentiality_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_confidentiality
+    ADD CONSTRAINT composition_confidentiality_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_confidentiality_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_confidentiality
+    ADD CONSTRAINT composition_confidentiality_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_confidentiality_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_confidentiality_vs
+    ADD CONSTRAINT composition_confidentiality_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_confidentiality(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_confidentiality_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_confidentiality_vs
+    ADD CONSTRAINT composition_confidentiality_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_custodian_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_custodian
+    ADD CONSTRAINT composition_custodian_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_custodian_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_custodian
+    ADD CONSTRAINT composition_custodian_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_encounter_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_encounter
+    ADD CONSTRAINT composition_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_encounter_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_encounter
+    ADD CONSTRAINT composition_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_event_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_event_code_cd
+    ADD CONSTRAINT composition_event_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_event_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_event_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_event_code_cd
+    ADD CONSTRAINT composition_event_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_event_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_event_code_cd_vs
+    ADD CONSTRAINT composition_event_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_event_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_event_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_event_code_cd_vs
+    ADD CONSTRAINT composition_event_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_event_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_event_code
+    ADD CONSTRAINT composition_event_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_event_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_event_code
+    ADD CONSTRAINT composition_event_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_event_detail_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_event_detail
+    ADD CONSTRAINT composition_event_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_event_detail_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_event_detail
+    ADD CONSTRAINT composition_event_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_event_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_event
+    ADD CONSTRAINT composition_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_event_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_event_period
+    ADD CONSTRAINT composition_event_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_event_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_event_period
+    ADD CONSTRAINT composition_event_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_event_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_event
+    ADD CONSTRAINT composition_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_idn_assigner
+    ADD CONSTRAINT composition_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_idn_assigner
+    ADD CONSTRAINT composition_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_idn
+    ADD CONSTRAINT composition_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_idn_period
+    ADD CONSTRAINT composition_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_idn_period
+    ADD CONSTRAINT composition_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_idn
+    ADD CONSTRAINT composition_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_section_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_section_code_cd
+    ADD CONSTRAINT composition_section_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_section_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_section_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_section_code_cd
+    ADD CONSTRAINT composition_section_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_section_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_section_code_cd_vs
+    ADD CONSTRAINT composition_section_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_section_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_section_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_section_code_cd_vs
+    ADD CONSTRAINT composition_section_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_section_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_section_code
+    ADD CONSTRAINT composition_section_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_section(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_section_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_section_code
+    ADD CONSTRAINT composition_section_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_section_content_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_section_content
+    ADD CONSTRAINT composition_section_content_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_section(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_section_content_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_section_content
+    ADD CONSTRAINT composition_section_content_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_section_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_section
+    ADD CONSTRAINT composition_section_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_section_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_section
+    ADD CONSTRAINT composition_section_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_section_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_section_subject
+    ADD CONSTRAINT composition_section_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_section(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_section_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_section_subject
+    ADD CONSTRAINT composition_section_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_subject
+    ADD CONSTRAINT composition_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_subject
+    ADD CONSTRAINT composition_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_text
+    ADD CONSTRAINT composition_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_text
+    ADD CONSTRAINT composition_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_type_cd
+    ADD CONSTRAINT composition_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_type_cd
+    ADD CONSTRAINT composition_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_type_cd_vs
+    ADD CONSTRAINT composition_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_type_cd_vs
+    ADD CONSTRAINT composition_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_type
+    ADD CONSTRAINT composition_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: composition_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY composition_type
+    ADD CONSTRAINT composition_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES composition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_concept_depends_on_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_concept_depends_on
+    ADD CONSTRAINT concept_map_concept_depends_on_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map_concept(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_concept_depends_on_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_concept_depends_on
+    ADD CONSTRAINT concept_map_concept_depends_on_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_concept_map_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_concept_map
+    ADD CONSTRAINT concept_map_concept_map_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map_concept(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_concept_map_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_concept_map
+    ADD CONSTRAINT concept_map_concept_map_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_concept_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_concept
+    ADD CONSTRAINT concept_map_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_concept_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_concept
+    ADD CONSTRAINT concept_map_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_source_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_source
+    ADD CONSTRAINT concept_map_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_source_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_source
+    ADD CONSTRAINT concept_map_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_target_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_target
+    ADD CONSTRAINT concept_map_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_target_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_target
+    ADD CONSTRAINT concept_map_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_telecom_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_telecom
+    ADD CONSTRAINT concept_map_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_telecom_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_telecom_period
+    ADD CONSTRAINT concept_map_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map_telecom(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_telecom_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_telecom_period
+    ADD CONSTRAINT concept_map_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_telecom_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_telecom
+    ADD CONSTRAINT concept_map_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_text
+    ADD CONSTRAINT concept_map_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES concept_map(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: concept_map_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY concept_map_text
+    ADD CONSTRAINT concept_map_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES concept_map(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_asserter_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_asserter
+    ADD CONSTRAINT condition_asserter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_asserter_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_asserter
+    ADD CONSTRAINT condition_asserter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_category_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_category_cd
+    ADD CONSTRAINT condition_category_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_category(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_category_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_category_cd
+    ADD CONSTRAINT condition_category_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_category_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_category_cd_vs
+    ADD CONSTRAINT condition_category_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_category_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_category_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_category_cd_vs
+    ADD CONSTRAINT condition_category_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_category_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_category
+    ADD CONSTRAINT condition_category_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_category_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_category
+    ADD CONSTRAINT condition_category_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_certainty_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_certainty_cd
+    ADD CONSTRAINT condition_certainty_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_certainty(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_certainty_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_certainty_cd
+    ADD CONSTRAINT condition_certainty_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_certainty_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_certainty_cd_vs
+    ADD CONSTRAINT condition_certainty_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_certainty_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_certainty_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_certainty_cd_vs
+    ADD CONSTRAINT condition_certainty_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_certainty_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_certainty
+    ADD CONSTRAINT condition_certainty_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_certainty_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_certainty
+    ADD CONSTRAINT condition_certainty_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_code_cd
+    ADD CONSTRAINT condition_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_code_cd
+    ADD CONSTRAINT condition_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_code_cd_vs
+    ADD CONSTRAINT condition_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_code_cd_vs
+    ADD CONSTRAINT condition_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_code
+    ADD CONSTRAINT condition_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_code
+    ADD CONSTRAINT condition_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_encounter_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_encounter
+    ADD CONSTRAINT condition_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_encounter_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_encounter
+    ADD CONSTRAINT condition_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_evidence_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_evidence_code_cd
+    ADD CONSTRAINT condition_evidence_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_evidence_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_evidence_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_evidence_code_cd
+    ADD CONSTRAINT condition_evidence_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_evidence_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_evidence_code_cd_vs
+    ADD CONSTRAINT condition_evidence_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_evidence_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_evidence_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_evidence_code_cd_vs
+    ADD CONSTRAINT condition_evidence_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_evidence_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_evidence_code
+    ADD CONSTRAINT condition_evidence_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_evidence(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_evidence_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_evidence_code
+    ADD CONSTRAINT condition_evidence_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_evidence_detail_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_evidence_detail
+    ADD CONSTRAINT condition_evidence_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_evidence(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_evidence_detail_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_evidence_detail
+    ADD CONSTRAINT condition_evidence_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_evidence_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_evidence
+    ADD CONSTRAINT condition_evidence_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_evidence_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_evidence
+    ADD CONSTRAINT condition_evidence_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_idn_assigner
+    ADD CONSTRAINT condition_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_idn_assigner
+    ADD CONSTRAINT condition_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_idn
+    ADD CONSTRAINT condition_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_idn_period
+    ADD CONSTRAINT condition_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_idn_period
+    ADD CONSTRAINT condition_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_idn
+    ADD CONSTRAINT condition_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_loc_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_loc_code_cd
+    ADD CONSTRAINT condition_loc_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_loc_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_loc_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_loc_code_cd
+    ADD CONSTRAINT condition_loc_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_loc_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_loc_code_cd_vs
+    ADD CONSTRAINT condition_loc_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_loc_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_loc_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_loc_code_cd_vs
+    ADD CONSTRAINT condition_loc_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_loc_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_loc_code
+    ADD CONSTRAINT condition_loc_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_loc_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_loc_code
+    ADD CONSTRAINT condition_loc_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_loc_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_loc
+    ADD CONSTRAINT condition_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_loc_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_loc
+    ADD CONSTRAINT condition_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_related_item_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_related_item_code_cd
+    ADD CONSTRAINT condition_related_item_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_related_item_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_related_item_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_related_item_code_cd
+    ADD CONSTRAINT condition_related_item_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_related_item_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_related_item_code_cd_vs
+    ADD CONSTRAINT condition_related_item_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_related_item_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_related_item_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_related_item_code_cd_vs
+    ADD CONSTRAINT condition_related_item_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_related_item_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_related_item_code
+    ADD CONSTRAINT condition_related_item_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_related_item(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_related_item_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_related_item_code
+    ADD CONSTRAINT condition_related_item_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_related_item_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_related_item
+    ADD CONSTRAINT condition_related_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_related_item_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_related_item
+    ADD CONSTRAINT condition_related_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_related_item_target_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_related_item_target
+    ADD CONSTRAINT condition_related_item_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_related_item(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_related_item_target_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_related_item_target
+    ADD CONSTRAINT condition_related_item_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_severity_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_severity_cd
+    ADD CONSTRAINT condition_severity_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_severity(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_severity_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_severity_cd
+    ADD CONSTRAINT condition_severity_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_severity_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_severity_cd_vs
+    ADD CONSTRAINT condition_severity_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_severity_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_severity_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_severity_cd_vs
+    ADD CONSTRAINT condition_severity_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_severity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_severity
+    ADD CONSTRAINT condition_severity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_severity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_severity
+    ADD CONSTRAINT condition_severity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_stage_assessment_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_stage_assessment
+    ADD CONSTRAINT condition_stage_assessment_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_stage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_stage_assessment_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_stage_assessment
+    ADD CONSTRAINT condition_stage_assessment_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_stage_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_stage
+    ADD CONSTRAINT condition_stage_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_stage_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_stage
+    ADD CONSTRAINT condition_stage_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_stage_summary_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_stage_summary_cd
+    ADD CONSTRAINT condition_stage_summary_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_stage_summary(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_stage_summary_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_stage_summary_cd
+    ADD CONSTRAINT condition_stage_summary_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_stage_summary_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_stage_summary_cd_vs
+    ADD CONSTRAINT condition_stage_summary_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_stage_summary_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_stage_summary_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_stage_summary_cd_vs
+    ADD CONSTRAINT condition_stage_summary_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_stage_summary_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_stage_summary
+    ADD CONSTRAINT condition_stage_summary_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition_stage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_stage_summary_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_stage_summary
+    ADD CONSTRAINT condition_stage_summary_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_subject
+    ADD CONSTRAINT condition_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_subject
+    ADD CONSTRAINT condition_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_text
+    ADD CONSTRAINT condition_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: condition_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY condition_text
+    ADD CONSTRAINT condition_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_document_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_document
+    ADD CONSTRAINT conformance_document_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_document_profile_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_document_profile
+    ADD CONSTRAINT conformance_document_profile_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_document(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_document_profile_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_document_profile
+    ADD CONSTRAINT conformance_document_profile_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_document_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_document
+    ADD CONSTRAINT conformance_document_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_implementation_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_implementation
+    ADD CONSTRAINT conformance_implementation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_implementation_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_implementation
+    ADD CONSTRAINT conformance_implementation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_event_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging_event_code
+    ADD CONSTRAINT conformance_messaging_event_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_event_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging_event_code
+    ADD CONSTRAINT conformance_messaging_event_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_event_code_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging_event_code_vs
+    ADD CONSTRAINT conformance_messaging_event_code_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_event_code_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging_event_code_vs
+    ADD CONSTRAINT conformance_messaging_event_code_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_event_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging_event
+    ADD CONSTRAINT conformance_messaging_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_event_protocol_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging_event_protocol
+    ADD CONSTRAINT conformance_messaging_event_protocol_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_event_protocol_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging_event_protocol
+    ADD CONSTRAINT conformance_messaging_event_protocol_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_event_protocol_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging_event_protocol_vs
+    ADD CONSTRAINT conformance_messaging_event_protocol_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event_protocol(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_event_protocol_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging_event_protocol_vs
+    ADD CONSTRAINT conformance_messaging_event_protocol_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_event_request_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging_event_request
+    ADD CONSTRAINT conformance_messaging_event_request_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_event_request_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging_event_request
+    ADD CONSTRAINT conformance_messaging_event_request_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_event_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging_event
+    ADD CONSTRAINT conformance_messaging_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_event_response_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging_event_response
+    ADD CONSTRAINT conformance_messaging_event_response_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_messaging_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_event_response_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging_event_response
+    ADD CONSTRAINT conformance_messaging_event_response_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging
+    ADD CONSTRAINT conformance_messaging_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_messaging_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_messaging
+    ADD CONSTRAINT conformance_messaging_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_profile_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_profile
+    ADD CONSTRAINT conformance_profile_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_profile_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_profile
+    ADD CONSTRAINT conformance_profile_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_operation_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_operation
+    ADD CONSTRAINT conformance_rest_operation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_operation_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_operation
+    ADD CONSTRAINT conformance_rest_operation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest
+    ADD CONSTRAINT conformance_rest_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_query_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_query
+    ADD CONSTRAINT conformance_rest_query_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_query_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_query
+    ADD CONSTRAINT conformance_rest_query_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest
+    ADD CONSTRAINT conformance_rest_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_resource_operation_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_resource_operation
+    ADD CONSTRAINT conformance_rest_resource_operation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_resource(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_resource_operation_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_resource_operation
+    ADD CONSTRAINT conformance_rest_resource_operation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_resource_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_resource
+    ADD CONSTRAINT conformance_rest_resource_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_resource_profile_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_resource_profile
+    ADD CONSTRAINT conformance_rest_resource_profile_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_resource(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_resource_profile_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_resource_profile
+    ADD CONSTRAINT conformance_rest_resource_profile_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_resource_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_resource
+    ADD CONSTRAINT conformance_rest_resource_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_resource_search_param_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_resource_search_param
+    ADD CONSTRAINT conformance_rest_resource_search_param_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_resource(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_resource_search_param_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_resource_search_param
+    ADD CONSTRAINT conformance_rest_resource_search_param_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_security_certificate_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_security_certificate
+    ADD CONSTRAINT conformance_rest_security_certificate_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_security(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_security_certificate_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_security_certificate
+    ADD CONSTRAINT conformance_rest_security_certificate_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_security_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_security
+    ADD CONSTRAINT conformance_rest_security_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_security_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_security
+    ADD CONSTRAINT conformance_rest_security_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_security_service_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_security_service_cd
+    ADD CONSTRAINT conformance_rest_security_service_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_security_service(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_security_service_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_security_service_cd
+    ADD CONSTRAINT conformance_rest_security_service_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_security_service_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_security_service_cd_vs
+    ADD CONSTRAINT conformance_rest_security_service_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_security_service_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_security_service_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_security_service_cd_vs
+    ADD CONSTRAINT conformance_rest_security_service_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_security_service_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_security_service
+    ADD CONSTRAINT conformance_rest_security_service_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_rest_security(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_rest_security_service_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_rest_security_service
+    ADD CONSTRAINT conformance_rest_security_service_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_software_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_software
+    ADD CONSTRAINT conformance_software_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_software_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_software
+    ADD CONSTRAINT conformance_software_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_telecom_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_telecom
+    ADD CONSTRAINT conformance_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_telecom_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_telecom_period
+    ADD CONSTRAINT conformance_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance_telecom(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_telecom_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_telecom_period
+    ADD CONSTRAINT conformance_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_telecom_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_telecom
+    ADD CONSTRAINT conformance_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_text
+    ADD CONSTRAINT conformance_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: conformance_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY conformance_text
+    ADD CONSTRAINT conformance_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES conformance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_contact_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_contact
+    ADD CONSTRAINT device_contact_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_contact_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_contact_period
+    ADD CONSTRAINT device_contact_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_contact(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_contact_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_contact_period
+    ADD CONSTRAINT device_contact_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_contact_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_contact
+    ADD CONSTRAINT device_contact_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_idn_assigner
+    ADD CONSTRAINT device_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_idn_assigner
+    ADD CONSTRAINT device_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_idn
+    ADD CONSTRAINT device_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_idn_period
+    ADD CONSTRAINT device_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_idn_period
+    ADD CONSTRAINT device_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_idn
+    ADD CONSTRAINT device_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_loc_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_loc
+    ADD CONSTRAINT device_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_loc_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_loc
+    ADD CONSTRAINT device_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_idn_assigner
+    ADD CONSTRAINT device_observation_report_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_idn_assigner
+    ADD CONSTRAINT device_observation_report_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_idn
+    ADD CONSTRAINT device_observation_report_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_idn_period
+    ADD CONSTRAINT device_observation_report_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_idn_period
+    ADD CONSTRAINT device_observation_report_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_idn
+    ADD CONSTRAINT device_observation_report_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_source_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_source
+    ADD CONSTRAINT device_observation_report_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_source_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_source
+    ADD CONSTRAINT device_observation_report_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_subject
+    ADD CONSTRAINT device_observation_report_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_subject
+    ADD CONSTRAINT device_observation_report_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_text
+    ADD CONSTRAINT device_observation_report_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_text
+    ADD CONSTRAINT device_observation_report_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_chan_resource_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_channel_code
+    ADD CONSTRAINT device_observation_report_virtual_device_chan_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_chan_resource_id_fkey2; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd
+    ADD CONSTRAINT device_observation_report_virtual_device_chan_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_chan_resource_id_fkey3; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd_vs
+    ADD CONSTRAINT device_observation_report_virtual_device_chan_resource_id_fkey3 FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_chan_resource_id_fkey4; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric
+    ADD CONSTRAINT device_observation_report_virtual_device_chan_resource_id_fkey4 FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_chan_resource_id_fkey5; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric_obs
+    ADD CONSTRAINT device_observation_report_virtual_device_chan_resource_id_fkey5 FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_chann_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_channel
+    ADD CONSTRAINT device_observation_report_virtual_device_chann_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_channe_parent_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_channel_code
+    ADD CONSTRAINT device_observation_report_virtual_device_channe_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_channel(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_channe_parent_id_fkey2; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd
+    ADD CONSTRAINT device_observation_report_virtual_device_channe_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_channel_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_channe_parent_id_fkey3; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_channel_code_cd_vs
+    ADD CONSTRAINT device_observation_report_virtual_device_channe_parent_id_fkey3 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_channel_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_channe_parent_id_fkey4; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric
+    ADD CONSTRAINT device_observation_report_virtual_device_channe_parent_id_fkey4 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_channel(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_channe_parent_id_fkey5; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_channel_metric_obs
+    ADD CONSTRAINT device_observation_report_virtual_device_channe_parent_id_fkey5 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_channel_metric(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_channel_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_channel
+    ADD CONSTRAINT device_observation_report_virtual_device_channel_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_code__resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_code_cd
+    ADD CONSTRAINT device_observation_report_virtual_device_code__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_code_c_parent_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_code_cd_vs
+    ADD CONSTRAINT device_observation_report_virtual_device_code_c_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_code_cd
+    ADD CONSTRAINT device_observation_report_virtual_device_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_code
+    ADD CONSTRAINT device_observation_report_virtual_device_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report_virtual_device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_code
+    ADD CONSTRAINT device_observation_report_virtual_device_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_code_resource_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device_code_cd_vs
+    ADD CONSTRAINT device_observation_report_virtual_device_code_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device
+    ADD CONSTRAINT device_observation_report_virtual_device_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_observation_report_virtual_device_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_observation_report_virtual_device
+    ADD CONSTRAINT device_observation_report_virtual_device_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device_observation_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_owner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_owner
+    ADD CONSTRAINT device_owner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_owner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_owner
+    ADD CONSTRAINT device_owner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_patient_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_patient
+    ADD CONSTRAINT device_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_patient_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_patient
+    ADD CONSTRAINT device_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_text
+    ADD CONSTRAINT device_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_text
+    ADD CONSTRAINT device_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_type_cd
+    ADD CONSTRAINT device_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_type_cd
+    ADD CONSTRAINT device_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_type_cd_vs
+    ADD CONSTRAINT device_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_type_cd_vs
+    ADD CONSTRAINT device_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_type
+    ADD CONSTRAINT device_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: device_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY device_type
+    ADD CONSTRAINT device_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES device(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_encounter_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_encounter
+    ADD CONSTRAINT diagnostic_order_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_encounter_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_encounter
+    ADD CONSTRAINT diagnostic_order_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_event_actor_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_event_actor
+    ADD CONSTRAINT diagnostic_order_event_actor_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_event_actor_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_event_actor
+    ADD CONSTRAINT diagnostic_order_event_actor_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_event_description_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_event_description_cd
+    ADD CONSTRAINT diagnostic_order_event_description_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_event_description(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_event_description_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_event_description_cd
+    ADD CONSTRAINT diagnostic_order_event_description_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_event_description_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_event_description_cd_vs
+    ADD CONSTRAINT diagnostic_order_event_description_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_event_description_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_event_description_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_event_description_cd_vs
+    ADD CONSTRAINT diagnostic_order_event_description_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_event_description_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_event_description
+    ADD CONSTRAINT diagnostic_order_event_description_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_event_description_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_event_description
+    ADD CONSTRAINT diagnostic_order_event_description_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_event_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_event
+    ADD CONSTRAINT diagnostic_order_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_event_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_event
+    ADD CONSTRAINT diagnostic_order_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_idn_assigner
+    ADD CONSTRAINT diagnostic_order_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_idn_assigner
+    ADD CONSTRAINT diagnostic_order_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_idn
+    ADD CONSTRAINT diagnostic_order_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_idn_period
+    ADD CONSTRAINT diagnostic_order_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_idn_period
+    ADD CONSTRAINT diagnostic_order_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_idn
+    ADD CONSTRAINT diagnostic_order_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_body_site_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item_body_site_cd
+    ADD CONSTRAINT diagnostic_order_item_body_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item_body_site(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_body_site_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item_body_site_cd
+    ADD CONSTRAINT diagnostic_order_item_body_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_body_site_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item_body_site_cd_vs
+    ADD CONSTRAINT diagnostic_order_item_body_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item_body_site_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_body_site_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item_body_site_cd_vs
+    ADD CONSTRAINT diagnostic_order_item_body_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_body_site_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item_body_site
+    ADD CONSTRAINT diagnostic_order_item_body_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_body_site_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item_body_site
+    ADD CONSTRAINT diagnostic_order_item_body_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item_code_cd
+    ADD CONSTRAINT diagnostic_order_item_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item_code_cd
+    ADD CONSTRAINT diagnostic_order_item_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item_code_cd_vs
+    ADD CONSTRAINT diagnostic_order_item_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item_code_cd_vs
+    ADD CONSTRAINT diagnostic_order_item_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item_code
+    ADD CONSTRAINT diagnostic_order_item_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item_code
+    ADD CONSTRAINT diagnostic_order_item_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item
+    ADD CONSTRAINT diagnostic_order_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item
+    ADD CONSTRAINT diagnostic_order_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_specimen_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item_specimen
+    ADD CONSTRAINT diagnostic_order_item_specimen_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order_item(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_item_specimen_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_item_specimen
+    ADD CONSTRAINT diagnostic_order_item_specimen_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_orderer_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_orderer
+    ADD CONSTRAINT diagnostic_order_orderer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_orderer_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_orderer
+    ADD CONSTRAINT diagnostic_order_orderer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_specimen_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_specimen
+    ADD CONSTRAINT diagnostic_order_specimen_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_specimen_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_specimen
+    ADD CONSTRAINT diagnostic_order_specimen_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_subject
+    ADD CONSTRAINT diagnostic_order_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_subject
+    ADD CONSTRAINT diagnostic_order_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_text
+    ADD CONSTRAINT diagnostic_order_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_order_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_order_text
+    ADD CONSTRAINT diagnostic_order_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_order(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_coded_diagnosis_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd
+    ADD CONSTRAINT diagnostic_report_coded_diagnosis_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_coded_diagnosis(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_coded_diagnosis_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd
+    ADD CONSTRAINT diagnostic_report_coded_diagnosis_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_coded_diagnosis_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd_vs
+    ADD CONSTRAINT diagnostic_report_coded_diagnosis_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_coded_diagnosis_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_coded_diagnosis_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_coded_diagnosis_cd_vs
+    ADD CONSTRAINT diagnostic_report_coded_diagnosis_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_coded_diagnosis_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_coded_diagnosis
+    ADD CONSTRAINT diagnostic_report_coded_diagnosis_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_coded_diagnosis_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_coded_diagnosis
+    ADD CONSTRAINT diagnostic_report_coded_diagnosis_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_diagnostic_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_diagnostic_period
+    ADD CONSTRAINT diagnostic_report_diagnostic_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_diagnostic_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_diagnostic_period
+    ADD CONSTRAINT diagnostic_report_diagnostic_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_idn_assigner
+    ADD CONSTRAINT diagnostic_report_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_idn_assigner
+    ADD CONSTRAINT diagnostic_report_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_idn
+    ADD CONSTRAINT diagnostic_report_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_idn_period
+    ADD CONSTRAINT diagnostic_report_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_idn_period
+    ADD CONSTRAINT diagnostic_report_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_idn
+    ADD CONSTRAINT diagnostic_report_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_image_link_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_image_link
+    ADD CONSTRAINT diagnostic_report_image_link_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_image(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_image_link_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_image_link
+    ADD CONSTRAINT diagnostic_report_image_link_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_image_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_image
+    ADD CONSTRAINT diagnostic_report_image_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_image_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_image
+    ADD CONSTRAINT diagnostic_report_image_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_imaging_study_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_imaging_study
+    ADD CONSTRAINT diagnostic_report_imaging_study_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_imaging_study_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_imaging_study
+    ADD CONSTRAINT diagnostic_report_imaging_study_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_name_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_name_cd
+    ADD CONSTRAINT diagnostic_report_name_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_name(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_name_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_name_cd
+    ADD CONSTRAINT diagnostic_report_name_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_name_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_name_cd_vs
+    ADD CONSTRAINT diagnostic_report_name_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_name_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_name_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_name_cd_vs
+    ADD CONSTRAINT diagnostic_report_name_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_name_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_name
+    ADD CONSTRAINT diagnostic_report_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_name_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_name
+    ADD CONSTRAINT diagnostic_report_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_performer_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_performer
+    ADD CONSTRAINT diagnostic_report_performer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_performer_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_performer
+    ADD CONSTRAINT diagnostic_report_performer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_presented_form_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_presented_form
+    ADD CONSTRAINT diagnostic_report_presented_form_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_presented_form_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_presented_form
+    ADD CONSTRAINT diagnostic_report_presented_form_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_request_detail_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_request_detail
+    ADD CONSTRAINT diagnostic_report_request_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_request_detail_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_request_detail
+    ADD CONSTRAINT diagnostic_report_request_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_result_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_result
+    ADD CONSTRAINT diagnostic_report_result_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_result_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_result
+    ADD CONSTRAINT diagnostic_report_result_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_service_category_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_service_category_cd
+    ADD CONSTRAINT diagnostic_report_service_category_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_service_category(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_service_category_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_service_category_cd
+    ADD CONSTRAINT diagnostic_report_service_category_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_service_category_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_service_category_cd_vs
+    ADD CONSTRAINT diagnostic_report_service_category_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report_service_category_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_service_category_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_service_category_cd_vs
+    ADD CONSTRAINT diagnostic_report_service_category_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_service_category_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_service_category
+    ADD CONSTRAINT diagnostic_report_service_category_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_service_category_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_service_category
+    ADD CONSTRAINT diagnostic_report_service_category_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_specimen_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_specimen
+    ADD CONSTRAINT diagnostic_report_specimen_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_specimen_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_specimen
+    ADD CONSTRAINT diagnostic_report_specimen_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_subject
+    ADD CONSTRAINT diagnostic_report_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_subject
+    ADD CONSTRAINT diagnostic_report_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_text
+    ADD CONSTRAINT diagnostic_report_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: diagnostic_report_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY diagnostic_report_text
+    ADD CONSTRAINT diagnostic_report_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES diagnostic_report(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_author_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_author
+    ADD CONSTRAINT document_manifest_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_author_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_author
+    ADD CONSTRAINT document_manifest_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_confidentiality_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_confidentiality_cd
+    ADD CONSTRAINT document_manifest_confidentiality_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_confidentiality(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_confidentiality_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_confidentiality_cd
+    ADD CONSTRAINT document_manifest_confidentiality_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_confidentiality_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_confidentiality_cd_vs
+    ADD CONSTRAINT document_manifest_confidentiality_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_confidentiality_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_confidentiality_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_confidentiality_cd_vs
+    ADD CONSTRAINT document_manifest_confidentiality_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_confidentiality_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_confidentiality
+    ADD CONSTRAINT document_manifest_confidentiality_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_confidentiality_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_confidentiality
+    ADD CONSTRAINT document_manifest_confidentiality_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_content_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_content
+    ADD CONSTRAINT document_manifest_content_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_content_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_content
+    ADD CONSTRAINT document_manifest_content_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_idn_assigner
+    ADD CONSTRAINT document_manifest_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_idn_assigner
+    ADD CONSTRAINT document_manifest_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_idn
+    ADD CONSTRAINT document_manifest_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_idn_period
+    ADD CONSTRAINT document_manifest_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_idn_period
+    ADD CONSTRAINT document_manifest_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_idn
+    ADD CONSTRAINT document_manifest_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_master_identifier_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_master_identifier_assigner
+    ADD CONSTRAINT document_manifest_master_identifier_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_master_identifier(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_master_identifier_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_master_identifier_assigner
+    ADD CONSTRAINT document_manifest_master_identifier_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_master_identifier_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_master_identifier
+    ADD CONSTRAINT document_manifest_master_identifier_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_master_identifier_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_master_identifier_period
+    ADD CONSTRAINT document_manifest_master_identifier_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_master_identifier(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_master_identifier_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_master_identifier_period
+    ADD CONSTRAINT document_manifest_master_identifier_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_master_identifier_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_master_identifier
+    ADD CONSTRAINT document_manifest_master_identifier_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_recipient_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_recipient
+    ADD CONSTRAINT document_manifest_recipient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_recipient_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_recipient
+    ADD CONSTRAINT document_manifest_recipient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_subject
+    ADD CONSTRAINT document_manifest_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_subject
+    ADD CONSTRAINT document_manifest_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_supercedes_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_supercedes
+    ADD CONSTRAINT document_manifest_supercedes_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_supercedes_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_supercedes
+    ADD CONSTRAINT document_manifest_supercedes_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_text
+    ADD CONSTRAINT document_manifest_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_text
+    ADD CONSTRAINT document_manifest_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_type_cd
+    ADD CONSTRAINT document_manifest_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_type_cd
+    ADD CONSTRAINT document_manifest_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_type_cd_vs
+    ADD CONSTRAINT document_manifest_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_type_cd_vs
+    ADD CONSTRAINT document_manifest_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_type
+    ADD CONSTRAINT document_manifest_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_manifest_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_manifest_type
+    ADD CONSTRAINT document_manifest_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_manifest(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_authenticator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_authenticator
+    ADD CONSTRAINT document_reference_authenticator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_authenticator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_authenticator
+    ADD CONSTRAINT document_reference_authenticator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_author_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_author
+    ADD CONSTRAINT document_reference_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_author_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_author
+    ADD CONSTRAINT document_reference_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_class_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_class_cd
+    ADD CONSTRAINT document_reference_class_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_class(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_class_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_class_cd
+    ADD CONSTRAINT document_reference_class_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_class_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_class_cd_vs
+    ADD CONSTRAINT document_reference_class_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_class_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_class_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_class_cd_vs
+    ADD CONSTRAINT document_reference_class_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_class_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_class
+    ADD CONSTRAINT document_reference_class_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_class_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_class
+    ADD CONSTRAINT document_reference_class_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_confidentiality_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_confidentiality_cd
+    ADD CONSTRAINT document_reference_confidentiality_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_confidentiality(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_confidentiality_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_confidentiality_cd
+    ADD CONSTRAINT document_reference_confidentiality_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_confidentiality_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_confidentiality_cd_vs
+    ADD CONSTRAINT document_reference_confidentiality_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_confidentiality_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_confidentiality_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_confidentiality_cd_vs
+    ADD CONSTRAINT document_reference_confidentiality_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_confidentiality_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_confidentiality
+    ADD CONSTRAINT document_reference_confidentiality_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_confidentiality_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_confidentiality
+    ADD CONSTRAINT document_reference_confidentiality_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_event_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context_event_cd
+    ADD CONSTRAINT document_reference_context_event_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_event_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context_event_cd
+    ADD CONSTRAINT document_reference_context_event_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_event_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context_event_cd_vs
+    ADD CONSTRAINT document_reference_context_event_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context_event_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_event_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context_event_cd_vs
+    ADD CONSTRAINT document_reference_context_event_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_event_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context_event
+    ADD CONSTRAINT document_reference_context_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_event_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context_event
+    ADD CONSTRAINT document_reference_context_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_facility_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context_facility_type_cd
+    ADD CONSTRAINT document_reference_context_facility_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context_facility_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_facility_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context_facility_type_cd
+    ADD CONSTRAINT document_reference_context_facility_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_facility_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context_facility_type_cd_vs
+    ADD CONSTRAINT document_reference_context_facility_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context_facility_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_facility_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context_facility_type_cd_vs
+    ADD CONSTRAINT document_reference_context_facility_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_facility_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context_facility_type
+    ADD CONSTRAINT document_reference_context_facility_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_facility_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context_facility_type
+    ADD CONSTRAINT document_reference_context_facility_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context
+    ADD CONSTRAINT document_reference_context_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context_period
+    ADD CONSTRAINT document_reference_context_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_context(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context_period
+    ADD CONSTRAINT document_reference_context_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_context_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_context
+    ADD CONSTRAINT document_reference_context_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_custodian_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_custodian
+    ADD CONSTRAINT document_reference_custodian_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_custodian_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_custodian
+    ADD CONSTRAINT document_reference_custodian_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_doc_status_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_doc_status_cd
+    ADD CONSTRAINT document_reference_doc_status_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_doc_status(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_doc_status_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_doc_status_cd
+    ADD CONSTRAINT document_reference_doc_status_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_doc_status_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_doc_status_cd_vs
+    ADD CONSTRAINT document_reference_doc_status_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_doc_status_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_doc_status_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_doc_status_cd_vs
+    ADD CONSTRAINT document_reference_doc_status_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_doc_status_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_doc_status
+    ADD CONSTRAINT document_reference_doc_status_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_doc_status_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_doc_status
+    ADD CONSTRAINT document_reference_doc_status_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_idn_assigner
+    ADD CONSTRAINT document_reference_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_idn_assigner
+    ADD CONSTRAINT document_reference_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_idn
+    ADD CONSTRAINT document_reference_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_idn_period
+    ADD CONSTRAINT document_reference_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_idn_period
+    ADD CONSTRAINT document_reference_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_idn
+    ADD CONSTRAINT document_reference_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_master_identifier_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_master_identifier_assigner
+    ADD CONSTRAINT document_reference_master_identifier_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_master_identifier(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_master_identifier_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_master_identifier_assigner
+    ADD CONSTRAINT document_reference_master_identifier_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_master_identifier_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_master_identifier
+    ADD CONSTRAINT document_reference_master_identifier_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_master_identifier_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_master_identifier_period
+    ADD CONSTRAINT document_reference_master_identifier_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_master_identifier(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_master_identifier_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_master_identifier_period
+    ADD CONSTRAINT document_reference_master_identifier_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_master_identifier_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_master_identifier
+    ADD CONSTRAINT document_reference_master_identifier_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_relates_to_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_relates_to
+    ADD CONSTRAINT document_reference_relates_to_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_relates_to_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_relates_to
+    ADD CONSTRAINT document_reference_relates_to_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_relates_to_target_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_relates_to_target
+    ADD CONSTRAINT document_reference_relates_to_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_relates_to(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_relates_to_target_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_relates_to_target
+    ADD CONSTRAINT document_reference_relates_to_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_service_parameter_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_service_parameter
+    ADD CONSTRAINT document_reference_service_parameter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_service(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_service_parameter_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_service_parameter
+    ADD CONSTRAINT document_reference_service_parameter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_service_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_service
+    ADD CONSTRAINT document_reference_service_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_service_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_service
+    ADD CONSTRAINT document_reference_service_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_service_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_service_type_cd
+    ADD CONSTRAINT document_reference_service_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_service_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_service_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_service_type_cd
+    ADD CONSTRAINT document_reference_service_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_service_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_service_type_cd_vs
+    ADD CONSTRAINT document_reference_service_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_service_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_service_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_service_type_cd_vs
+    ADD CONSTRAINT document_reference_service_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_service_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_service_type
+    ADD CONSTRAINT document_reference_service_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_service(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_service_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_service_type
+    ADD CONSTRAINT document_reference_service_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_subject
+    ADD CONSTRAINT document_reference_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_subject
+    ADD CONSTRAINT document_reference_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_text
+    ADD CONSTRAINT document_reference_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_text
+    ADD CONSTRAINT document_reference_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_type_cd
+    ADD CONSTRAINT document_reference_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_type_cd
+    ADD CONSTRAINT document_reference_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_type_cd_vs
+    ADD CONSTRAINT document_reference_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_type_cd_vs
+    ADD CONSTRAINT document_reference_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_type
+    ADD CONSTRAINT document_reference_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: document_reference_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY document_reference_type
+    ADD CONSTRAINT document_reference_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES document_reference(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_accomodation_bed_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_accomodation_bed
+    ADD CONSTRAINT encounter_hospitalization_accomodation_bed_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_accomodation(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_accomodation_bed_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_accomodation_bed
+    ADD CONSTRAINT encounter_hospitalization_accomodation_bed_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_accomodation_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_accomodation
+    ADD CONSTRAINT encounter_hospitalization_accomodation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_accomodation_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_accomodation_period
+    ADD CONSTRAINT encounter_hospitalization_accomodation_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_accomodation(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_accomodation_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_accomodation_period
+    ADD CONSTRAINT encounter_hospitalization_accomodation_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_accomodation_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_accomodation
+    ADD CONSTRAINT encounter_hospitalization_accomodation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_admit_source_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_admit_source_cd
+    ADD CONSTRAINT encounter_hospitalization_admit_source_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_admit_source(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_admit_source_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_admit_source_cd
+    ADD CONSTRAINT encounter_hospitalization_admit_source_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_admit_source_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_admit_source_cd_vs
+    ADD CONSTRAINT encounter_hospitalization_admit_source_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_admit_source_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_admit_source_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_admit_source_cd_vs
+    ADD CONSTRAINT encounter_hospitalization_admit_source_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_admit_source_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_admit_source
+    ADD CONSTRAINT encounter_hospitalization_admit_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_admit_source_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_admit_source
+    ADD CONSTRAINT encounter_hospitalization_admit_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_destination_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_destination
+    ADD CONSTRAINT encounter_hospitalization_destination_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_destination_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_destination
+    ADD CONSTRAINT encounter_hospitalization_destination_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_diet_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_diet_cd
+    ADD CONSTRAINT encounter_hospitalization_diet_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_diet(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_diet_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_diet_cd
+    ADD CONSTRAINT encounter_hospitalization_diet_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_diet_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_diet_cd_vs
+    ADD CONSTRAINT encounter_hospitalization_diet_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_diet_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_diet_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_diet_cd_vs
+    ADD CONSTRAINT encounter_hospitalization_diet_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_diet_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_diet
+    ADD CONSTRAINT encounter_hospitalization_diet_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_diet_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_diet
+    ADD CONSTRAINT encounter_hospitalization_diet_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_discharge_diagnosis_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_discharge_diagnosis
+    ADD CONSTRAINT encounter_hospitalization_discharge_diagnosis_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_discharge_diagnosis_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_discharge_diagnosis
+    ADD CONSTRAINT encounter_hospitalization_discharge_diagnosis_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_discharge_dispositi_resource_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd
+    ADD CONSTRAINT encounter_hospitalization_discharge_dispositi_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_discharge_dispositi_resource_id_fkey2; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd_vs
+    ADD CONSTRAINT encounter_hospitalization_discharge_dispositi_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_discharge_dispositio_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_discharge_disposition
+    ADD CONSTRAINT encounter_hospitalization_discharge_dispositio_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_discharge_disposition__parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd
+    ADD CONSTRAINT encounter_hospitalization_discharge_disposition__parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_discharge_disposition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_discharge_disposition_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_discharge_disposition
+    ADD CONSTRAINT encounter_hospitalization_discharge_disposition_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_discharge_disposition_parent_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_discharge_disposition_cd_vs
+    ADD CONSTRAINT encounter_hospitalization_discharge_disposition_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_discharge_disposition_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_origin_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_origin
+    ADD CONSTRAINT encounter_hospitalization_origin_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_origin_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_origin
+    ADD CONSTRAINT encounter_hospitalization_origin_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization
+    ADD CONSTRAINT encounter_hospitalization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_period
+    ADD CONSTRAINT encounter_hospitalization_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_period
+    ADD CONSTRAINT encounter_hospitalization_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_pre_admission_ident_resource_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_assigner
+    ADD CONSTRAINT encounter_hospitalization_pre_admission_ident_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_pre_admission_ident_resource_id_fkey2; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_period
+    ADD CONSTRAINT encounter_hospitalization_pre_admission_ident_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_pre_admission_identi_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier
+    ADD CONSTRAINT encounter_hospitalization_pre_admission_identi_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_pre_admission_identif_parent_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_assigner
+    ADD CONSTRAINT encounter_hospitalization_pre_admission_identif_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_pre_admission_identifier(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_pre_admission_identif_parent_id_fkey2; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier_period
+    ADD CONSTRAINT encounter_hospitalization_pre_admission_identif_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_pre_admission_identifier(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_pre_admission_identifi_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_pre_admission_identifier
+    ADD CONSTRAINT encounter_hospitalization_pre_admission_identifi_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization
+    ADD CONSTRAINT encounter_hospitalization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_special_arrangement__resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd
+    ADD CONSTRAINT encounter_hospitalization_special_arrangement__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_special_arrangement_c_parent_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd_vs
+    ADD CONSTRAINT encounter_hospitalization_special_arrangement_c_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_special_arrangement_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_special_arrangement_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd
+    ADD CONSTRAINT encounter_hospitalization_special_arrangement_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_special_arrangement(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_special_arrangement_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_special_arrangement
+    ADD CONSTRAINT encounter_hospitalization_special_arrangement_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_special_arrangement_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_special_arrangement
+    ADD CONSTRAINT encounter_hospitalization_special_arrangement_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_special_arrangement_resource_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_special_arrangement_cd_vs
+    ADD CONSTRAINT encounter_hospitalization_special_arrangement_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_special_courtesy_cd__resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd_vs
+    ADD CONSTRAINT encounter_hospitalization_special_courtesy_cd__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_special_courtesy_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd
+    ADD CONSTRAINT encounter_hospitalization_special_courtesy_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_special_courtesy(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_special_courtesy_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd
+    ADD CONSTRAINT encounter_hospitalization_special_courtesy_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_special_courtesy_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_special_courtesy_cd_vs
+    ADD CONSTRAINT encounter_hospitalization_special_courtesy_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization_special_courtesy_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_special_courtesy_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_special_courtesy
+    ADD CONSTRAINT encounter_hospitalization_special_courtesy_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_hospitalization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_hospitalization_special_courtesy_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_hospitalization_special_courtesy
+    ADD CONSTRAINT encounter_hospitalization_special_courtesy_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_idn_assigner
+    ADD CONSTRAINT encounter_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_idn_assigner
+    ADD CONSTRAINT encounter_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_idn
+    ADD CONSTRAINT encounter_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_idn_period
+    ADD CONSTRAINT encounter_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_idn_period
+    ADD CONSTRAINT encounter_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_idn
+    ADD CONSTRAINT encounter_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_indication_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_indication
+    ADD CONSTRAINT encounter_indication_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_indication_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_indication
+    ADD CONSTRAINT encounter_indication_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_loc_loc_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_loc_loc
+    ADD CONSTRAINT encounter_loc_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_loc_loc_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_loc_loc
+    ADD CONSTRAINT encounter_loc_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_loc_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_loc
+    ADD CONSTRAINT encounter_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_loc_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_loc_period
+    ADD CONSTRAINT encounter_loc_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_loc_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_loc_period
+    ADD CONSTRAINT encounter_loc_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_loc_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_loc
+    ADD CONSTRAINT encounter_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_part_of_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_part_of
+    ADD CONSTRAINT encounter_part_of_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_part_of_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_part_of
+    ADD CONSTRAINT encounter_part_of_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_participant_individual_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_participant_individual
+    ADD CONSTRAINT encounter_participant_individual_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_participant(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_participant_individual_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_participant_individual
+    ADD CONSTRAINT encounter_participant_individual_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_participant_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_participant
+    ADD CONSTRAINT encounter_participant_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_participant_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_participant
+    ADD CONSTRAINT encounter_participant_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_participant_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_participant_type_cd
+    ADD CONSTRAINT encounter_participant_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_participant_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_participant_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_participant_type_cd
+    ADD CONSTRAINT encounter_participant_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_participant_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_participant_type_cd_vs
+    ADD CONSTRAINT encounter_participant_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_participant_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_participant_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_participant_type_cd_vs
+    ADD CONSTRAINT encounter_participant_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_participant_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_participant_type
+    ADD CONSTRAINT encounter_participant_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_participant(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_participant_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_participant_type
+    ADD CONSTRAINT encounter_participant_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_period
+    ADD CONSTRAINT encounter_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_period
+    ADD CONSTRAINT encounter_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_priority_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_priority_cd
+    ADD CONSTRAINT encounter_priority_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_priority(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_priority_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_priority_cd
+    ADD CONSTRAINT encounter_priority_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_priority_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_priority_cd_vs
+    ADD CONSTRAINT encounter_priority_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_priority_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_priority_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_priority_cd_vs
+    ADD CONSTRAINT encounter_priority_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_priority_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_priority
+    ADD CONSTRAINT encounter_priority_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_priority_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_priority
+    ADD CONSTRAINT encounter_priority_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_reason_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_reason_cd
+    ADD CONSTRAINT encounter_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_reason(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_reason_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_reason_cd
+    ADD CONSTRAINT encounter_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_reason_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_reason_cd_vs
+    ADD CONSTRAINT encounter_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_reason_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_reason_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_reason_cd_vs
+    ADD CONSTRAINT encounter_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_reason_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_reason
+    ADD CONSTRAINT encounter_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_reason_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_reason
+    ADD CONSTRAINT encounter_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_service_provider_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_service_provider
+    ADD CONSTRAINT encounter_service_provider_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_service_provider_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_service_provider
+    ADD CONSTRAINT encounter_service_provider_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_subject
+    ADD CONSTRAINT encounter_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_subject
+    ADD CONSTRAINT encounter_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_text
+    ADD CONSTRAINT encounter_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_text
+    ADD CONSTRAINT encounter_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_type_cd
+    ADD CONSTRAINT encounter_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_type_cd
+    ADD CONSTRAINT encounter_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_type_cd_vs
+    ADD CONSTRAINT encounter_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_type_cd_vs
+    ADD CONSTRAINT encounter_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_type
+    ADD CONSTRAINT encounter_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: encounter_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY encounter_type
+    ADD CONSTRAINT encounter_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES encounter(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_idn_assigner
+    ADD CONSTRAINT family_history_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_idn_assigner
+    ADD CONSTRAINT family_history_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_idn
+    ADD CONSTRAINT family_history_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_idn_period
+    ADD CONSTRAINT family_history_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_idn_period
+    ADD CONSTRAINT family_history_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_idn
+    ADD CONSTRAINT family_history_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_born_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_born_period
+    ADD CONSTRAINT family_history_relation_born_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_born_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_born_period
+    ADD CONSTRAINT family_history_relation_born_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_onset_range__resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_onset_range_high
+    ADD CONSTRAINT family_history_relation_condition_onset_range__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_onset_range_hi_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_onset_range_high
+    ADD CONSTRAINT family_history_relation_condition_onset_range_hi_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_onset_range(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_onset_range_lo_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_onset_range_low
+    ADD CONSTRAINT family_history_relation_condition_onset_range_lo_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_onset_range(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_onset_range_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_onset_range
+    ADD CONSTRAINT family_history_relation_condition_onset_range_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_onset_range_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_onset_range
+    ADD CONSTRAINT family_history_relation_condition_onset_range_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_onset_range_resource_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_onset_range_low
+    ADD CONSTRAINT family_history_relation_condition_onset_range_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_outcome_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_outcome_cd
+    ADD CONSTRAINT family_history_relation_condition_outcome_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_outcome(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_outcome_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_outcome_cd
+    ADD CONSTRAINT family_history_relation_condition_outcome_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_outcome_cd_v_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_outcome_cd_vs
+    ADD CONSTRAINT family_history_relation_condition_outcome_cd_v_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_outcome_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_outcome_cd_vs
+    ADD CONSTRAINT family_history_relation_condition_outcome_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_outcome_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_outcome_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_outcome
+    ADD CONSTRAINT family_history_relation_condition_outcome_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_outcome_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_outcome
+    ADD CONSTRAINT family_history_relation_condition_outcome_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition
+    ADD CONSTRAINT family_history_relation_condition_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition
+    ADD CONSTRAINT family_history_relation_condition_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_type_cd
+    ADD CONSTRAINT family_history_relation_condition_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_type_cd
+    ADD CONSTRAINT family_history_relation_condition_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_type_cd_vs
+    ADD CONSTRAINT family_history_relation_condition_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_type_cd_vs
+    ADD CONSTRAINT family_history_relation_condition_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_type
+    ADD CONSTRAINT family_history_relation_condition_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_condition(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_condition_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_condition_type
+    ADD CONSTRAINT family_history_relation_condition_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_deceased_range_high_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_deceased_range_high
+    ADD CONSTRAINT family_history_relation_deceased_range_high_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_deceased_range(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_deceased_range_high_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_deceased_range_high
+    ADD CONSTRAINT family_history_relation_deceased_range_high_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_deceased_range_low_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_deceased_range_low
+    ADD CONSTRAINT family_history_relation_deceased_range_low_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_deceased_range(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_deceased_range_low_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_deceased_range_low
+    ADD CONSTRAINT family_history_relation_deceased_range_low_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_deceased_range_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_deceased_range
+    ADD CONSTRAINT family_history_relation_deceased_range_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_deceased_range_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_deceased_range
+    ADD CONSTRAINT family_history_relation_deceased_range_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation
+    ADD CONSTRAINT family_history_relation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_relationship_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_relationship_cd
+    ADD CONSTRAINT family_history_relation_relationship_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_relationship(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_relationship_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_relationship_cd
+    ADD CONSTRAINT family_history_relation_relationship_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_relationship_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_relationship_cd_vs
+    ADD CONSTRAINT family_history_relation_relationship_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation_relationship_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_relationship_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_relationship_cd_vs
+    ADD CONSTRAINT family_history_relation_relationship_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_relationship_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_relationship
+    ADD CONSTRAINT family_history_relation_relationship_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history_relation(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_relationship_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation_relationship
+    ADD CONSTRAINT family_history_relation_relationship_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_relation_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_relation
+    ADD CONSTRAINT family_history_relation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_subject
+    ADD CONSTRAINT family_history_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_subject
+    ADD CONSTRAINT family_history_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_text
+    ADD CONSTRAINT family_history_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: family_history_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY family_history_text
+    ADD CONSTRAINT family_history_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES family_history(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_code_cd
+    ADD CONSTRAINT group_characteristic_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_code_cd
+    ADD CONSTRAINT group_characteristic_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_code_cd_vs
+    ADD CONSTRAINT group_characteristic_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_code_cd_vs
+    ADD CONSTRAINT group_characteristic_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_code
+    ADD CONSTRAINT group_characteristic_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_code
+    ADD CONSTRAINT group_characteristic_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic
+    ADD CONSTRAINT group_characteristic_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic
+    ADD CONSTRAINT group_characteristic_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_value_codeable_concept_c_resource_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd_vs
+    ADD CONSTRAINT group_characteristic_value_codeable_concept_c_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_value_codeable_concept_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd
+    ADD CONSTRAINT group_characteristic_value_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_value_codeable_concept(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_value_codeable_concept_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd
+    ADD CONSTRAINT group_characteristic_value_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_value_codeable_concept_cd_v_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_value_codeable_concept_cd_vs
+    ADD CONSTRAINT group_characteristic_value_codeable_concept_cd_v_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_value_codeable_concept_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_value_codeable_concept_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_value_codeable_concept
+    ADD CONSTRAINT group_characteristic_value_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_value_codeable_concept_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_value_codeable_concept
+    ADD CONSTRAINT group_characteristic_value_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_value_quantity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_value_quantity
+    ADD CONSTRAINT group_characteristic_value_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_value_quantity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_value_quantity
+    ADD CONSTRAINT group_characteristic_value_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_value_range_high_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_value_range_high
+    ADD CONSTRAINT group_characteristic_value_range_high_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_value_range(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_value_range_high_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_value_range_high
+    ADD CONSTRAINT group_characteristic_value_range_high_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_value_range_low_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_value_range_low
+    ADD CONSTRAINT group_characteristic_value_range_low_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic_value_range(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_value_range_low_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_value_range_low
+    ADD CONSTRAINT group_characteristic_value_range_low_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_value_range_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_value_range
+    ADD CONSTRAINT group_characteristic_value_range_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_characteristic(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_characteristic_value_range_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_characteristic_value_range
+    ADD CONSTRAINT group_characteristic_value_range_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_code_cd
+    ADD CONSTRAINT group_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_code_cd
+    ADD CONSTRAINT group_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_code_cd_vs
+    ADD CONSTRAINT group_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_code_cd_vs
+    ADD CONSTRAINT group_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_code
+    ADD CONSTRAINT group_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_code
+    ADD CONSTRAINT group_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_idn_assigner
+    ADD CONSTRAINT group_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_idn_assigner
+    ADD CONSTRAINT group_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_idn
+    ADD CONSTRAINT group_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_idn_period
+    ADD CONSTRAINT group_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES group_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_idn_period
+    ADD CONSTRAINT group_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_idn
+    ADD CONSTRAINT group_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_member_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_member
+    ADD CONSTRAINT group_member_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_member_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_member
+    ADD CONSTRAINT group_member_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_text
+    ADD CONSTRAINT group_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: group_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY group_text
+    ADD CONSTRAINT group_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "group"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_accession_no_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_accession_no_assigner
+    ADD CONSTRAINT imaging_study_accession_no_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_accession_no(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_accession_no_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_accession_no_assigner
+    ADD CONSTRAINT imaging_study_accession_no_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_accession_no_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_accession_no
+    ADD CONSTRAINT imaging_study_accession_no_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_accession_no_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_accession_no_period
+    ADD CONSTRAINT imaging_study_accession_no_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_accession_no(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_accession_no_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_accession_no_period
+    ADD CONSTRAINT imaging_study_accession_no_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_accession_no_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_accession_no
+    ADD CONSTRAINT imaging_study_accession_no_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_idn_assigner
+    ADD CONSTRAINT imaging_study_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_idn_assigner
+    ADD CONSTRAINT imaging_study_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_idn
+    ADD CONSTRAINT imaging_study_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_idn_period
+    ADD CONSTRAINT imaging_study_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_idn_period
+    ADD CONSTRAINT imaging_study_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_idn
+    ADD CONSTRAINT imaging_study_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_interpreter_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_interpreter
+    ADD CONSTRAINT imaging_study_interpreter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_interpreter_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_interpreter
+    ADD CONSTRAINT imaging_study_interpreter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_order_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_order
+    ADD CONSTRAINT imaging_study_order_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_order_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_order
+    ADD CONSTRAINT imaging_study_order_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_procedure_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_procedure
+    ADD CONSTRAINT imaging_study_procedure_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_procedure_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_procedure
+    ADD CONSTRAINT imaging_study_procedure_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_procedure_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_procedure_vs
+    ADD CONSTRAINT imaging_study_procedure_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_procedure_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_procedure_vs
+    ADD CONSTRAINT imaging_study_procedure_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_referrer_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_referrer
+    ADD CONSTRAINT imaging_study_referrer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_referrer_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_referrer
+    ADD CONSTRAINT imaging_study_referrer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_series_body_site_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_series_body_site
+    ADD CONSTRAINT imaging_study_series_body_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_series(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_series_body_site_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_series_body_site
+    ADD CONSTRAINT imaging_study_series_body_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_series_body_site_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_series_body_site_vs
+    ADD CONSTRAINT imaging_study_series_body_site_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_series_body_site(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_series_body_site_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_series_body_site_vs
+    ADD CONSTRAINT imaging_study_series_body_site_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_series_instance_attachment_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_series_instance_attachment
+    ADD CONSTRAINT imaging_study_series_instance_attachment_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_series_instance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_series_instance_attachment_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_series_instance_attachment
+    ADD CONSTRAINT imaging_study_series_instance_attachment_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_series_instance_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_series_instance
+    ADD CONSTRAINT imaging_study_series_instance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study_series(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_series_instance_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_series_instance
+    ADD CONSTRAINT imaging_study_series_instance_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_series_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_series
+    ADD CONSTRAINT imaging_study_series_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_series_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_series
+    ADD CONSTRAINT imaging_study_series_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_subject
+    ADD CONSTRAINT imaging_study_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_subject
+    ADD CONSTRAINT imaging_study_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_text
+    ADD CONSTRAINT imaging_study_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imaging_study_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imaging_study_text
+    ADD CONSTRAINT imaging_study_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imaging_study(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_dose_quantity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_dose_quantity
+    ADD CONSTRAINT imm_dose_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_dose_quantity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_dose_quantity
+    ADD CONSTRAINT imm_dose_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_explanation_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_explanation
+    ADD CONSTRAINT imm_explanation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_explanation_reason_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_explanation_reason_cd
+    ADD CONSTRAINT imm_explanation_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation_reason(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_explanation_reason_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_explanation_reason_cd
+    ADD CONSTRAINT imm_explanation_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_explanation_reason_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_explanation_reason_cd_vs
+    ADD CONSTRAINT imm_explanation_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation_reason_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_explanation_reason_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_explanation_reason_cd_vs
+    ADD CONSTRAINT imm_explanation_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_explanation_reason_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_explanation_reason
+    ADD CONSTRAINT imm_explanation_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_explanation_reason_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_explanation_reason
+    ADD CONSTRAINT imm_explanation_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_explanation_refusal_reason_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_explanation_refusal_reason_cd
+    ADD CONSTRAINT imm_explanation_refusal_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation_refusal_reason(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_explanation_refusal_reason_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_explanation_refusal_reason_cd
+    ADD CONSTRAINT imm_explanation_refusal_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_explanation_refusal_reason_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_explanation_refusal_reason_cd_vs
+    ADD CONSTRAINT imm_explanation_refusal_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation_refusal_reason_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_explanation_refusal_reason_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_explanation_refusal_reason_cd_vs
+    ADD CONSTRAINT imm_explanation_refusal_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_explanation_refusal_reason_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_explanation_refusal_reason
+    ADD CONSTRAINT imm_explanation_refusal_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_explanation(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_explanation_refusal_reason_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_explanation_refusal_reason
+    ADD CONSTRAINT imm_explanation_refusal_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_explanation_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_explanation
+    ADD CONSTRAINT imm_explanation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_idn_assigner
+    ADD CONSTRAINT imm_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_idn_assigner
+    ADD CONSTRAINT imm_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_idn
+    ADD CONSTRAINT imm_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_idn_period
+    ADD CONSTRAINT imm_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_idn_period
+    ADD CONSTRAINT imm_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_idn
+    ADD CONSTRAINT imm_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_loc_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_loc
+    ADD CONSTRAINT imm_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_loc_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_loc
+    ADD CONSTRAINT imm_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_manufacturer_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_manufacturer
+    ADD CONSTRAINT imm_manufacturer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_manufacturer_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_manufacturer
+    ADD CONSTRAINT imm_manufacturer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_performer_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_performer
+    ADD CONSTRAINT imm_performer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_performer_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_performer
+    ADD CONSTRAINT imm_performer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_reaction_detail_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_reaction_detail
+    ADD CONSTRAINT imm_reaction_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_reaction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_reaction_detail_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_reaction_detail
+    ADD CONSTRAINT imm_reaction_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_reaction_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_reaction
+    ADD CONSTRAINT imm_reaction_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_reaction_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_reaction
+    ADD CONSTRAINT imm_reaction_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_idn_assigner
+    ADD CONSTRAINT imm_rec_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_idn_assigner
+    ADD CONSTRAINT imm_rec_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_idn
+    ADD CONSTRAINT imm_rec_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_idn_period
+    ADD CONSTRAINT imm_rec_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_idn_period
+    ADD CONSTRAINT imm_rec_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_idn
+    ADD CONSTRAINT imm_rec_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_date_criterion_code_cd__resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd_vs
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_cd__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_date_criterion_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_date_criterion_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_date_criterion_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_date_criterion_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code_cd_vs
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_date_criterion_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_date_criterion_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_date_criterion(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_date_criterion_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_date_criterion_code
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_date_criterion_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_date_criterion
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_date_criterion_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_date_criterion
+    ADD CONSTRAINT imm_rec_recommendation_date_criterion_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_forecast_status_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd
+    ADD CONSTRAINT imm_rec_recommendation_forecast_status_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_forecast_status(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_forecast_status_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd
+    ADD CONSTRAINT imm_rec_recommendation_forecast_status_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_forecast_status_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd_vs
+    ADD CONSTRAINT imm_rec_recommendation_forecast_status_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_forecast_status_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_forecast_status_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_forecast_status_cd_vs
+    ADD CONSTRAINT imm_rec_recommendation_forecast_status_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_forecast_status_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_forecast_status
+    ADD CONSTRAINT imm_rec_recommendation_forecast_status_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_forecast_status_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_forecast_status
+    ADD CONSTRAINT imm_rec_recommendation_forecast_status_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation
+    ADD CONSTRAINT imm_rec_recommendation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_protocol_authority_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_protocol_authority
+    ADD CONSTRAINT imm_rec_recommendation_protocol_authority_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_protocol(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_protocol_authority_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_protocol_authority
+    ADD CONSTRAINT imm_rec_recommendation_protocol_authority_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_protocol_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_protocol
+    ADD CONSTRAINT imm_rec_recommendation_protocol_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_protocol_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_protocol
+    ADD CONSTRAINT imm_rec_recommendation_protocol_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation
+    ADD CONSTRAINT imm_rec_recommendation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_supporting_immunization_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_supporting_immunization
+    ADD CONSTRAINT imm_rec_recommendation_supporting_immunization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_supporting_immunization_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_supporting_immunization
+    ADD CONSTRAINT imm_rec_recommendation_supporting_immunization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_supporting_patient_info_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_supporting_patient_information
+    ADD CONSTRAINT imm_rec_recommendation_supporting_patient_info_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_supporting_patient_inform_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_supporting_patient_information
+    ADD CONSTRAINT imm_rec_recommendation_supporting_patient_inform_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_vaccine_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd
+    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_vaccine_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_vaccine_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd
+    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_vaccine_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd_vs
+    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation_vaccine_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_vaccine_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_vaccine_type_cd_vs
+    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_vaccine_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_vaccine_type
+    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec_recommendation(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_recommendation_vaccine_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_recommendation_vaccine_type
+    ADD CONSTRAINT imm_rec_recommendation_vaccine_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_subject
+    ADD CONSTRAINT imm_rec_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_subject
+    ADD CONSTRAINT imm_rec_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_text
+    ADD CONSTRAINT imm_rec_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_rec_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_rec_text
+    ADD CONSTRAINT imm_rec_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm_rec(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_requester_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_requester
+    ADD CONSTRAINT imm_requester_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_requester_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_requester
+    ADD CONSTRAINT imm_requester_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_route_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_route_cd
+    ADD CONSTRAINT imm_route_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_route(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_route_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_route_cd
+    ADD CONSTRAINT imm_route_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_route_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_route_cd_vs
+    ADD CONSTRAINT imm_route_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_route_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_route_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_route_cd_vs
+    ADD CONSTRAINT imm_route_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_route_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_route
+    ADD CONSTRAINT imm_route_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_route_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_route
+    ADD CONSTRAINT imm_route_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_site_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_site_cd
+    ADD CONSTRAINT imm_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_site(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_site_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_site_cd
+    ADD CONSTRAINT imm_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_site_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_site_cd_vs
+    ADD CONSTRAINT imm_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_site_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_site_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_site_cd_vs
+    ADD CONSTRAINT imm_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_site_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_site
+    ADD CONSTRAINT imm_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_site_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_site
+    ADD CONSTRAINT imm_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_subject
+    ADD CONSTRAINT imm_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_subject
+    ADD CONSTRAINT imm_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_text
+    ADD CONSTRAINT imm_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_text
+    ADD CONSTRAINT imm_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_authority_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_authority
+    ADD CONSTRAINT imm_vaccination_protocol_authority_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_authority_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_authority
+    ADD CONSTRAINT imm_vaccination_protocol_authority_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_status_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_status(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_status_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_status_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd_vs
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_status_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_status_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_status_cd_vs
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_status_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_status
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_status_reason_c_resource_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd_vs
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_c_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_status_reason_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_status_reason(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_status_reason_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_status_reason_cd_v_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason_cd_vs
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_cd_v_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_status_reason_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_status_reason_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_status_reason_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_status_reason
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_status_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_status
+    ADD CONSTRAINT imm_vaccination_protocol_dose_status_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_target_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd
+    ADD CONSTRAINT imm_vaccination_protocol_dose_target_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_target(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_target_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd
+    ADD CONSTRAINT imm_vaccination_protocol_dose_target_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_target_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd_vs
+    ADD CONSTRAINT imm_vaccination_protocol_dose_target_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol_dose_target_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_target_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_target_cd_vs
+    ADD CONSTRAINT imm_vaccination_protocol_dose_target_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_target_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_target
+    ADD CONSTRAINT imm_vaccination_protocol_dose_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccination_protocol(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_dose_target_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol_dose_target
+    ADD CONSTRAINT imm_vaccination_protocol_dose_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol
+    ADD CONSTRAINT imm_vaccination_protocol_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccination_protocol_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccination_protocol
+    ADD CONSTRAINT imm_vaccination_protocol_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccine_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccine_type_cd
+    ADD CONSTRAINT imm_vaccine_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccine_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccine_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccine_type_cd
+    ADD CONSTRAINT imm_vaccine_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccine_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccine_type_cd_vs
+    ADD CONSTRAINT imm_vaccine_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm_vaccine_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccine_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccine_type_cd_vs
+    ADD CONSTRAINT imm_vaccine_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccine_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccine_type
+    ADD CONSTRAINT imm_vaccine_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: imm_vaccine_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY imm_vaccine_type
+    ADD CONSTRAINT imm_vaccine_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES imm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_code_cd
+    ADD CONSTRAINT list_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_code_cd
+    ADD CONSTRAINT list_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_code_cd_vs
+    ADD CONSTRAINT list_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_code_cd_vs
+    ADD CONSTRAINT list_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_code
+    ADD CONSTRAINT list_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_code
+    ADD CONSTRAINT list_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_empty_reason_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_empty_reason_cd
+    ADD CONSTRAINT list_empty_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_empty_reason(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_empty_reason_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_empty_reason_cd
+    ADD CONSTRAINT list_empty_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_empty_reason_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_empty_reason_cd_vs
+    ADD CONSTRAINT list_empty_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_empty_reason_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_empty_reason_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_empty_reason_cd_vs
+    ADD CONSTRAINT list_empty_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_empty_reason_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_empty_reason
+    ADD CONSTRAINT list_empty_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_empty_reason_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_empty_reason
+    ADD CONSTRAINT list_empty_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_entry_flag_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_entry_flag_cd
+    ADD CONSTRAINT list_entry_flag_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_entry_flag(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_entry_flag_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_entry_flag_cd
+    ADD CONSTRAINT list_entry_flag_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_entry_flag_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_entry_flag_cd_vs
+    ADD CONSTRAINT list_entry_flag_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_entry_flag_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_entry_flag_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_entry_flag_cd_vs
+    ADD CONSTRAINT list_entry_flag_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_entry_flag_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_entry_flag
+    ADD CONSTRAINT list_entry_flag_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_entry(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_entry_flag_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_entry_flag
+    ADD CONSTRAINT list_entry_flag_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_entry_item_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_entry_item
+    ADD CONSTRAINT list_entry_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_entry(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_entry_item_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_entry_item
+    ADD CONSTRAINT list_entry_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_entry_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_entry
+    ADD CONSTRAINT list_entry_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_entry_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_entry
+    ADD CONSTRAINT list_entry_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_idn_assigner
+    ADD CONSTRAINT list_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_idn_assigner
+    ADD CONSTRAINT list_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_idn
+    ADD CONSTRAINT list_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_idn_period
+    ADD CONSTRAINT list_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_idn_period
+    ADD CONSTRAINT list_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_idn
+    ADD CONSTRAINT list_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_source_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_source
+    ADD CONSTRAINT list_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_source_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_source
+    ADD CONSTRAINT list_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_subject
+    ADD CONSTRAINT list_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_subject
+    ADD CONSTRAINT list_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_text
+    ADD CONSTRAINT list_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: list_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY list_text
+    ADD CONSTRAINT list_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES list(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_address_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_address
+    ADD CONSTRAINT loc_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_address_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_address_period
+    ADD CONSTRAINT loc_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_address(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_address_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_address_period
+    ADD CONSTRAINT loc_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_address_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_address
+    ADD CONSTRAINT loc_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_idn_assigner
+    ADD CONSTRAINT loc_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_idn_assigner
+    ADD CONSTRAINT loc_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_idn
+    ADD CONSTRAINT loc_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_idn_period
+    ADD CONSTRAINT loc_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_idn_period
+    ADD CONSTRAINT loc_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_idn
+    ADD CONSTRAINT loc_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_managing_organization_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_managing_organization
+    ADD CONSTRAINT loc_managing_organization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_managing_organization_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_managing_organization
+    ADD CONSTRAINT loc_managing_organization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_part_of_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_part_of
+    ADD CONSTRAINT loc_part_of_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_part_of_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_part_of
+    ADD CONSTRAINT loc_part_of_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_physical_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_physical_type_cd
+    ADD CONSTRAINT loc_physical_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_physical_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_physical_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_physical_type_cd
+    ADD CONSTRAINT loc_physical_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_physical_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_physical_type_cd_vs
+    ADD CONSTRAINT loc_physical_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_physical_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_physical_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_physical_type_cd_vs
+    ADD CONSTRAINT loc_physical_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_physical_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_physical_type
+    ADD CONSTRAINT loc_physical_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_physical_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_physical_type
+    ADD CONSTRAINT loc_physical_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_position_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_position
+    ADD CONSTRAINT loc_position_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_position_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_position
+    ADD CONSTRAINT loc_position_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_telecom_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_telecom
+    ADD CONSTRAINT loc_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_telecom_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_telecom_period
+    ADD CONSTRAINT loc_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_telecom(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_telecom_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_telecom_period
+    ADD CONSTRAINT loc_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_telecom_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_telecom
+    ADD CONSTRAINT loc_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_text
+    ADD CONSTRAINT loc_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_text
+    ADD CONSTRAINT loc_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_type_cd
+    ADD CONSTRAINT loc_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_type_cd
+    ADD CONSTRAINT loc_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_type_cd_vs
+    ADD CONSTRAINT loc_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_type_cd_vs
+    ADD CONSTRAINT loc_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_type
+    ADD CONSTRAINT loc_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: loc_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY loc_type
+    ADD CONSTRAINT loc_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES loc(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_device_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_device
+    ADD CONSTRAINT med_adm_device_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_device_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_device
+    ADD CONSTRAINT med_adm_device_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_as_needed_codeable_concept_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd
+    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_as_needed_codeable_concept(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_as_needed_codeable_concept_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd
+    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_as_needed_codeable_concept_cd_v_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd_vs
+    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_cd_v_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_as_needed_codeable_concept_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept_cd_vs
+    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_as_needed_codeable_concept_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_as_needed_codeable_concept_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept
+    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_as_needed_codeable_concept_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_as_needed_codeable_concept
+    ADD CONSTRAINT med_adm_dosage_as_needed_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_max_dose_per_period_denominator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_denominator
+    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_max_dose_per_period(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_max_dose_per_period_denominator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_denominator
+    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_max_dose_per_period_numerator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_numerator
+    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_max_dose_per_period(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_max_dose_per_period_numerator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_max_dose_per_period_numerator
+    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_max_dose_per_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_max_dose_per_period
+    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_max_dose_per_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_max_dose_per_period
+    ADD CONSTRAINT med_adm_dosage_max_dose_per_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_method_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_method_cd
+    ADD CONSTRAINT med_adm_dosage_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_method(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_method_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_method_cd
+    ADD CONSTRAINT med_adm_dosage_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_method_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_method_cd_vs
+    ADD CONSTRAINT med_adm_dosage_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_method_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_method_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_method_cd_vs
+    ADD CONSTRAINT med_adm_dosage_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_method_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_method
+    ADD CONSTRAINT med_adm_dosage_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_method_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_method
+    ADD CONSTRAINT med_adm_dosage_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage
+    ADD CONSTRAINT med_adm_dosage_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_quantity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_quantity
+    ADD CONSTRAINT med_adm_dosage_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_quantity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_quantity
+    ADD CONSTRAINT med_adm_dosage_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_rate_denominator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_rate_denominator
+    ADD CONSTRAINT med_adm_dosage_rate_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_rate(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_rate_denominator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_rate_denominator
+    ADD CONSTRAINT med_adm_dosage_rate_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_rate_numerator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_rate_numerator
+    ADD CONSTRAINT med_adm_dosage_rate_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_rate(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_rate_numerator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_rate_numerator
+    ADD CONSTRAINT med_adm_dosage_rate_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_rate_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_rate
+    ADD CONSTRAINT med_adm_dosage_rate_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_rate_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_rate
+    ADD CONSTRAINT med_adm_dosage_rate_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage
+    ADD CONSTRAINT med_adm_dosage_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_route_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_route_cd
+    ADD CONSTRAINT med_adm_dosage_route_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_route(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_route_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_route_cd
+    ADD CONSTRAINT med_adm_dosage_route_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_route_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_route_cd_vs
+    ADD CONSTRAINT med_adm_dosage_route_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_route_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_route_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_route_cd_vs
+    ADD CONSTRAINT med_adm_dosage_route_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_route_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_route
+    ADD CONSTRAINT med_adm_dosage_route_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_route_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_route
+    ADD CONSTRAINT med_adm_dosage_route_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_site_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_site_cd
+    ADD CONSTRAINT med_adm_dosage_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_site(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_site_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_site_cd
+    ADD CONSTRAINT med_adm_dosage_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_site_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_site_cd_vs
+    ADD CONSTRAINT med_adm_dosage_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage_site_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_site_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_site_cd_vs
+    ADD CONSTRAINT med_adm_dosage_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_site_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_site
+    ADD CONSTRAINT med_adm_dosage_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_site_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_site
+    ADD CONSTRAINT med_adm_dosage_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_timing_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_timing_period
+    ADD CONSTRAINT med_adm_dosage_timing_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_dosage_timing_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_dosage_timing_period
+    ADD CONSTRAINT med_adm_dosage_timing_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_encounter_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_encounter
+    ADD CONSTRAINT med_adm_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_encounter_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_encounter
+    ADD CONSTRAINT med_adm_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_idn_assigner
+    ADD CONSTRAINT med_adm_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_idn_assigner
+    ADD CONSTRAINT med_adm_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_idn
+    ADD CONSTRAINT med_adm_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_idn_period
+    ADD CONSTRAINT med_adm_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_idn_period
+    ADD CONSTRAINT med_adm_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_idn
+    ADD CONSTRAINT med_adm_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_med_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_med
+    ADD CONSTRAINT med_adm_med_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_med_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_med
+    ADD CONSTRAINT med_adm_med_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_patient_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_patient
+    ADD CONSTRAINT med_adm_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_patient_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_patient
+    ADD CONSTRAINT med_adm_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_practitioner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_practitioner
+    ADD CONSTRAINT med_adm_practitioner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_practitioner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_practitioner
+    ADD CONSTRAINT med_adm_practitioner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_prs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_prs
+    ADD CONSTRAINT med_adm_prs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_prs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_prs
+    ADD CONSTRAINT med_adm_prs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_reason_not_given_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_reason_not_given_cd
+    ADD CONSTRAINT med_adm_reason_not_given_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_reason_not_given(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_reason_not_given_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_reason_not_given_cd
+    ADD CONSTRAINT med_adm_reason_not_given_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_reason_not_given_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_reason_not_given_cd_vs
+    ADD CONSTRAINT med_adm_reason_not_given_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm_reason_not_given_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_reason_not_given_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_reason_not_given_cd_vs
+    ADD CONSTRAINT med_adm_reason_not_given_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_reason_not_given_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_reason_not_given
+    ADD CONSTRAINT med_adm_reason_not_given_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_reason_not_given_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_reason_not_given
+    ADD CONSTRAINT med_adm_reason_not_given_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_text
+    ADD CONSTRAINT med_adm_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_text
+    ADD CONSTRAINT med_adm_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_when_given_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_when_given
+    ADD CONSTRAINT med_adm_when_given_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_adm_when_given_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_adm_when_given
+    ADD CONSTRAINT med_adm_when_given_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_adm(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_code_cd
+    ADD CONSTRAINT med_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_code_cd
+    ADD CONSTRAINT med_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_code_cd_vs
+    ADD CONSTRAINT med_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_code_cd_vs
+    ADD CONSTRAINT med_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_code
+    ADD CONSTRAINT med_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_code
+    ADD CONSTRAINT med_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_authorizing_prescription_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_authorizing_prescription
+    ADD CONSTRAINT med_disp_authorizing_prescription_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_authorizing_prescription_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_authorizing_prescription
+    ADD CONSTRAINT med_disp_authorizing_prescription_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_destination_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_destination
+    ADD CONSTRAINT med_disp_dispense_destination_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_destination_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_destination
+    ADD CONSTRAINT med_disp_dispense_destination_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_additional_instructi_resource_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd
+    ADD CONSTRAINT med_disp_dispense_dosage_additional_instructi_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_additional_instructi_resource_id_fkey2; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd_vs
+    ADD CONSTRAINT med_disp_dispense_dosage_additional_instructi_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_additional_instructio_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions
+    ADD CONSTRAINT med_disp_dispense_dosage_additional_instructio_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_additional_instruction_parent_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd
+    ADD CONSTRAINT med_disp_dispense_dosage_additional_instruction_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_additional_instructions(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_additional_instruction_parent_id_fkey2; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions_cd_vs
+    ADD CONSTRAINT med_disp_dispense_dosage_additional_instruction_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_additional_instructions_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_additional_instructions_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_additional_instructions
+    ADD CONSTRAINT med_disp_dispense_dosage_additional_instructions_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_as_needed_codeable_c_resource_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd
+    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_c_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_as_needed_codeable_c_resource_id_fkey2; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd_vs
+    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_c_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_as_needed_codeable_co_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept
+    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_co_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_as_needed_codeable_con_parent_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd
+    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_con_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_as_needed_codeable_concept(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_as_needed_codeable_con_parent_id_fkey2; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept_cd_vs
+    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_con_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_as_needed_codeable_concept_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_as_needed_codeable_conc_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_as_needed_codeable_concept
+    ADD CONSTRAINT med_disp_dispense_dosage_as_needed_codeable_conc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_max_dose_per_period_d_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_denominator
+    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_d_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_max_dose_per_period_den_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_denominator
+    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_den_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_max_dose_per_period(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_max_dose_per_period_n_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_numerator
+    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_n_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_max_dose_per_period_num_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period_numerator
+    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_num_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_max_dose_per_period(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_max_dose_per_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period
+    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_max_dose_per_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_max_dose_per_period
+    ADD CONSTRAINT med_disp_dispense_dosage_max_dose_per_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_method_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_method_cd
+    ADD CONSTRAINT med_disp_dispense_dosage_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_method(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_method_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_method_cd
+    ADD CONSTRAINT med_disp_dispense_dosage_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_method_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_method_cd_vs
+    ADD CONSTRAINT med_disp_dispense_dosage_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_method_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_method_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_method_cd_vs
+    ADD CONSTRAINT med_disp_dispense_dosage_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_method_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_method
+    ADD CONSTRAINT med_disp_dispense_dosage_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_method_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_method
+    ADD CONSTRAINT med_disp_dispense_dosage_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage
+    ADD CONSTRAINT med_disp_dispense_dosage_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_quantity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_quantity
+    ADD CONSTRAINT med_disp_dispense_dosage_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_quantity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_quantity
+    ADD CONSTRAINT med_disp_dispense_dosage_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_rate_denominator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_rate_denominator
+    ADD CONSTRAINT med_disp_dispense_dosage_rate_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_rate(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_rate_denominator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_rate_denominator
+    ADD CONSTRAINT med_disp_dispense_dosage_rate_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_rate_numerator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_rate_numerator
+    ADD CONSTRAINT med_disp_dispense_dosage_rate_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_rate(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_rate_numerator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_rate_numerator
+    ADD CONSTRAINT med_disp_dispense_dosage_rate_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_rate_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_rate
+    ADD CONSTRAINT med_disp_dispense_dosage_rate_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_rate_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_rate
+    ADD CONSTRAINT med_disp_dispense_dosage_rate_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage
+    ADD CONSTRAINT med_disp_dispense_dosage_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_route_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_route_cd
+    ADD CONSTRAINT med_disp_dispense_dosage_route_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_route(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_route_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_route_cd
+    ADD CONSTRAINT med_disp_dispense_dosage_route_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_route_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_route_cd_vs
+    ADD CONSTRAINT med_disp_dispense_dosage_route_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_route_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_route_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_route_cd_vs
+    ADD CONSTRAINT med_disp_dispense_dosage_route_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_route_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_route
+    ADD CONSTRAINT med_disp_dispense_dosage_route_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_route_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_route
+    ADD CONSTRAINT med_disp_dispense_dosage_route_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_site_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_site_cd
+    ADD CONSTRAINT med_disp_dispense_dosage_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_site(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_site_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_site_cd
+    ADD CONSTRAINT med_disp_dispense_dosage_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_site_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_site_cd_vs
+    ADD CONSTRAINT med_disp_dispense_dosage_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_site_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_site_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_site_cd_vs
+    ADD CONSTRAINT med_disp_dispense_dosage_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_site_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_site
+    ADD CONSTRAINT med_disp_dispense_dosage_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_site_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_site
+    ADD CONSTRAINT med_disp_dispense_dosage_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_timing_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_timing_period
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_timing_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_timing_period
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_timing_schedule_event_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_event
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_timing_schedule(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_timing_schedule_event_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_event
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_timing_schedule_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_timing_schedule_repea_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_repeat
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_repea_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_timing_schedule_repeat_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule_repeat
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_repeat_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_dosage_timing_schedule(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_dosage_timing_schedule_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_dosage_timing_schedule
+    ADD CONSTRAINT med_disp_dispense_dosage_timing_schedule_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_idn_assigner
+    ADD CONSTRAINT med_disp_dispense_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_idn_assigner
+    ADD CONSTRAINT med_disp_dispense_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_idn
+    ADD CONSTRAINT med_disp_dispense_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_idn_period
+    ADD CONSTRAINT med_disp_dispense_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_idn_period
+    ADD CONSTRAINT med_disp_dispense_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_idn
+    ADD CONSTRAINT med_disp_dispense_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_med_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_med
+    ADD CONSTRAINT med_disp_dispense_med_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_med_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_med
+    ADD CONSTRAINT med_disp_dispense_med_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense
+    ADD CONSTRAINT med_disp_dispense_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_quantity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_quantity
+    ADD CONSTRAINT med_disp_dispense_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_quantity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_quantity
+    ADD CONSTRAINT med_disp_dispense_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_receiver_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_receiver
+    ADD CONSTRAINT med_disp_dispense_receiver_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_receiver_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_receiver
+    ADD CONSTRAINT med_disp_dispense_receiver_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense
+    ADD CONSTRAINT med_disp_dispense_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_type_cd
+    ADD CONSTRAINT med_disp_dispense_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_type_cd
+    ADD CONSTRAINT med_disp_dispense_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_type_cd_vs
+    ADD CONSTRAINT med_disp_dispense_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_type_cd_vs
+    ADD CONSTRAINT med_disp_dispense_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_type
+    ADD CONSTRAINT med_disp_dispense_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispense_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispense_type
+    ADD CONSTRAINT med_disp_dispense_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispenser_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispenser
+    ADD CONSTRAINT med_disp_dispenser_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_dispenser_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_dispenser
+    ADD CONSTRAINT med_disp_dispenser_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_idn_assigner
+    ADD CONSTRAINT med_disp_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_idn_assigner
+    ADD CONSTRAINT med_disp_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_idn
+    ADD CONSTRAINT med_disp_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_idn_period
+    ADD CONSTRAINT med_disp_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_idn_period
+    ADD CONSTRAINT med_disp_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_idn
+    ADD CONSTRAINT med_disp_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_patient_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_patient
+    ADD CONSTRAINT med_disp_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_patient_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_patient
+    ADD CONSTRAINT med_disp_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution
+    ADD CONSTRAINT med_disp_substitution_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_reason_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution_reason_cd
+    ADD CONSTRAINT med_disp_substitution_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution_reason(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_reason_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution_reason_cd
+    ADD CONSTRAINT med_disp_substitution_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_reason_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution_reason_cd_vs
+    ADD CONSTRAINT med_disp_substitution_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution_reason_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_reason_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution_reason_cd_vs
+    ADD CONSTRAINT med_disp_substitution_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_reason_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution_reason
+    ADD CONSTRAINT med_disp_substitution_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_reason_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution_reason
+    ADD CONSTRAINT med_disp_substitution_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution
+    ADD CONSTRAINT med_disp_substitution_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_responsible_party_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution_responsible_party
+    ADD CONSTRAINT med_disp_substitution_responsible_party_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_responsible_party_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution_responsible_party
+    ADD CONSTRAINT med_disp_substitution_responsible_party_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution_type_cd
+    ADD CONSTRAINT med_disp_substitution_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution_type_cd
+    ADD CONSTRAINT med_disp_substitution_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution_type_cd_vs
+    ADD CONSTRAINT med_disp_substitution_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution_type_cd_vs
+    ADD CONSTRAINT med_disp_substitution_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution_type
+    ADD CONSTRAINT med_disp_substitution_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp_substitution(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_substitution_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_substitution_type
+    ADD CONSTRAINT med_disp_substitution_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_text
+    ADD CONSTRAINT med_disp_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_disp_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_disp_text
+    ADD CONSTRAINT med_disp_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_disp(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_manufacturer_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_manufacturer
+    ADD CONSTRAINT med_manufacturer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_manufacturer_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_manufacturer
+    ADD CONSTRAINT med_manufacturer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_package_container_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_package_container_cd
+    ADD CONSTRAINT med_package_container_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package_container(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_package_container_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_package_container_cd
+    ADD CONSTRAINT med_package_container_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_package_container_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_package_container_cd_vs
+    ADD CONSTRAINT med_package_container_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package_container_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_package_container_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_package_container_cd_vs
+    ADD CONSTRAINT med_package_container_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_package_container_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_package_container
+    ADD CONSTRAINT med_package_container_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_package_container_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_package_container
+    ADD CONSTRAINT med_package_container_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_package_content_amount_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_package_content_amount
+    ADD CONSTRAINT med_package_content_amount_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package_content(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_package_content_amount_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_package_content_amount
+    ADD CONSTRAINT med_package_content_amount_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_package_content_item_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_package_content_item
+    ADD CONSTRAINT med_package_content_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package_content(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_package_content_item_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_package_content_item
+    ADD CONSTRAINT med_package_content_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_package_content_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_package_content
+    ADD CONSTRAINT med_package_content_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_package(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_package_content_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_package_content
+    ADD CONSTRAINT med_package_content_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_package_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_package
+    ADD CONSTRAINT med_package_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_package_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_package
+    ADD CONSTRAINT med_package_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_form_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_form_cd
+    ADD CONSTRAINT med_product_form_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_form(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_form_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_form_cd
+    ADD CONSTRAINT med_product_form_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_form_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_form_cd_vs
+    ADD CONSTRAINT med_product_form_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_form_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_form_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_form_cd_vs
+    ADD CONSTRAINT med_product_form_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_form_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_form
+    ADD CONSTRAINT med_product_form_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_form_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_form
+    ADD CONSTRAINT med_product_form_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_ingredient_amount_denominator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_ingredient_amount_denominator
+    ADD CONSTRAINT med_product_ingredient_amount_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_ingredient_amount(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_ingredient_amount_denominator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_ingredient_amount_denominator
+    ADD CONSTRAINT med_product_ingredient_amount_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_ingredient_amount_numerator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_ingredient_amount_numerator
+    ADD CONSTRAINT med_product_ingredient_amount_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_ingredient_amount(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_ingredient_amount_numerator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_ingredient_amount_numerator
+    ADD CONSTRAINT med_product_ingredient_amount_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_ingredient_amount_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_ingredient_amount
+    ADD CONSTRAINT med_product_ingredient_amount_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_ingredient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_ingredient_amount_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_ingredient_amount
+    ADD CONSTRAINT med_product_ingredient_amount_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_ingredient_item_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_ingredient_item
+    ADD CONSTRAINT med_product_ingredient_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product_ingredient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_ingredient_item_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_ingredient_item
+    ADD CONSTRAINT med_product_ingredient_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_ingredient_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_ingredient
+    ADD CONSTRAINT med_product_ingredient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_product(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_ingredient_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product_ingredient
+    ADD CONSTRAINT med_product_ingredient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product
+    ADD CONSTRAINT med_product_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_product_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_product
+    ADD CONSTRAINT med_product_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dispense_med_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dispense_med
+    ADD CONSTRAINT med_prs_dispense_med_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dispense_med_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dispense_med
+    ADD CONSTRAINT med_prs_dispense_med_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dispense_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dispense
+    ADD CONSTRAINT med_prs_dispense_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dispense_quantity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dispense_quantity
+    ADD CONSTRAINT med_prs_dispense_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dispense_quantity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dispense_quantity
+    ADD CONSTRAINT med_prs_dispense_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dispense_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dispense
+    ADD CONSTRAINT med_prs_dispense_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dispense_validity_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dispense_validity_period
+    ADD CONSTRAINT med_prs_dispense_validity_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dispense_validity_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dispense_validity_period
+    ADD CONSTRAINT med_prs_dispense_validity_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_additional_instruc_resource_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd
+    ADD CONSTRAINT med_prs_dosage_instruction_additional_instruc_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_additional_instruc_resource_id_fkey2; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd_vs
+    ADD CONSTRAINT med_prs_dosage_instruction_additional_instruc_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_additional_instruct_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions
+    ADD CONSTRAINT med_prs_dosage_instruction_additional_instruct_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_additional_instructi_parent_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd
+    ADD CONSTRAINT med_prs_dosage_instruction_additional_instructi_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_additional_instructions(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_additional_instructi_parent_id_fkey2; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions_cd_vs
+    ADD CONSTRAINT med_prs_dosage_instruction_additional_instructi_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_additional_instructions_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_additional_instructio_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_additional_instructions
+    ADD CONSTRAINT med_prs_dosage_instruction_additional_instructio_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_as_needed_codeable__resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept
+    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable__resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_as_needed_codeable_c_parent_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd
+    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable_c_parent_id_fkey1 FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_as_needed_codeable_concept(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_as_needed_codeable_c_parent_id_fkey2; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd_vs
+    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable_c_parent_id_fkey2 FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_as_needed_codeable_concept_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_as_needed_codeable_co_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept
+    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable_co_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_as_needed_codeable_resource_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd
+    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_as_needed_codeable_resource_id_fkey2; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_as_needed_codeable_concept_cd_vs
+    ADD CONSTRAINT med_prs_dosage_instruction_as_needed_codeable_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_dose_quantity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_dose_quantity
+    ADD CONSTRAINT med_prs_dosage_instruction_dose_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_dose_quantity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_dose_quantity
+    ADD CONSTRAINT med_prs_dosage_instruction_dose_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_max_dose_per_perio_resource_id_fkey1; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_denominator
+    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_perio_resource_id_fkey1 FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_max_dose_per_perio_resource_id_fkey2; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_numerator
+    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_perio_resource_id_fkey2 FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_max_dose_per_period_d_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_denominator
+    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_period_d_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_max_dose_per_period(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_max_dose_per_period_n_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period_numerator
+    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_period_n_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_max_dose_per_period(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_max_dose_per_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period
+    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_max_dose_per_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_max_dose_per_period
+    ADD CONSTRAINT med_prs_dosage_instruction_max_dose_per_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_method_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_method_cd
+    ADD CONSTRAINT med_prs_dosage_instruction_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_method(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_method_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_method_cd
+    ADD CONSTRAINT med_prs_dosage_instruction_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_method_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_method_cd_vs
+    ADD CONSTRAINT med_prs_dosage_instruction_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_method_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_method_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_method_cd_vs
+    ADD CONSTRAINT med_prs_dosage_instruction_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_method_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_method
+    ADD CONSTRAINT med_prs_dosage_instruction_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_method_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_method
+    ADD CONSTRAINT med_prs_dosage_instruction_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction
+    ADD CONSTRAINT med_prs_dosage_instruction_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_rate_denominator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_rate_denominator
+    ADD CONSTRAINT med_prs_dosage_instruction_rate_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_rate(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_rate_denominator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_rate_denominator
+    ADD CONSTRAINT med_prs_dosage_instruction_rate_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_rate_numerator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_rate_numerator
+    ADD CONSTRAINT med_prs_dosage_instruction_rate_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_rate(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_rate_numerator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_rate_numerator
+    ADD CONSTRAINT med_prs_dosage_instruction_rate_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_rate_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_rate
+    ADD CONSTRAINT med_prs_dosage_instruction_rate_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_rate_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_rate
+    ADD CONSTRAINT med_prs_dosage_instruction_rate_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction
+    ADD CONSTRAINT med_prs_dosage_instruction_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_route_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_route_cd
+    ADD CONSTRAINT med_prs_dosage_instruction_route_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_route(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_route_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_route_cd
+    ADD CONSTRAINT med_prs_dosage_instruction_route_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_route_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_route_cd_vs
+    ADD CONSTRAINT med_prs_dosage_instruction_route_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_route_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_route_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_route_cd_vs
+    ADD CONSTRAINT med_prs_dosage_instruction_route_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_route_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_route
+    ADD CONSTRAINT med_prs_dosage_instruction_route_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_route_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_route
+    ADD CONSTRAINT med_prs_dosage_instruction_route_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_site_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_site_cd
+    ADD CONSTRAINT med_prs_dosage_instruction_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_site(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_site_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_site_cd
+    ADD CONSTRAINT med_prs_dosage_instruction_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_site_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_site_cd_vs
+    ADD CONSTRAINT med_prs_dosage_instruction_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_site_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_site_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_site_cd_vs
+    ADD CONSTRAINT med_prs_dosage_instruction_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_site_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_site
+    ADD CONSTRAINT med_prs_dosage_instruction_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_site_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_site
+    ADD CONSTRAINT med_prs_dosage_instruction_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_timing_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_timing_period
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_timing_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_timing_period
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_timing_schedule_eve_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_event
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_eve_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_timing_schedule_event_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_event
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_timing_schedule(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_timing_schedule_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_timing_schedule_rep_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_repeat
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_rep_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_timing_schedule_repea_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule_repeat
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_repea_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_dosage_instruction_timing_schedule(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_dosage_instruction_timing_schedule_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_dosage_instruction_timing_schedule
+    ADD CONSTRAINT med_prs_dosage_instruction_timing_schedule_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_encounter_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_encounter
+    ADD CONSTRAINT med_prs_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_encounter_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_encounter
+    ADD CONSTRAINT med_prs_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_idn_assigner
+    ADD CONSTRAINT med_prs_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_idn_assigner
+    ADD CONSTRAINT med_prs_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_idn
+    ADD CONSTRAINT med_prs_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_idn_period
+    ADD CONSTRAINT med_prs_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_idn_period
+    ADD CONSTRAINT med_prs_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_idn
+    ADD CONSTRAINT med_prs_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_med_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_med
+    ADD CONSTRAINT med_prs_med_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_med_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_med
+    ADD CONSTRAINT med_prs_med_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_patient_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_patient
+    ADD CONSTRAINT med_prs_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_patient_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_patient
+    ADD CONSTRAINT med_prs_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_prescriber_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_prescriber
+    ADD CONSTRAINT med_prs_prescriber_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_prescriber_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_prescriber
+    ADD CONSTRAINT med_prs_prescriber_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_reason_codeable_concept_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_reason_codeable_concept_cd
+    ADD CONSTRAINT med_prs_reason_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_reason_codeable_concept(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_reason_codeable_concept_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_reason_codeable_concept_cd
+    ADD CONSTRAINT med_prs_reason_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_reason_codeable_concept_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_reason_codeable_concept_cd_vs
+    ADD CONSTRAINT med_prs_reason_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_reason_codeable_concept_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_reason_codeable_concept_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_reason_codeable_concept_cd_vs
+    ADD CONSTRAINT med_prs_reason_codeable_concept_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_reason_codeable_concept_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_reason_codeable_concept
+    ADD CONSTRAINT med_prs_reason_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_reason_codeable_concept_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_reason_codeable_concept
+    ADD CONSTRAINT med_prs_reason_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_reason_resource_reference_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_reason_resource_reference
+    ADD CONSTRAINT med_prs_reason_resource_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_reason_resource_reference_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_reason_resource_reference
+    ADD CONSTRAINT med_prs_reason_resource_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_substitution_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_substitution
+    ADD CONSTRAINT med_prs_substitution_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_substitution_reason_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_substitution_reason_cd
+    ADD CONSTRAINT med_prs_substitution_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution_reason(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_substitution_reason_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_substitution_reason_cd
+    ADD CONSTRAINT med_prs_substitution_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_substitution_reason_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_substitution_reason_cd_vs
+    ADD CONSTRAINT med_prs_substitution_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution_reason_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_substitution_reason_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_substitution_reason_cd_vs
+    ADD CONSTRAINT med_prs_substitution_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_substitution_reason_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_substitution_reason
+    ADD CONSTRAINT med_prs_substitution_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_substitution_reason_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_substitution_reason
+    ADD CONSTRAINT med_prs_substitution_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_substitution_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_substitution
+    ADD CONSTRAINT med_prs_substitution_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_substitution_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_substitution_type_cd
+    ADD CONSTRAINT med_prs_substitution_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_substitution_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_substitution_type_cd
+    ADD CONSTRAINT med_prs_substitution_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_substitution_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_substitution_type_cd_vs
+    ADD CONSTRAINT med_prs_substitution_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_substitution_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_substitution_type_cd_vs
+    ADD CONSTRAINT med_prs_substitution_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_substitution_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_substitution_type
+    ADD CONSTRAINT med_prs_substitution_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs_substitution(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_substitution_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_substitution_type
+    ADD CONSTRAINT med_prs_substitution_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_text
+    ADD CONSTRAINT med_prs_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_prs_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_prs_text
+    ADD CONSTRAINT med_prs_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_prs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_device_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_device
+    ADD CONSTRAINT med_st_device_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_device_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_device
+    ADD CONSTRAINT med_st_device_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_as_needed_codeable_concept_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd
+    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_as_needed_codeable_concept(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_as_needed_codeable_concept_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd
+    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_as_needed_codeable_concept_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd_vs
+    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_as_needed_codeable_concept_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_as_needed_codeable_concept_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept_cd_vs
+    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_as_needed_codeable_concept_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept
+    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_as_needed_codeable_concept_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_as_needed_codeable_concept
+    ADD CONSTRAINT med_st_dosage_as_needed_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_max_dose_per_period_denominator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_max_dose_per_period_denominator
+    ADD CONSTRAINT med_st_dosage_max_dose_per_period_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_max_dose_per_period(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_max_dose_per_period_denominator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_max_dose_per_period_denominator
+    ADD CONSTRAINT med_st_dosage_max_dose_per_period_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_max_dose_per_period_numerator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_max_dose_per_period_numerator
+    ADD CONSTRAINT med_st_dosage_max_dose_per_period_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_max_dose_per_period(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_max_dose_per_period_numerator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_max_dose_per_period_numerator
+    ADD CONSTRAINT med_st_dosage_max_dose_per_period_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_max_dose_per_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_max_dose_per_period
+    ADD CONSTRAINT med_st_dosage_max_dose_per_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_max_dose_per_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_max_dose_per_period
+    ADD CONSTRAINT med_st_dosage_max_dose_per_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_method_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_method_cd
+    ADD CONSTRAINT med_st_dosage_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_method(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_method_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_method_cd
+    ADD CONSTRAINT med_st_dosage_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_method_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_method_cd_vs
+    ADD CONSTRAINT med_st_dosage_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_method_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_method_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_method_cd_vs
+    ADD CONSTRAINT med_st_dosage_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_method_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_method
+    ADD CONSTRAINT med_st_dosage_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_method_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_method
+    ADD CONSTRAINT med_st_dosage_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage
+    ADD CONSTRAINT med_st_dosage_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_quantity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_quantity
+    ADD CONSTRAINT med_st_dosage_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_quantity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_quantity
+    ADD CONSTRAINT med_st_dosage_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_rate_denominator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_rate_denominator
+    ADD CONSTRAINT med_st_dosage_rate_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_rate(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_rate_denominator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_rate_denominator
+    ADD CONSTRAINT med_st_dosage_rate_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_rate_numerator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_rate_numerator
+    ADD CONSTRAINT med_st_dosage_rate_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_rate(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_rate_numerator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_rate_numerator
+    ADD CONSTRAINT med_st_dosage_rate_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_rate_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_rate
+    ADD CONSTRAINT med_st_dosage_rate_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_rate_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_rate
+    ADD CONSTRAINT med_st_dosage_rate_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage
+    ADD CONSTRAINT med_st_dosage_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_route_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_route_cd
+    ADD CONSTRAINT med_st_dosage_route_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_route(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_route_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_route_cd
+    ADD CONSTRAINT med_st_dosage_route_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_route_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_route_cd_vs
+    ADD CONSTRAINT med_st_dosage_route_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_route_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_route_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_route_cd_vs
+    ADD CONSTRAINT med_st_dosage_route_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_route_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_route
+    ADD CONSTRAINT med_st_dosage_route_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_route_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_route
+    ADD CONSTRAINT med_st_dosage_route_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_site_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_site_cd
+    ADD CONSTRAINT med_st_dosage_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_site(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_site_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_site_cd
+    ADD CONSTRAINT med_st_dosage_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_site_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_site_cd_vs
+    ADD CONSTRAINT med_st_dosage_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_site_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_site_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_site_cd_vs
+    ADD CONSTRAINT med_st_dosage_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_site_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_site
+    ADD CONSTRAINT med_st_dosage_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_site_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_site
+    ADD CONSTRAINT med_st_dosage_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_timing_event_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_timing_event
+    ADD CONSTRAINT med_st_dosage_timing_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_timing(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_timing_event_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_timing_event
+    ADD CONSTRAINT med_st_dosage_timing_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_timing_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_timing
+    ADD CONSTRAINT med_st_dosage_timing_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_timing_repeat_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_timing_repeat
+    ADD CONSTRAINT med_st_dosage_timing_repeat_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_dosage_timing(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_timing_repeat_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_timing_repeat
+    ADD CONSTRAINT med_st_dosage_timing_repeat_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_dosage_timing_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_dosage_timing
+    ADD CONSTRAINT med_st_dosage_timing_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_idn_assigner
+    ADD CONSTRAINT med_st_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_idn_assigner
+    ADD CONSTRAINT med_st_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_idn
+    ADD CONSTRAINT med_st_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_idn_period
+    ADD CONSTRAINT med_st_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_idn_period
+    ADD CONSTRAINT med_st_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_idn
+    ADD CONSTRAINT med_st_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_med_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_med
+    ADD CONSTRAINT med_st_med_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_med_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_med
+    ADD CONSTRAINT med_st_med_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_patient_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_patient
+    ADD CONSTRAINT med_st_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_patient_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_patient
+    ADD CONSTRAINT med_st_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_reason_not_given_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_reason_not_given_cd
+    ADD CONSTRAINT med_st_reason_not_given_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_reason_not_given(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_reason_not_given_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_reason_not_given_cd
+    ADD CONSTRAINT med_st_reason_not_given_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_reason_not_given_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_reason_not_given_cd_vs
+    ADD CONSTRAINT med_st_reason_not_given_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st_reason_not_given_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_reason_not_given_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_reason_not_given_cd_vs
+    ADD CONSTRAINT med_st_reason_not_given_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_reason_not_given_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_reason_not_given
+    ADD CONSTRAINT med_st_reason_not_given_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_reason_not_given_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_reason_not_given
+    ADD CONSTRAINT med_st_reason_not_given_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_text
+    ADD CONSTRAINT med_st_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_text
+    ADD CONSTRAINT med_st_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_when_given_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_when_given
+    ADD CONSTRAINT med_st_when_given_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_st_when_given_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_st_when_given
+    ADD CONSTRAINT med_st_when_given_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med_st(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_text
+    ADD CONSTRAINT med_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: med_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY med_text
+    ADD CONSTRAINT med_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES med(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_content_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_content
+    ADD CONSTRAINT media_content_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_content_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_content
+    ADD CONSTRAINT media_content_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_idn_assigner
+    ADD CONSTRAINT media_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_idn_assigner
+    ADD CONSTRAINT media_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_idn
+    ADD CONSTRAINT media_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_idn_period
+    ADD CONSTRAINT media_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_idn_period
+    ADD CONSTRAINT media_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_idn
+    ADD CONSTRAINT media_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_operator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_operator
+    ADD CONSTRAINT media_operator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_operator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_operator
+    ADD CONSTRAINT media_operator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_subject
+    ADD CONSTRAINT media_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_subject
+    ADD CONSTRAINT media_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_subtype_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_subtype_cd
+    ADD CONSTRAINT media_subtype_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_subtype(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_subtype_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_subtype_cd
+    ADD CONSTRAINT media_subtype_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_subtype_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_subtype_cd_vs
+    ADD CONSTRAINT media_subtype_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_subtype_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_subtype_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_subtype_cd_vs
+    ADD CONSTRAINT media_subtype_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_subtype_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_subtype
+    ADD CONSTRAINT media_subtype_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_subtype_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_subtype
+    ADD CONSTRAINT media_subtype_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_text
+    ADD CONSTRAINT media_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_text
+    ADD CONSTRAINT media_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_view_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_view_cd
+    ADD CONSTRAINT media_view_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_view(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_view_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_view_cd
+    ADD CONSTRAINT media_view_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_view_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_view_cd_vs
+    ADD CONSTRAINT media_view_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media_view_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_view_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_view_cd_vs
+    ADD CONSTRAINT media_view_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_view_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_view
+    ADD CONSTRAINT media_view_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: media_view_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY media_view
+    ADD CONSTRAINT media_view_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_author_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_author
+    ADD CONSTRAINT message_header_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_author_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_author
+    ADD CONSTRAINT message_header_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_data_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_data
+    ADD CONSTRAINT message_header_data_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_data_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_data
+    ADD CONSTRAINT message_header_data_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_destination_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_destination
+    ADD CONSTRAINT message_header_destination_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_destination_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_destination
+    ADD CONSTRAINT message_header_destination_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_destination_target_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_destination_target
+    ADD CONSTRAINT message_header_destination_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_destination(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_destination_target_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_destination_target
+    ADD CONSTRAINT message_header_destination_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_enterer_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_enterer
+    ADD CONSTRAINT message_header_enterer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_enterer_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_enterer
+    ADD CONSTRAINT message_header_enterer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_event_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_event
+    ADD CONSTRAINT message_header_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_event_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_event
+    ADD CONSTRAINT message_header_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_event_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_event_vs
+    ADD CONSTRAINT message_header_event_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_event_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_event_vs
+    ADD CONSTRAINT message_header_event_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_reason_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_reason_cd
+    ADD CONSTRAINT message_header_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_reason(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_reason_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_reason_cd
+    ADD CONSTRAINT message_header_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_reason_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_reason_cd_vs
+    ADD CONSTRAINT message_header_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_reason_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_reason_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_reason_cd_vs
+    ADD CONSTRAINT message_header_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_reason_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_reason
+    ADD CONSTRAINT message_header_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_reason_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_reason
+    ADD CONSTRAINT message_header_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_receiver_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_receiver
+    ADD CONSTRAINT message_header_receiver_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_receiver_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_receiver
+    ADD CONSTRAINT message_header_receiver_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_response_details_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_response_details
+    ADD CONSTRAINT message_header_response_details_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_response_details_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_response_details
+    ADD CONSTRAINT message_header_response_details_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_response_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_response
+    ADD CONSTRAINT message_header_response_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_response_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_response
+    ADD CONSTRAINT message_header_response_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_responsible_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_responsible
+    ADD CONSTRAINT message_header_responsible_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_responsible_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_responsible
+    ADD CONSTRAINT message_header_responsible_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_source_contact_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_source_contact
+    ADD CONSTRAINT message_header_source_contact_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_source(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_source_contact_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_source_contact_period
+    ADD CONSTRAINT message_header_source_contact_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header_source_contact(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_source_contact_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_source_contact_period
+    ADD CONSTRAINT message_header_source_contact_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_source_contact_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_source_contact
+    ADD CONSTRAINT message_header_source_contact_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_source_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_source
+    ADD CONSTRAINT message_header_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_source_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_source
+    ADD CONSTRAINT message_header_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_text
+    ADD CONSTRAINT message_header_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: message_header_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY message_header_text
+    ADD CONSTRAINT message_header_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES message_header(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_applies_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_applies_period
+    ADD CONSTRAINT obs_applies_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_applies_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_applies_period
+    ADD CONSTRAINT obs_applies_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_body_site_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_body_site_cd
+    ADD CONSTRAINT obs_body_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_body_site(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_body_site_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_body_site_cd
+    ADD CONSTRAINT obs_body_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_body_site_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_body_site_cd_vs
+    ADD CONSTRAINT obs_body_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_body_site_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_body_site_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_body_site_cd_vs
+    ADD CONSTRAINT obs_body_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_body_site_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_body_site
+    ADD CONSTRAINT obs_body_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_body_site_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_body_site
+    ADD CONSTRAINT obs_body_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_idn_assigner
+    ADD CONSTRAINT obs_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_idn_assigner
+    ADD CONSTRAINT obs_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_idn
+    ADD CONSTRAINT obs_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_idn_period
+    ADD CONSTRAINT obs_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_idn_period
+    ADD CONSTRAINT obs_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_idn
+    ADD CONSTRAINT obs_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_interpretation_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_interpretation_cd
+    ADD CONSTRAINT obs_interpretation_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_interpretation(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_interpretation_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_interpretation_cd
+    ADD CONSTRAINT obs_interpretation_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_interpretation_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_interpretation_cd_vs
+    ADD CONSTRAINT obs_interpretation_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_interpretation_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_interpretation_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_interpretation_cd_vs
+    ADD CONSTRAINT obs_interpretation_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_interpretation_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_interpretation
+    ADD CONSTRAINT obs_interpretation_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_interpretation_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_interpretation
+    ADD CONSTRAINT obs_interpretation_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_method_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_method_cd
+    ADD CONSTRAINT obs_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_method(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_method_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_method_cd
+    ADD CONSTRAINT obs_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_method_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_method_cd_vs
+    ADD CONSTRAINT obs_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_method_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_method_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_method_cd_vs
+    ADD CONSTRAINT obs_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_method_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_method
+    ADD CONSTRAINT obs_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_method_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_method
+    ADD CONSTRAINT obs_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_name_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_name_cd
+    ADD CONSTRAINT obs_name_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_name(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_name_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_name_cd
+    ADD CONSTRAINT obs_name_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_name_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_name_cd_vs
+    ADD CONSTRAINT obs_name_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_name_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_name_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_name_cd_vs
+    ADD CONSTRAINT obs_name_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_name_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_name
+    ADD CONSTRAINT obs_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_name_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_name
+    ADD CONSTRAINT obs_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_performer_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_performer
+    ADD CONSTRAINT obs_performer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_performer_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_performer
+    ADD CONSTRAINT obs_performer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_age_high_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_age_high
+    ADD CONSTRAINT obs_reference_range_age_high_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range_age(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_age_high_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_age_high
+    ADD CONSTRAINT obs_reference_range_age_high_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_age_low_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_age_low
+    ADD CONSTRAINT obs_reference_range_age_low_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range_age(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_age_low_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_age_low
+    ADD CONSTRAINT obs_reference_range_age_low_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_age_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_age
+    ADD CONSTRAINT obs_reference_range_age_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_age_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_age
+    ADD CONSTRAINT obs_reference_range_age_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_high_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_high
+    ADD CONSTRAINT obs_reference_range_high_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_high_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_high
+    ADD CONSTRAINT obs_reference_range_high_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_low_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_low
+    ADD CONSTRAINT obs_reference_range_low_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_low_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_low
+    ADD CONSTRAINT obs_reference_range_low_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_meaning_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_meaning_cd
+    ADD CONSTRAINT obs_reference_range_meaning_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range_meaning(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_meaning_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_meaning_cd
+    ADD CONSTRAINT obs_reference_range_meaning_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_meaning_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_meaning_cd_vs
+    ADD CONSTRAINT obs_reference_range_meaning_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range_meaning_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_meaning_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_meaning_cd_vs
+    ADD CONSTRAINT obs_reference_range_meaning_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_meaning_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_meaning
+    ADD CONSTRAINT obs_reference_range_meaning_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_reference_range(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_meaning_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range_meaning
+    ADD CONSTRAINT obs_reference_range_meaning_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range
+    ADD CONSTRAINT obs_reference_range_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_reference_range_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_reference_range
+    ADD CONSTRAINT obs_reference_range_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_related_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_related
+    ADD CONSTRAINT obs_related_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_related_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_related
+    ADD CONSTRAINT obs_related_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_related_target_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_related_target
+    ADD CONSTRAINT obs_related_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_related(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_related_target_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_related_target
+    ADD CONSTRAINT obs_related_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_specimen_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_specimen
+    ADD CONSTRAINT obs_specimen_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_specimen_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_specimen
+    ADD CONSTRAINT obs_specimen_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_subject
+    ADD CONSTRAINT obs_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_subject
+    ADD CONSTRAINT obs_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_text
+    ADD CONSTRAINT obs_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_text
+    ADD CONSTRAINT obs_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_attachment_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_attachment
+    ADD CONSTRAINT obs_value_attachment_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_attachment_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_attachment
+    ADD CONSTRAINT obs_value_attachment_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_codeable_concept_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_codeable_concept_cd
+    ADD CONSTRAINT obs_value_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_value_codeable_concept(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_codeable_concept_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_codeable_concept_cd
+    ADD CONSTRAINT obs_value_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_codeable_concept_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_codeable_concept_cd_vs
+    ADD CONSTRAINT obs_value_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_value_codeable_concept_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_codeable_concept_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_codeable_concept_cd_vs
+    ADD CONSTRAINT obs_value_codeable_concept_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_codeable_concept_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_codeable_concept
+    ADD CONSTRAINT obs_value_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_codeable_concept_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_codeable_concept
+    ADD CONSTRAINT obs_value_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_period
+    ADD CONSTRAINT obs_value_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_period
+    ADD CONSTRAINT obs_value_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_quantity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_quantity
+    ADD CONSTRAINT obs_value_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_quantity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_quantity
+    ADD CONSTRAINT obs_value_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_ratio_denominator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_ratio_denominator
+    ADD CONSTRAINT obs_value_ratio_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_value_ratio(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_ratio_denominator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_ratio_denominator
+    ADD CONSTRAINT obs_value_ratio_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_ratio_numerator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_ratio_numerator
+    ADD CONSTRAINT obs_value_ratio_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_value_ratio(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_ratio_numerator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_ratio_numerator
+    ADD CONSTRAINT obs_value_ratio_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_ratio_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_ratio
+    ADD CONSTRAINT obs_value_ratio_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_ratio_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_ratio
+    ADD CONSTRAINT obs_value_ratio_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_sampled_data_origin_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_sampled_data_origin
+    ADD CONSTRAINT obs_value_sampled_data_origin_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs_value_sampled_data(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_sampled_data_origin_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_sampled_data_origin
+    ADD CONSTRAINT obs_value_sampled_data_origin_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_sampled_data_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_sampled_data
+    ADD CONSTRAINT obs_value_sampled_data_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: obs_value_sampled_data_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY obs_value_sampled_data
+    ADD CONSTRAINT obs_value_sampled_data_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES obs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: operation_outcome_issue_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY operation_outcome_issue
+    ADD CONSTRAINT operation_outcome_issue_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES operation_outcome(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: operation_outcome_issue_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY operation_outcome_issue
+    ADD CONSTRAINT operation_outcome_issue_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES operation_outcome(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: operation_outcome_issue_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY operation_outcome_issue_type
+    ADD CONSTRAINT operation_outcome_issue_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES operation_outcome_issue(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: operation_outcome_issue_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY operation_outcome_issue_type
+    ADD CONSTRAINT operation_outcome_issue_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES operation_outcome(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: operation_outcome_issue_type_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY operation_outcome_issue_type_vs
+    ADD CONSTRAINT operation_outcome_issue_type_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES operation_outcome_issue_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: operation_outcome_issue_type_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY operation_outcome_issue_type_vs
+    ADD CONSTRAINT operation_outcome_issue_type_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES operation_outcome(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: operation_outcome_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY operation_outcome_text
+    ADD CONSTRAINT operation_outcome_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES operation_outcome(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: operation_outcome_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY operation_outcome_text
+    ADD CONSTRAINT operation_outcome_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES operation_outcome(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_authority_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_authority
+    ADD CONSTRAINT order_authority_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_authority_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_authority
+    ADD CONSTRAINT order_authority_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_detail_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_detail
+    ADD CONSTRAINT order_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_detail_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_detail
+    ADD CONSTRAINT order_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_idn_assigner
+    ADD CONSTRAINT order_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_idn_assigner
+    ADD CONSTRAINT order_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_idn
+    ADD CONSTRAINT order_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_idn_period
+    ADD CONSTRAINT order_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_idn_period
+    ADD CONSTRAINT order_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_idn
+    ADD CONSTRAINT order_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_reason_codeable_concept_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_reason_codeable_concept_cd
+    ADD CONSTRAINT order_reason_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_reason_codeable_concept(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_reason_codeable_concept_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_reason_codeable_concept_cd
+    ADD CONSTRAINT order_reason_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_reason_codeable_concept_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_reason_codeable_concept_cd_vs
+    ADD CONSTRAINT order_reason_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_reason_codeable_concept_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_reason_codeable_concept_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_reason_codeable_concept_cd_vs
+    ADD CONSTRAINT order_reason_codeable_concept_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_reason_codeable_concept_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_reason_codeable_concept
+    ADD CONSTRAINT order_reason_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_reason_codeable_concept_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_reason_codeable_concept
+    ADD CONSTRAINT order_reason_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_reason_resource_reference_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_reason_resource_reference
+    ADD CONSTRAINT order_reason_resource_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_reason_resource_reference_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_reason_resource_reference
+    ADD CONSTRAINT order_reason_resource_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_authority_codeable_concept_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_authority_codeable_concept_cd
+    ADD CONSTRAINT order_response_authority_codeable_concept_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response_authority_codeable_concept(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_authority_codeable_concept_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_authority_codeable_concept_cd
+    ADD CONSTRAINT order_response_authority_codeable_concept_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_authority_codeable_concept_cd_v_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_authority_codeable_concept_cd_vs
+    ADD CONSTRAINT order_response_authority_codeable_concept_cd_v_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_authority_codeable_concept_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_authority_codeable_concept_cd_vs
+    ADD CONSTRAINT order_response_authority_codeable_concept_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response_authority_codeable_concept_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_authority_codeable_concept_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_authority_codeable_concept
+    ADD CONSTRAINT order_response_authority_codeable_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_authority_codeable_concept_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_authority_codeable_concept
+    ADD CONSTRAINT order_response_authority_codeable_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_authority_resource_reference_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_authority_resource_reference
+    ADD CONSTRAINT order_response_authority_resource_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_authority_resource_reference_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_authority_resource_reference
+    ADD CONSTRAINT order_response_authority_resource_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_fulfillment_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_fulfillment
+    ADD CONSTRAINT order_response_fulfillment_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_fulfillment_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_fulfillment
+    ADD CONSTRAINT order_response_fulfillment_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_idn_assigner
+    ADD CONSTRAINT order_response_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_idn_assigner
+    ADD CONSTRAINT order_response_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_idn
+    ADD CONSTRAINT order_response_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_idn_period
+    ADD CONSTRAINT order_response_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_idn_period
+    ADD CONSTRAINT order_response_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_idn
+    ADD CONSTRAINT order_response_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_request_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_request
+    ADD CONSTRAINT order_response_request_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_request_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_request
+    ADD CONSTRAINT order_response_request_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_text
+    ADD CONSTRAINT order_response_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_text
+    ADD CONSTRAINT order_response_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_who_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_who
+    ADD CONSTRAINT order_response_who_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_response_who_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_response_who
+    ADD CONSTRAINT order_response_who_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES order_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_source_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_source
+    ADD CONSTRAINT order_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_source_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_source
+    ADD CONSTRAINT order_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_subject
+    ADD CONSTRAINT order_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_subject
+    ADD CONSTRAINT order_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_target_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_target
+    ADD CONSTRAINT order_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_target_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_target
+    ADD CONSTRAINT order_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_text
+    ADD CONSTRAINT order_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_text
+    ADD CONSTRAINT order_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_when_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_when_code_cd
+    ADD CONSTRAINT order_when_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_when_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_when_code_cd
+    ADD CONSTRAINT order_when_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_when_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_when_code_cd_vs
+    ADD CONSTRAINT order_when_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_when_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_when_code_cd_vs
+    ADD CONSTRAINT order_when_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_when_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_when_code
+    ADD CONSTRAINT order_when_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_when_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_when_code
+    ADD CONSTRAINT order_when_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_when_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_when
+    ADD CONSTRAINT order_when_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_when_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_when
+    ADD CONSTRAINT order_when_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_when_schedule_event_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_when_schedule_event
+    ADD CONSTRAINT order_when_schedule_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when_schedule(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_when_schedule_event_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_when_schedule_event
+    ADD CONSTRAINT order_when_schedule_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_when_schedule_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_when_schedule
+    ADD CONSTRAINT order_when_schedule_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_when_schedule_repeat_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_when_schedule_repeat
+    ADD CONSTRAINT order_when_schedule_repeat_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES order_when_schedule(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_when_schedule_repeat_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_when_schedule_repeat
+    ADD CONSTRAINT order_when_schedule_repeat_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: order_when_schedule_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY order_when_schedule
+    ADD CONSTRAINT order_when_schedule_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES "order"(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_address_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_address
+    ADD CONSTRAINT organization_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_address_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_address_period
+    ADD CONSTRAINT organization_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_address(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_address_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_address_period
+    ADD CONSTRAINT organization_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_address_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_address
+    ADD CONSTRAINT organization_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_address_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_address
+    ADD CONSTRAINT organization_contact_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_address_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_address_period
+    ADD CONSTRAINT organization_contact_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_address(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_address_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_address_period
+    ADD CONSTRAINT organization_contact_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_address_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_address
+    ADD CONSTRAINT organization_contact_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_gender_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_gender_cd
+    ADD CONSTRAINT organization_contact_gender_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_gender(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_gender_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_gender_cd
+    ADD CONSTRAINT organization_contact_gender_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_gender_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_gender_cd_vs
+    ADD CONSTRAINT organization_contact_gender_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_gender_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_gender_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_gender_cd_vs
+    ADD CONSTRAINT organization_contact_gender_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_gender_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_gender
+    ADD CONSTRAINT organization_contact_gender_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_gender_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_gender
+    ADD CONSTRAINT organization_contact_gender_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_name_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_name
+    ADD CONSTRAINT organization_contact_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_name_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_name_period
+    ADD CONSTRAINT organization_contact_name_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_name(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_name_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_name_period
+    ADD CONSTRAINT organization_contact_name_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_name_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_name
+    ADD CONSTRAINT organization_contact_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact
+    ADD CONSTRAINT organization_contact_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_purpose_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_purpose_cd
+    ADD CONSTRAINT organization_contact_purpose_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_purpose(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_purpose_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_purpose_cd
+    ADD CONSTRAINT organization_contact_purpose_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_purpose_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_purpose_cd_vs
+    ADD CONSTRAINT organization_contact_purpose_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_purpose_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_purpose_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_purpose_cd_vs
+    ADD CONSTRAINT organization_contact_purpose_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_purpose_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_purpose
+    ADD CONSTRAINT organization_contact_purpose_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_purpose_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_purpose
+    ADD CONSTRAINT organization_contact_purpose_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact
+    ADD CONSTRAINT organization_contact_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_telecom_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_telecom
+    ADD CONSTRAINT organization_contact_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_telecom_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_telecom_period
+    ADD CONSTRAINT organization_contact_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_contact_telecom(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_telecom_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_telecom_period
+    ADD CONSTRAINT organization_contact_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_contact_telecom_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_contact_telecom
+    ADD CONSTRAINT organization_contact_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_idn_assigner
+    ADD CONSTRAINT organization_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_idn_assigner
+    ADD CONSTRAINT organization_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_idn
+    ADD CONSTRAINT organization_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_idn_period
+    ADD CONSTRAINT organization_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_idn_period
+    ADD CONSTRAINT organization_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_idn
+    ADD CONSTRAINT organization_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_loc_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_loc
+    ADD CONSTRAINT organization_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_loc_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_loc
+    ADD CONSTRAINT organization_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_part_of_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_part_of
+    ADD CONSTRAINT organization_part_of_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_part_of_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_part_of
+    ADD CONSTRAINT organization_part_of_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_telecom_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_telecom
+    ADD CONSTRAINT organization_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_telecom_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_telecom_period
+    ADD CONSTRAINT organization_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_telecom(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_telecom_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_telecom_period
+    ADD CONSTRAINT organization_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_telecom_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_telecom
+    ADD CONSTRAINT organization_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_text
+    ADD CONSTRAINT organization_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_text
+    ADD CONSTRAINT organization_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_type_cd
+    ADD CONSTRAINT organization_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_type_cd
+    ADD CONSTRAINT organization_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_type_cd_vs
+    ADD CONSTRAINT organization_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_type_cd_vs
+    ADD CONSTRAINT organization_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_type
+    ADD CONSTRAINT organization_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: organization_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY organization_type
+    ADD CONSTRAINT organization_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES organization(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_author_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_author
+    ADD CONSTRAINT other_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_author_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_author
+    ADD CONSTRAINT other_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_code_cd
+    ADD CONSTRAINT other_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_code_cd
+    ADD CONSTRAINT other_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_code_cd_vs
+    ADD CONSTRAINT other_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_code_cd_vs
+    ADD CONSTRAINT other_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_code
+    ADD CONSTRAINT other_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_code
+    ADD CONSTRAINT other_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_idn_assigner
+    ADD CONSTRAINT other_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_idn_assigner
+    ADD CONSTRAINT other_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_idn
+    ADD CONSTRAINT other_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_idn_period
+    ADD CONSTRAINT other_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_idn_period
+    ADD CONSTRAINT other_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_idn
+    ADD CONSTRAINT other_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_subject
+    ADD CONSTRAINT other_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_subject
+    ADD CONSTRAINT other_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_text
+    ADD CONSTRAINT other_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES other(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: other_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY other_text
+    ADD CONSTRAINT other_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES other(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_address_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_address
+    ADD CONSTRAINT patient_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_address_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_address_period
+    ADD CONSTRAINT patient_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_address(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_address_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_address_period
+    ADD CONSTRAINT patient_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_address_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_address
+    ADD CONSTRAINT patient_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_breed_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_breed_cd
+    ADD CONSTRAINT patient_animal_breed_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_breed(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_breed_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_breed_cd
+    ADD CONSTRAINT patient_animal_breed_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_breed_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_breed_cd_vs
+    ADD CONSTRAINT patient_animal_breed_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_breed_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_breed_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_breed_cd_vs
+    ADD CONSTRAINT patient_animal_breed_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_breed_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_breed
+    ADD CONSTRAINT patient_animal_breed_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_breed_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_breed
+    ADD CONSTRAINT patient_animal_breed_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_gender_status_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_gender_status_cd
+    ADD CONSTRAINT patient_animal_gender_status_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_gender_status(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_gender_status_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_gender_status_cd
+    ADD CONSTRAINT patient_animal_gender_status_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_gender_status_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_gender_status_cd_vs
+    ADD CONSTRAINT patient_animal_gender_status_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_gender_status_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_gender_status_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_gender_status_cd_vs
+    ADD CONSTRAINT patient_animal_gender_status_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_gender_status_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_gender_status
+    ADD CONSTRAINT patient_animal_gender_status_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_gender_status_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_gender_status
+    ADD CONSTRAINT patient_animal_gender_status_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal
+    ADD CONSTRAINT patient_animal_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal
+    ADD CONSTRAINT patient_animal_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_species_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_species_cd
+    ADD CONSTRAINT patient_animal_species_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_species(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_species_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_species_cd
+    ADD CONSTRAINT patient_animal_species_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_species_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_species_cd_vs
+    ADD CONSTRAINT patient_animal_species_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal_species_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_species_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_species_cd_vs
+    ADD CONSTRAINT patient_animal_species_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_species_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_species
+    ADD CONSTRAINT patient_animal_species_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_animal(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_animal_species_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_animal_species
+    ADD CONSTRAINT patient_animal_species_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_care_provider_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_care_provider
+    ADD CONSTRAINT patient_care_provider_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_care_provider_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_care_provider
+    ADD CONSTRAINT patient_care_provider_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_communication_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_communication_cd
+    ADD CONSTRAINT patient_communication_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_communication(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_communication_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_communication_cd
+    ADD CONSTRAINT patient_communication_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_communication_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_communication_cd_vs
+    ADD CONSTRAINT patient_communication_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_communication_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_communication_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_communication_cd_vs
+    ADD CONSTRAINT patient_communication_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_communication_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_communication
+    ADD CONSTRAINT patient_communication_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_communication_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_communication
+    ADD CONSTRAINT patient_communication_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_address_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_address
+    ADD CONSTRAINT patient_contact_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_address_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_address_period
+    ADD CONSTRAINT patient_contact_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_address(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_address_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_address_period
+    ADD CONSTRAINT patient_contact_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_address_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_address
+    ADD CONSTRAINT patient_contact_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_gender_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_gender_cd
+    ADD CONSTRAINT patient_contact_gender_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_gender(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_gender_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_gender_cd
+    ADD CONSTRAINT patient_contact_gender_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_gender_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_gender_cd_vs
+    ADD CONSTRAINT patient_contact_gender_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_gender_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_gender_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_gender_cd_vs
+    ADD CONSTRAINT patient_contact_gender_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_gender_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_gender
+    ADD CONSTRAINT patient_contact_gender_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_gender_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_gender
+    ADD CONSTRAINT patient_contact_gender_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_name_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_name
+    ADD CONSTRAINT patient_contact_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_name_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_name_period
+    ADD CONSTRAINT patient_contact_name_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_name(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_name_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_name_period
+    ADD CONSTRAINT patient_contact_name_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_name_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_name
+    ADD CONSTRAINT patient_contact_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_organization_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_organization
+    ADD CONSTRAINT patient_contact_organization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_organization_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_organization
+    ADD CONSTRAINT patient_contact_organization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact
+    ADD CONSTRAINT patient_contact_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_relationship_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_relationship_cd
+    ADD CONSTRAINT patient_contact_relationship_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_relationship(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_relationship_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_relationship_cd
+    ADD CONSTRAINT patient_contact_relationship_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_relationship_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_relationship_cd_vs
+    ADD CONSTRAINT patient_contact_relationship_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_relationship_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_relationship_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_relationship_cd_vs
+    ADD CONSTRAINT patient_contact_relationship_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_relationship_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_relationship
+    ADD CONSTRAINT patient_contact_relationship_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_relationship_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_relationship
+    ADD CONSTRAINT patient_contact_relationship_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact
+    ADD CONSTRAINT patient_contact_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_telecom_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_telecom
+    ADD CONSTRAINT patient_contact_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_telecom_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_telecom_period
+    ADD CONSTRAINT patient_contact_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_contact_telecom(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_telecom_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_telecom_period
+    ADD CONSTRAINT patient_contact_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_contact_telecom_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_contact_telecom
+    ADD CONSTRAINT patient_contact_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_gender_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_gender_cd
+    ADD CONSTRAINT patient_gender_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_gender(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_gender_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_gender_cd
+    ADD CONSTRAINT patient_gender_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_gender_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_gender_cd_vs
+    ADD CONSTRAINT patient_gender_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_gender_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_gender_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_gender_cd_vs
+    ADD CONSTRAINT patient_gender_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_gender_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_gender
+    ADD CONSTRAINT patient_gender_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_gender_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_gender
+    ADD CONSTRAINT patient_gender_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_idn_assigner
+    ADD CONSTRAINT patient_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_idn_assigner
+    ADD CONSTRAINT patient_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_idn
+    ADD CONSTRAINT patient_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_idn_period
+    ADD CONSTRAINT patient_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_idn_period
+    ADD CONSTRAINT patient_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_idn
+    ADD CONSTRAINT patient_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_link_other_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_link_other
+    ADD CONSTRAINT patient_link_other_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_link(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_link_other_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_link_other
+    ADD CONSTRAINT patient_link_other_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_link_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_link
+    ADD CONSTRAINT patient_link_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_link_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_link
+    ADD CONSTRAINT patient_link_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_managing_organization_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_managing_organization
+    ADD CONSTRAINT patient_managing_organization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_managing_organization_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_managing_organization
+    ADD CONSTRAINT patient_managing_organization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_marital_status_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_marital_status_cd
+    ADD CONSTRAINT patient_marital_status_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_marital_status(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_marital_status_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_marital_status_cd
+    ADD CONSTRAINT patient_marital_status_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_marital_status_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_marital_status_cd_vs
+    ADD CONSTRAINT patient_marital_status_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_marital_status_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_marital_status_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_marital_status_cd_vs
+    ADD CONSTRAINT patient_marital_status_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_marital_status_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_marital_status
+    ADD CONSTRAINT patient_marital_status_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_marital_status_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_marital_status
+    ADD CONSTRAINT patient_marital_status_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_name_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_name
+    ADD CONSTRAINT patient_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_name_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_name_period
+    ADD CONSTRAINT patient_name_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_name(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_name_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_name_period
+    ADD CONSTRAINT patient_name_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_name_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_name
+    ADD CONSTRAINT patient_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_photo_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_photo
+    ADD CONSTRAINT patient_photo_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_photo_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_photo
+    ADD CONSTRAINT patient_photo_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_telecom_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_telecom
+    ADD CONSTRAINT patient_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_telecom_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_telecom_period
+    ADD CONSTRAINT patient_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient_telecom(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_telecom_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_telecom_period
+    ADD CONSTRAINT patient_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_telecom_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_telecom
+    ADD CONSTRAINT patient_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_text
+    ADD CONSTRAINT patient_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: patient_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY patient_text
+    ADD CONSTRAINT patient_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES patient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_address_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_address
+    ADD CONSTRAINT practitioner_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_address_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_address_period
+    ADD CONSTRAINT practitioner_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_address(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_address_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_address_period
+    ADD CONSTRAINT practitioner_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_address_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_address
+    ADD CONSTRAINT practitioner_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_communication_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_communication_cd
+    ADD CONSTRAINT practitioner_communication_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_communication(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_communication_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_communication_cd
+    ADD CONSTRAINT practitioner_communication_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_communication_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_communication_cd_vs
+    ADD CONSTRAINT practitioner_communication_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_communication_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_communication_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_communication_cd_vs
+    ADD CONSTRAINT practitioner_communication_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_communication_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_communication
+    ADD CONSTRAINT practitioner_communication_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_communication_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_communication
+    ADD CONSTRAINT practitioner_communication_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_gender_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_gender_cd
+    ADD CONSTRAINT practitioner_gender_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_gender(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_gender_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_gender_cd
+    ADD CONSTRAINT practitioner_gender_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_gender_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_gender_cd_vs
+    ADD CONSTRAINT practitioner_gender_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_gender_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_gender_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_gender_cd_vs
+    ADD CONSTRAINT practitioner_gender_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_gender_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_gender
+    ADD CONSTRAINT practitioner_gender_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_gender_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_gender
+    ADD CONSTRAINT practitioner_gender_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_idn_assigner
+    ADD CONSTRAINT practitioner_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_idn_assigner
+    ADD CONSTRAINT practitioner_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_idn
+    ADD CONSTRAINT practitioner_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_idn_period
+    ADD CONSTRAINT practitioner_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_idn_period
+    ADD CONSTRAINT practitioner_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_idn
+    ADD CONSTRAINT practitioner_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_loc_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_loc
+    ADD CONSTRAINT practitioner_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_loc_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_loc
+    ADD CONSTRAINT practitioner_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_name_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_name
+    ADD CONSTRAINT practitioner_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_name_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_name_period
+    ADD CONSTRAINT practitioner_name_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_name(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_name_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_name_period
+    ADD CONSTRAINT practitioner_name_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_name_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_name
+    ADD CONSTRAINT practitioner_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_organization_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_organization
+    ADD CONSTRAINT practitioner_organization_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_organization_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_organization
+    ADD CONSTRAINT practitioner_organization_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_period
+    ADD CONSTRAINT practitioner_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_period
+    ADD CONSTRAINT practitioner_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_photo_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_photo
+    ADD CONSTRAINT practitioner_photo_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_photo_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_photo
+    ADD CONSTRAINT practitioner_photo_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_qualification_code_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_qualification_code_cd
+    ADD CONSTRAINT practitioner_qualification_code_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_qualification_code(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_qualification_code_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_qualification_code_cd
+    ADD CONSTRAINT practitioner_qualification_code_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_qualification_code_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_qualification_code_cd_vs
+    ADD CONSTRAINT practitioner_qualification_code_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_qualification_code_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_qualification_code_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_qualification_code_cd_vs
+    ADD CONSTRAINT practitioner_qualification_code_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_qualification_code_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_qualification_code
+    ADD CONSTRAINT practitioner_qualification_code_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_qualification(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_qualification_code_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_qualification_code
+    ADD CONSTRAINT practitioner_qualification_code_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_qualification_issuer_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_qualification_issuer
+    ADD CONSTRAINT practitioner_qualification_issuer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_qualification(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_qualification_issuer_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_qualification_issuer
+    ADD CONSTRAINT practitioner_qualification_issuer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_qualification_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_qualification
+    ADD CONSTRAINT practitioner_qualification_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_qualification_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_qualification_period
+    ADD CONSTRAINT practitioner_qualification_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_qualification(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_qualification_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_qualification_period
+    ADD CONSTRAINT practitioner_qualification_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_qualification_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_qualification
+    ADD CONSTRAINT practitioner_qualification_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_role_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_role_cd
+    ADD CONSTRAINT practitioner_role_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_role(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_role_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_role_cd
+    ADD CONSTRAINT practitioner_role_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_role_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_role_cd_vs
+    ADD CONSTRAINT practitioner_role_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_role_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_role_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_role_cd_vs
+    ADD CONSTRAINT practitioner_role_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_role_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_role
+    ADD CONSTRAINT practitioner_role_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_role_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_role
+    ADD CONSTRAINT practitioner_role_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_specialty_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_specialty_cd
+    ADD CONSTRAINT practitioner_specialty_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_specialty(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_specialty_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_specialty_cd
+    ADD CONSTRAINT practitioner_specialty_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_specialty_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_specialty_cd_vs
+    ADD CONSTRAINT practitioner_specialty_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_specialty_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_specialty_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_specialty_cd_vs
+    ADD CONSTRAINT practitioner_specialty_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_specialty_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_specialty
+    ADD CONSTRAINT practitioner_specialty_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_specialty_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_specialty
+    ADD CONSTRAINT practitioner_specialty_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_telecom_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_telecom
+    ADD CONSTRAINT practitioner_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_telecom_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_telecom_period
+    ADD CONSTRAINT practitioner_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner_telecom(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_telecom_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_telecom_period
+    ADD CONSTRAINT practitioner_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_telecom_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_telecom
+    ADD CONSTRAINT practitioner_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_text
+    ADD CONSTRAINT practitioner_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: practitioner_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY practitioner_text
+    ADD CONSTRAINT practitioner_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES practitioner(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_body_site_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_body_site_cd
+    ADD CONSTRAINT procedure_body_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_body_site(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_body_site_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_body_site_cd
+    ADD CONSTRAINT procedure_body_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_body_site_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_body_site_cd_vs
+    ADD CONSTRAINT procedure_body_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_body_site_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_body_site_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_body_site_cd_vs
+    ADD CONSTRAINT procedure_body_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_body_site_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_body_site
+    ADD CONSTRAINT procedure_body_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_body_site_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_body_site
+    ADD CONSTRAINT procedure_body_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_complication_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_complication_cd
+    ADD CONSTRAINT procedure_complication_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_complication(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_complication_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_complication_cd
+    ADD CONSTRAINT procedure_complication_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_complication_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_complication_cd_vs
+    ADD CONSTRAINT procedure_complication_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_complication_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_complication_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_complication_cd_vs
+    ADD CONSTRAINT procedure_complication_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_complication_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_complication
+    ADD CONSTRAINT procedure_complication_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_complication_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_complication
+    ADD CONSTRAINT procedure_complication_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_date_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_date
+    ADD CONSTRAINT procedure_date_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_date_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_date
+    ADD CONSTRAINT procedure_date_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_encounter_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_encounter
+    ADD CONSTRAINT procedure_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_encounter_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_encounter
+    ADD CONSTRAINT procedure_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_idn_assigner
+    ADD CONSTRAINT procedure_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_idn_assigner
+    ADD CONSTRAINT procedure_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_idn
+    ADD CONSTRAINT procedure_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_idn_period
+    ADD CONSTRAINT procedure_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_idn_period
+    ADD CONSTRAINT procedure_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_idn
+    ADD CONSTRAINT procedure_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_indication_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_indication_cd
+    ADD CONSTRAINT procedure_indication_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_indication(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_indication_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_indication_cd
+    ADD CONSTRAINT procedure_indication_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_indication_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_indication_cd_vs
+    ADD CONSTRAINT procedure_indication_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_indication_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_indication_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_indication_cd_vs
+    ADD CONSTRAINT procedure_indication_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_indication_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_indication
+    ADD CONSTRAINT procedure_indication_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_indication_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_indication
+    ADD CONSTRAINT procedure_indication_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_performer_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_performer
+    ADD CONSTRAINT procedure_performer_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_performer_person_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_performer_person
+    ADD CONSTRAINT procedure_performer_person_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_performer(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_performer_person_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_performer_person
+    ADD CONSTRAINT procedure_performer_person_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_performer_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_performer
+    ADD CONSTRAINT procedure_performer_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_performer_role_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_performer_role_cd
+    ADD CONSTRAINT procedure_performer_role_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_performer_role(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_performer_role_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_performer_role_cd
+    ADD CONSTRAINT procedure_performer_role_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_performer_role_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_performer_role_cd_vs
+    ADD CONSTRAINT procedure_performer_role_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_performer_role_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_performer_role_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_performer_role_cd_vs
+    ADD CONSTRAINT procedure_performer_role_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_performer_role_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_performer_role
+    ADD CONSTRAINT procedure_performer_role_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_performer(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_performer_role_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_performer_role
+    ADD CONSTRAINT procedure_performer_role_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_related_item_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_related_item
+    ADD CONSTRAINT procedure_related_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_related_item_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_related_item
+    ADD CONSTRAINT procedure_related_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_related_item_target_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_related_item_target
+    ADD CONSTRAINT procedure_related_item_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_related_item(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_related_item_target_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_related_item_target
+    ADD CONSTRAINT procedure_related_item_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_report_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_report
+    ADD CONSTRAINT procedure_report_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_report_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_report
+    ADD CONSTRAINT procedure_report_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_subject
+    ADD CONSTRAINT procedure_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_subject
+    ADD CONSTRAINT procedure_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_text
+    ADD CONSTRAINT procedure_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_text
+    ADD CONSTRAINT procedure_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_type_cd
+    ADD CONSTRAINT procedure_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_type_cd
+    ADD CONSTRAINT procedure_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_type_cd_vs
+    ADD CONSTRAINT procedure_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_type_cd_vs
+    ADD CONSTRAINT procedure_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_type
+    ADD CONSTRAINT procedure_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: procedure_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY procedure_type
+    ADD CONSTRAINT procedure_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_agent_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_agent
+    ADD CONSTRAINT provenance_agent_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_agent_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_agent
+    ADD CONSTRAINT provenance_agent_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_agent_role_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_agent_role
+    ADD CONSTRAINT provenance_agent_role_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_agent(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_agent_role_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_agent_role
+    ADD CONSTRAINT provenance_agent_role_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_agent_role_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_agent_role_vs
+    ADD CONSTRAINT provenance_agent_role_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_agent_role(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_agent_role_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_agent_role_vs
+    ADD CONSTRAINT provenance_agent_role_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_agent_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_agent_type
+    ADD CONSTRAINT provenance_agent_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_agent(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_agent_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_agent_type
+    ADD CONSTRAINT provenance_agent_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_agent_type_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_agent_type_vs
+    ADD CONSTRAINT provenance_agent_type_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_agent_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_agent_type_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_agent_type_vs
+    ADD CONSTRAINT provenance_agent_type_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_entity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_entity
+    ADD CONSTRAINT provenance_entity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_entity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_entity
+    ADD CONSTRAINT provenance_entity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_entity_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_entity_type
+    ADD CONSTRAINT provenance_entity_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_entity(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_entity_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_entity_type
+    ADD CONSTRAINT provenance_entity_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_entity_type_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_entity_type_vs
+    ADD CONSTRAINT provenance_entity_type_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_entity_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_entity_type_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_entity_type_vs
+    ADD CONSTRAINT provenance_entity_type_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_loc_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_loc
+    ADD CONSTRAINT provenance_loc_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_loc_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_loc
+    ADD CONSTRAINT provenance_loc_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_period
+    ADD CONSTRAINT provenance_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_period
+    ADD CONSTRAINT provenance_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_reason_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_reason_cd
+    ADD CONSTRAINT provenance_reason_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_reason(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_reason_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_reason_cd
+    ADD CONSTRAINT provenance_reason_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_reason_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_reason_cd_vs
+    ADD CONSTRAINT provenance_reason_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance_reason_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_reason_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_reason_cd_vs
+    ADD CONSTRAINT provenance_reason_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_reason_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_reason
+    ADD CONSTRAINT provenance_reason_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_reason_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_reason
+    ADD CONSTRAINT provenance_reason_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_target_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_target
+    ADD CONSTRAINT provenance_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_target_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_target
+    ADD CONSTRAINT provenance_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_text
+    ADD CONSTRAINT provenance_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: provenance_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY provenance_text
+    ADD CONSTRAINT provenance_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES provenance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: query_response_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY query_response
+    ADD CONSTRAINT query_response_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES query(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: query_response_reference_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY query_response_reference
+    ADD CONSTRAINT query_response_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES query_response(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: query_response_reference_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY query_response_reference
+    ADD CONSTRAINT query_response_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES query(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: query_response_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY query_response
+    ADD CONSTRAINT query_response_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES query(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: query_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY query_text
+    ADD CONSTRAINT query_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES query(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: query_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY query_text
+    ADD CONSTRAINT query_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES query(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_author_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_author
+    ADD CONSTRAINT questionnaire_author_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_author_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_author
+    ADD CONSTRAINT questionnaire_author_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_encounter_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_encounter
+    ADD CONSTRAINT questionnaire_encounter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_encounter_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_encounter
+    ADD CONSTRAINT questionnaire_encounter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_name_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_name_cd
+    ADD CONSTRAINT questionnaire_group_name_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_name(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_name_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_name_cd
+    ADD CONSTRAINT questionnaire_group_name_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_name_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_name_cd_vs
+    ADD CONSTRAINT questionnaire_group_name_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_name_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_name_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_name_cd_vs
+    ADD CONSTRAINT questionnaire_group_name_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_name_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_name
+    ADD CONSTRAINT questionnaire_group_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_name_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_name
+    ADD CONSTRAINT questionnaire_group_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group
+    ADD CONSTRAINT questionnaire_group_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_question_choice_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_question_choice
+    ADD CONSTRAINT questionnaire_group_question_choice_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_question_choice_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_question_choice
+    ADD CONSTRAINT questionnaire_group_question_choice_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_question_choice_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_question_choice_vs
+    ADD CONSTRAINT questionnaire_group_question_choice_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question_choice(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_question_choice_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_question_choice_vs
+    ADD CONSTRAINT questionnaire_group_question_choice_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_question_name_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_question_name_cd
+    ADD CONSTRAINT questionnaire_group_question_name_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question_name(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_question_name_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_question_name_cd
+    ADD CONSTRAINT questionnaire_group_question_name_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_question_name_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_question_name_cd_vs
+    ADD CONSTRAINT questionnaire_group_question_name_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question_name_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_question_name_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_question_name_cd_vs
+    ADD CONSTRAINT questionnaire_group_question_name_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_question_name_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_question_name
+    ADD CONSTRAINT questionnaire_group_question_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_question_name_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_question_name
+    ADD CONSTRAINT questionnaire_group_question_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_question_options_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_question_options
+    ADD CONSTRAINT questionnaire_group_question_options_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group_question(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_question_options_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_question_options
+    ADD CONSTRAINT questionnaire_group_question_options_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_question_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_question
+    ADD CONSTRAINT questionnaire_group_question_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_question_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_question
+    ADD CONSTRAINT questionnaire_group_question_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group
+    ADD CONSTRAINT questionnaire_group_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_subject
+    ADD CONSTRAINT questionnaire_group_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_group(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_group_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_group_subject
+    ADD CONSTRAINT questionnaire_group_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_idn_assigner
+    ADD CONSTRAINT questionnaire_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_idn_assigner
+    ADD CONSTRAINT questionnaire_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_idn
+    ADD CONSTRAINT questionnaire_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_idn_period
+    ADD CONSTRAINT questionnaire_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_idn_period
+    ADD CONSTRAINT questionnaire_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_idn
+    ADD CONSTRAINT questionnaire_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_name_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_name_cd
+    ADD CONSTRAINT questionnaire_name_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_name(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_name_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_name_cd
+    ADD CONSTRAINT questionnaire_name_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_name_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_name_cd_vs
+    ADD CONSTRAINT questionnaire_name_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire_name_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_name_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_name_cd_vs
+    ADD CONSTRAINT questionnaire_name_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_name_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_name
+    ADD CONSTRAINT questionnaire_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_name_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_name
+    ADD CONSTRAINT questionnaire_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_source_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_source
+    ADD CONSTRAINT questionnaire_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_source_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_source
+    ADD CONSTRAINT questionnaire_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_subject
+    ADD CONSTRAINT questionnaire_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_subject
+    ADD CONSTRAINT questionnaire_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_text
+    ADD CONSTRAINT questionnaire_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: questionnaire_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY questionnaire_text
+    ADD CONSTRAINT questionnaire_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES questionnaire(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_address_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_address
+    ADD CONSTRAINT related_person_address_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_address_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_address_period
+    ADD CONSTRAINT related_person_address_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_address(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_address_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_address_period
+    ADD CONSTRAINT related_person_address_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_address_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_address
+    ADD CONSTRAINT related_person_address_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_gender_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_gender_cd
+    ADD CONSTRAINT related_person_gender_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_gender(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_gender_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_gender_cd
+    ADD CONSTRAINT related_person_gender_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_gender_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_gender_cd_vs
+    ADD CONSTRAINT related_person_gender_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_gender_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_gender_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_gender_cd_vs
+    ADD CONSTRAINT related_person_gender_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_gender_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_gender
+    ADD CONSTRAINT related_person_gender_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_gender_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_gender
+    ADD CONSTRAINT related_person_gender_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_idn_assigner
+    ADD CONSTRAINT related_person_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_idn_assigner
+    ADD CONSTRAINT related_person_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_idn
+    ADD CONSTRAINT related_person_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_idn_period
+    ADD CONSTRAINT related_person_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_idn_period
+    ADD CONSTRAINT related_person_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_idn
+    ADD CONSTRAINT related_person_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_name_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_name
+    ADD CONSTRAINT related_person_name_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_name_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_name_period
+    ADD CONSTRAINT related_person_name_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_name(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_name_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_name_period
+    ADD CONSTRAINT related_person_name_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_name_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_name
+    ADD CONSTRAINT related_person_name_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_patient_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_patient
+    ADD CONSTRAINT related_person_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_patient_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_patient
+    ADD CONSTRAINT related_person_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_photo_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_photo
+    ADD CONSTRAINT related_person_photo_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_photo_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_photo
+    ADD CONSTRAINT related_person_photo_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_relationship_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_relationship_cd
+    ADD CONSTRAINT related_person_relationship_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_relationship(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_relationship_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_relationship_cd
+    ADD CONSTRAINT related_person_relationship_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_relationship_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_relationship_cd_vs
+    ADD CONSTRAINT related_person_relationship_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_relationship_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_relationship_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_relationship_cd_vs
+    ADD CONSTRAINT related_person_relationship_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_relationship_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_relationship
+    ADD CONSTRAINT related_person_relationship_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_relationship_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_relationship
+    ADD CONSTRAINT related_person_relationship_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_telecom_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_telecom
+    ADD CONSTRAINT related_person_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_telecom_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_telecom_period
+    ADD CONSTRAINT related_person_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person_telecom(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_telecom_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_telecom_period
+    ADD CONSTRAINT related_person_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_telecom_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_telecom
+    ADD CONSTRAINT related_person_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_text
+    ADD CONSTRAINT related_person_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: related_person_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY related_person_text
+    ADD CONSTRAINT related_person_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES related_person(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: resource_component_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY resource_component
+    ADD CONSTRAINT resource_component_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES resource_component(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: resource_component_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY resource_component
+    ADD CONSTRAINT resource_component_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES resource(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: resource_container_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY resource
+    ADD CONSTRAINT resource_container_id_fkey FOREIGN KEY (container_id) REFERENCES resource(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_event_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_event
+    ADD CONSTRAINT security_event_event_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_event_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_event
+    ADD CONSTRAINT security_event_event_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_event_subtype_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_event_subtype_cd
+    ADD CONSTRAINT security_event_event_subtype_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event_subtype(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_event_subtype_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_event_subtype_cd
+    ADD CONSTRAINT security_event_event_subtype_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_event_subtype_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_event_subtype_cd_vs
+    ADD CONSTRAINT security_event_event_subtype_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event_subtype_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_event_subtype_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_event_subtype_cd_vs
+    ADD CONSTRAINT security_event_event_subtype_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_event_subtype_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_event_subtype
+    ADD CONSTRAINT security_event_event_subtype_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_event_subtype_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_event_subtype
+    ADD CONSTRAINT security_event_event_subtype_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_event_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_event_type_cd
+    ADD CONSTRAINT security_event_event_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_event_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_event_type_cd
+    ADD CONSTRAINT security_event_event_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_event_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_event_type_cd_vs
+    ADD CONSTRAINT security_event_event_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_event_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_event_type_cd_vs
+    ADD CONSTRAINT security_event_event_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_event_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_event_type
+    ADD CONSTRAINT security_event_event_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_event_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_event_type
+    ADD CONSTRAINT security_event_event_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_detail_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_detail
+    ADD CONSTRAINT security_event_object_detail_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_detail_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_detail
+    ADD CONSTRAINT security_event_object_detail_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_idn_assigner
+    ADD CONSTRAINT security_event_object_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_idn_assigner
+    ADD CONSTRAINT security_event_object_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_idn
+    ADD CONSTRAINT security_event_object_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_idn_period
+    ADD CONSTRAINT security_event_object_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_idn_period
+    ADD CONSTRAINT security_event_object_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_idn
+    ADD CONSTRAINT security_event_object_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object
+    ADD CONSTRAINT security_event_object_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_reference_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_reference
+    ADD CONSTRAINT security_event_object_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_reference_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_reference
+    ADD CONSTRAINT security_event_object_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object
+    ADD CONSTRAINT security_event_object_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_sensitivity_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_sensitivity_cd
+    ADD CONSTRAINT security_event_object_sensitivity_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object_sensitivity(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_sensitivity_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_sensitivity_cd
+    ADD CONSTRAINT security_event_object_sensitivity_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_sensitivity_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_sensitivity_cd_vs
+    ADD CONSTRAINT security_event_object_sensitivity_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object_sensitivity_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_sensitivity_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_sensitivity_cd_vs
+    ADD CONSTRAINT security_event_object_sensitivity_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_sensitivity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_sensitivity
+    ADD CONSTRAINT security_event_object_sensitivity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_object(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_object_sensitivity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_object_sensitivity
+    ADD CONSTRAINT security_event_object_sensitivity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_media_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant_media
+    ADD CONSTRAINT security_event_participant_media_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_media_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant_media
+    ADD CONSTRAINT security_event_participant_media_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_media_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant_media_vs
+    ADD CONSTRAINT security_event_participant_media_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant_media(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_media_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant_media_vs
+    ADD CONSTRAINT security_event_participant_media_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_network_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant_network
+    ADD CONSTRAINT security_event_participant_network_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_network_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant_network
+    ADD CONSTRAINT security_event_participant_network_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant
+    ADD CONSTRAINT security_event_participant_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_reference_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant_reference
+    ADD CONSTRAINT security_event_participant_reference_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_reference_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant_reference
+    ADD CONSTRAINT security_event_participant_reference_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant
+    ADD CONSTRAINT security_event_participant_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_role_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant_role_cd
+    ADD CONSTRAINT security_event_participant_role_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant_role(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_role_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant_role_cd
+    ADD CONSTRAINT security_event_participant_role_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_role_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant_role_cd_vs
+    ADD CONSTRAINT security_event_participant_role_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant_role_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_role_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant_role_cd_vs
+    ADD CONSTRAINT security_event_participant_role_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_role_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant_role
+    ADD CONSTRAINT security_event_participant_role_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_participant(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_participant_role_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_participant_role
+    ADD CONSTRAINT security_event_participant_role_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_source_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_source
+    ADD CONSTRAINT security_event_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_source_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_source
+    ADD CONSTRAINT security_event_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_source_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_source_type
+    ADD CONSTRAINT security_event_source_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_source(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_source_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_source_type
+    ADD CONSTRAINT security_event_source_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_source_type_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_source_type_vs
+    ADD CONSTRAINT security_event_source_type_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event_source_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_source_type_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_source_type_vs
+    ADD CONSTRAINT security_event_source_type_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_text
+    ADD CONSTRAINT security_event_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: security_event_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY security_event_text
+    ADD CONSTRAINT security_event_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES security_event(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_accession_identifier_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_accession_identifier_assigner
+    ADD CONSTRAINT specimen_accession_identifier_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_accession_identifier(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_accession_identifier_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_accession_identifier_assigner
+    ADD CONSTRAINT specimen_accession_identifier_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_accession_identifier_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_accession_identifier
+    ADD CONSTRAINT specimen_accession_identifier_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_accession_identifier_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_accession_identifier_period
+    ADD CONSTRAINT specimen_accession_identifier_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_accession_identifier(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_accession_identifier_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_accession_identifier_period
+    ADD CONSTRAINT specimen_accession_identifier_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_accession_identifier_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_accession_identifier
+    ADD CONSTRAINT specimen_accession_identifier_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_collected_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_collected_period
+    ADD CONSTRAINT specimen_collection_collected_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_collected_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_collected_period
+    ADD CONSTRAINT specimen_collection_collected_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_collector_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_collector
+    ADD CONSTRAINT specimen_collection_collector_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_collector_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_collector
+    ADD CONSTRAINT specimen_collection_collector_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_method_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_method_cd
+    ADD CONSTRAINT specimen_collection_method_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection_method(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_method_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_method_cd
+    ADD CONSTRAINT specimen_collection_method_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_method_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_method_cd_vs
+    ADD CONSTRAINT specimen_collection_method_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection_method_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_method_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_method_cd_vs
+    ADD CONSTRAINT specimen_collection_method_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_method_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_method
+    ADD CONSTRAINT specimen_collection_method_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_method_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_method
+    ADD CONSTRAINT specimen_collection_method_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection
+    ADD CONSTRAINT specimen_collection_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_quantity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_quantity
+    ADD CONSTRAINT specimen_collection_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_quantity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_quantity
+    ADD CONSTRAINT specimen_collection_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection
+    ADD CONSTRAINT specimen_collection_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_source_site_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_source_site_cd
+    ADD CONSTRAINT specimen_collection_source_site_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection_source_site(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_source_site_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_source_site_cd
+    ADD CONSTRAINT specimen_collection_source_site_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_source_site_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_source_site_cd_vs
+    ADD CONSTRAINT specimen_collection_source_site_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection_source_site_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_source_site_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_source_site_cd_vs
+    ADD CONSTRAINT specimen_collection_source_site_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_source_site_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_source_site
+    ADD CONSTRAINT specimen_collection_source_site_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_collection(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_collection_source_site_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_collection_source_site
+    ADD CONSTRAINT specimen_collection_source_site_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_additive_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_additive
+    ADD CONSTRAINT specimen_container_additive_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_additive_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_additive
+    ADD CONSTRAINT specimen_container_additive_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_capacity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_capacity
+    ADD CONSTRAINT specimen_container_capacity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_capacity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_capacity
+    ADD CONSTRAINT specimen_container_capacity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_idn_assigner
+    ADD CONSTRAINT specimen_container_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_idn_assigner
+    ADD CONSTRAINT specimen_container_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_idn
+    ADD CONSTRAINT specimen_container_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_idn_period
+    ADD CONSTRAINT specimen_container_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_idn_period
+    ADD CONSTRAINT specimen_container_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_idn
+    ADD CONSTRAINT specimen_container_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container
+    ADD CONSTRAINT specimen_container_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container
+    ADD CONSTRAINT specimen_container_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_specimen_quantity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_specimen_quantity
+    ADD CONSTRAINT specimen_container_specimen_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_specimen_quantity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_specimen_quantity
+    ADD CONSTRAINT specimen_container_specimen_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_type_cd
+    ADD CONSTRAINT specimen_container_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_type_cd
+    ADD CONSTRAINT specimen_container_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_type_cd_vs
+    ADD CONSTRAINT specimen_container_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_type_cd_vs
+    ADD CONSTRAINT specimen_container_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_type
+    ADD CONSTRAINT specimen_container_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_container(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_container_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_container_type
+    ADD CONSTRAINT specimen_container_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_idn_assigner
+    ADD CONSTRAINT specimen_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_idn_assigner
+    ADD CONSTRAINT specimen_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_idn
+    ADD CONSTRAINT specimen_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_idn_period
+    ADD CONSTRAINT specimen_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_idn_period
+    ADD CONSTRAINT specimen_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_idn
+    ADD CONSTRAINT specimen_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_source_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_source
+    ADD CONSTRAINT specimen_source_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_source_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_source
+    ADD CONSTRAINT specimen_source_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_source_target_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_source_target
+    ADD CONSTRAINT specimen_source_target_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_source(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_source_target_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_source_target
+    ADD CONSTRAINT specimen_source_target_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_subject_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_subject
+    ADD CONSTRAINT specimen_subject_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_subject_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_subject
+    ADD CONSTRAINT specimen_subject_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_text
+    ADD CONSTRAINT specimen_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_text
+    ADD CONSTRAINT specimen_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_treatment_additive_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_treatment_additive
+    ADD CONSTRAINT specimen_treatment_additive_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_treatment(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_treatment_additive_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_treatment_additive
+    ADD CONSTRAINT specimen_treatment_additive_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_treatment_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_treatment
+    ADD CONSTRAINT specimen_treatment_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_treatment_procedure_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_treatment_procedure_cd
+    ADD CONSTRAINT specimen_treatment_procedure_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_treatment_procedure(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_treatment_procedure_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_treatment_procedure_cd
+    ADD CONSTRAINT specimen_treatment_procedure_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_treatment_procedure_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_treatment_procedure_cd_vs
+    ADD CONSTRAINT specimen_treatment_procedure_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_treatment_procedure_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_treatment_procedure_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_treatment_procedure_cd_vs
+    ADD CONSTRAINT specimen_treatment_procedure_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_treatment_procedure_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_treatment_procedure
+    ADD CONSTRAINT specimen_treatment_procedure_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_treatment(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_treatment_procedure_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_treatment_procedure
+    ADD CONSTRAINT specimen_treatment_procedure_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_treatment_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_treatment
+    ADD CONSTRAINT specimen_treatment_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_type_cd
+    ADD CONSTRAINT specimen_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_type_cd
+    ADD CONSTRAINT specimen_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_type_cd_vs
+    ADD CONSTRAINT specimen_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_type_cd_vs
+    ADD CONSTRAINT specimen_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_type
+    ADD CONSTRAINT specimen_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: specimen_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY specimen_type
+    ADD CONSTRAINT specimen_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES specimen(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_ingredient_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_ingredient
+    ADD CONSTRAINT substance_ingredient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_ingredient_quantity_denominator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_ingredient_quantity_denominator
+    ADD CONSTRAINT substance_ingredient_quantity_denominator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_ingredient_quantity(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_ingredient_quantity_denominator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_ingredient_quantity_denominator
+    ADD CONSTRAINT substance_ingredient_quantity_denominator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_ingredient_quantity_numerator_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_ingredient_quantity_numerator
+    ADD CONSTRAINT substance_ingredient_quantity_numerator_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_ingredient_quantity(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_ingredient_quantity_numerator_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_ingredient_quantity_numerator
+    ADD CONSTRAINT substance_ingredient_quantity_numerator_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_ingredient_quantity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_ingredient_quantity
+    ADD CONSTRAINT substance_ingredient_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_ingredient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_ingredient_quantity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_ingredient_quantity
+    ADD CONSTRAINT substance_ingredient_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_ingredient_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_ingredient
+    ADD CONSTRAINT substance_ingredient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_ingredient_substance_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_ingredient_substance
+    ADD CONSTRAINT substance_ingredient_substance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_ingredient(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_ingredient_substance_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_ingredient_substance
+    ADD CONSTRAINT substance_ingredient_substance_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_instance_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_instance_idn_assigner
+    ADD CONSTRAINT substance_instance_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_instance_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_instance_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_instance_idn_assigner
+    ADD CONSTRAINT substance_instance_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_instance_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_instance_idn
+    ADD CONSTRAINT substance_instance_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_instance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_instance_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_instance_idn_period
+    ADD CONSTRAINT substance_instance_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_instance_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_instance_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_instance_idn_period
+    ADD CONSTRAINT substance_instance_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_instance_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_instance_idn
+    ADD CONSTRAINT substance_instance_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_instance_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_instance
+    ADD CONSTRAINT substance_instance_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_instance_quantity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_instance_quantity
+    ADD CONSTRAINT substance_instance_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_instance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_instance_quantity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_instance_quantity
+    ADD CONSTRAINT substance_instance_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_instance_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_instance
+    ADD CONSTRAINT substance_instance_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_text
+    ADD CONSTRAINT substance_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_text
+    ADD CONSTRAINT substance_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_type_cd
+    ADD CONSTRAINT substance_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_type_cd
+    ADD CONSTRAINT substance_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_type_cd_vs
+    ADD CONSTRAINT substance_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_type_cd_vs
+    ADD CONSTRAINT substance_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_type
+    ADD CONSTRAINT substance_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: substance_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY substance_type
+    ADD CONSTRAINT substance_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES substance(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_destination_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_destination
+    ADD CONSTRAINT supply_dispense_destination_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_destination_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_destination
+    ADD CONSTRAINT supply_dispense_destination_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_idn_assigner
+    ADD CONSTRAINT supply_dispense_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_idn_assigner
+    ADD CONSTRAINT supply_dispense_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_idn
+    ADD CONSTRAINT supply_dispense_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_idn_period
+    ADD CONSTRAINT supply_dispense_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_idn_period
+    ADD CONSTRAINT supply_dispense_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_idn
+    ADD CONSTRAINT supply_dispense_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense
+    ADD CONSTRAINT supply_dispense_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_quantity_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_quantity
+    ADD CONSTRAINT supply_dispense_quantity_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_quantity_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_quantity
+    ADD CONSTRAINT supply_dispense_quantity_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_receiver_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_receiver
+    ADD CONSTRAINT supply_dispense_receiver_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_receiver_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_receiver
+    ADD CONSTRAINT supply_dispense_receiver_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense
+    ADD CONSTRAINT supply_dispense_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_supplied_item_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_supplied_item
+    ADD CONSTRAINT supply_dispense_supplied_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_supplied_item_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_supplied_item
+    ADD CONSTRAINT supply_dispense_supplied_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_supplier_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_supplier
+    ADD CONSTRAINT supply_dispense_supplier_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_supplier_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_supplier
+    ADD CONSTRAINT supply_dispense_supplier_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_type_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_type_cd
+    ADD CONSTRAINT supply_dispense_type_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense_type(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_type_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_type_cd
+    ADD CONSTRAINT supply_dispense_type_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_type_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_type_cd_vs
+    ADD CONSTRAINT supply_dispense_type_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense_type_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_type_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_type_cd_vs
+    ADD CONSTRAINT supply_dispense_type_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_type_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_type
+    ADD CONSTRAINT supply_dispense_type_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_type_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_type
+    ADD CONSTRAINT supply_dispense_type_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_when_handed_over_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_when_handed_over
+    ADD CONSTRAINT supply_dispense_when_handed_over_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_when_handed_over_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_when_handed_over
+    ADD CONSTRAINT supply_dispense_when_handed_over_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_when_prepared_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_when_prepared
+    ADD CONSTRAINT supply_dispense_when_prepared_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_dispense(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_dispense_when_prepared_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_dispense_when_prepared
+    ADD CONSTRAINT supply_dispense_when_prepared_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_idn_assigner
+    ADD CONSTRAINT supply_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_idn_assigner
+    ADD CONSTRAINT supply_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_idn
+    ADD CONSTRAINT supply_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_idn_period
+    ADD CONSTRAINT supply_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_idn_period
+    ADD CONSTRAINT supply_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_idn
+    ADD CONSTRAINT supply_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_kind_cd_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_kind_cd
+    ADD CONSTRAINT supply_kind_cd_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_kind(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_kind_cd_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_kind_cd
+    ADD CONSTRAINT supply_kind_cd_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_kind_cd_vs_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_kind_cd_vs
+    ADD CONSTRAINT supply_kind_cd_vs_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply_kind_cd(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_kind_cd_vs_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_kind_cd_vs
+    ADD CONSTRAINT supply_kind_cd_vs_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_kind_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_kind
+    ADD CONSTRAINT supply_kind_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_kind_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_kind
+    ADD CONSTRAINT supply_kind_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_ordered_item_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_ordered_item
+    ADD CONSTRAINT supply_ordered_item_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_ordered_item_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_ordered_item
+    ADD CONSTRAINT supply_ordered_item_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_patient_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_patient
+    ADD CONSTRAINT supply_patient_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_patient_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_patient
+    ADD CONSTRAINT supply_patient_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_text
+    ADD CONSTRAINT supply_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: supply_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY supply_text
+    ADD CONSTRAINT supply_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES supply(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_compose_include_filter_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_compose_include_filter
+    ADD CONSTRAINT vs_compose_include_filter_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_compose_include(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_compose_include_filter_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_compose_include_filter
+    ADD CONSTRAINT vs_compose_include_filter_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_compose_include_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_compose_include
+    ADD CONSTRAINT vs_compose_include_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_compose(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_compose_include_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_compose_include
+    ADD CONSTRAINT vs_compose_include_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_compose_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_compose
+    ADD CONSTRAINT vs_compose_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_compose_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_compose
+    ADD CONSTRAINT vs_compose_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_define_concept_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_define_concept
+    ADD CONSTRAINT vs_define_concept_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_define(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_define_concept_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_define_concept
+    ADD CONSTRAINT vs_define_concept_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_define_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_define
+    ADD CONSTRAINT vs_define_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_define_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_define
+    ADD CONSTRAINT vs_define_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_expansion_contains_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_expansion_contains
+    ADD CONSTRAINT vs_expansion_contains_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_expansion(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_expansion_contains_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_expansion_contains
+    ADD CONSTRAINT vs_expansion_contains_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_expansion_idn_assigner_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_expansion_idn_assigner
+    ADD CONSTRAINT vs_expansion_idn_assigner_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_expansion_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_expansion_idn_assigner_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_expansion_idn_assigner
+    ADD CONSTRAINT vs_expansion_idn_assigner_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_expansion_idn_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_expansion_idn
+    ADD CONSTRAINT vs_expansion_idn_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_expansion(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_expansion_idn_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_expansion_idn_period
+    ADD CONSTRAINT vs_expansion_idn_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_expansion_idn(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_expansion_idn_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_expansion_idn_period
+    ADD CONSTRAINT vs_expansion_idn_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_expansion_idn_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_expansion_idn
+    ADD CONSTRAINT vs_expansion_idn_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_expansion_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_expansion
+    ADD CONSTRAINT vs_expansion_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_expansion_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_expansion
+    ADD CONSTRAINT vs_expansion_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_telecom_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_telecom
+    ADD CONSTRAINT vs_telecom_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_telecom_period_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_telecom_period
+    ADD CONSTRAINT vs_telecom_period_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs_telecom(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_telecom_period_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_telecom_period
+    ADD CONSTRAINT vs_telecom_period_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_telecom_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_telecom
+    ADD CONSTRAINT vs_telecom_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_text_parent_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_text
+    ADD CONSTRAINT vs_text_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
+
+
+--
+-- Name: vs_text_resource_id_fkey; Type: FK CONSTRAINT; Schema: fhir; Owner: -
+--
+
+ALTER TABLE ONLY vs_text
+    ADD CONSTRAINT vs_text_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES vs(_id) ON DELETE CASCADE DEFERRABLE;
 
 
 SET search_path = meta, pg_catalog;
