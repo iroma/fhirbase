@@ -4,6 +4,11 @@ Open source relational storage for [FHIR](http://hl7.org/implement/standards/fhi
 
 [![Build Status](https://travis-ci.org/fhirbase/fhirbase.png?branch=refactor)](https://travis-ci.org/fhirbase/fhirbase)
 
+
+Sponsored by:
+
+![choice-hs.com](http://choice-hs.com/Images/Shared/Choice-HSLogo.png)
+
 ## Live Demo
 
 Here is an [interactive demo](http://try-fhirbase.hospital-systems.com)
