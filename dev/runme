@@ -1,7 +1,16 @@
 #!/bin/bash
 
-# set configuration file or use config.sh
-CFG_FILE='cfg/config.sh'
+echo $*
+if [ -n "$RUN_GUEST" ]; then
+  #TODO: auto vagrant up
+  command='cd /home/vagrant/fhirbase && CFG_FILE=cfg/config.sh.vagrant ./runme '$*
+  vagrant ssh --command "$command"
+  exit
+elif [ -z "$CFG_FILE" ]; then
+  # set configuration file or use config.sh
+  CFG_FILE='cfg/config.sh'
+fi
+
 while getopts ":c:" opt; do
     case $opt in
         c)
