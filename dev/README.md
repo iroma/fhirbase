@@ -110,7 +110,7 @@ See more about [pgtap](http://pgtap.org/).
 
 You can run tests with `./runme test [test_name_part]`
 or in vagrant
-`vagrant ssh -c 'cd fhirbase && ./runme -c cfg/config.sh.vagrant test [test_name_part]`.
+`RUN_VAGRANT=true ./runme test [test_name_part]`
 
 ### Contribution
 
