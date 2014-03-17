@@ -41,8 +41,8 @@ Vagrant will downloads box (virtual or lxc - depends on your system),
 start it and provisions with bootstrap.sh script,
 which will install everything you need.
 
-TODO: ports from vagrant to local machine
-TODO: ports from vagrant to local machine
+Вы можете обращаться к постгресу, запущенному внутри виртуальной машины, со след. параметрами:
+-h localhost -p 5433 -U vagrant [database]
 
 
 ### Install locally & manually
