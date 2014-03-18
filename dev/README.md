@@ -41,8 +41,8 @@ Vagrant will downloads box (virtual or lxc - depends on your system),
 start it and provisions with bootstrap.sh script,
 which will install everything you need.
 
-Вы можете обращаться к постгресу, запущенному внутри виртуальной машины, со след. параметрами:
--h localhost -p 5433 -U vagrant [database]
+You can connect to vagrant's postgresql:
+`psql -h localhost -p 5433 -U vagrant fhirbase`
 
 
 ### Install locally & manually
