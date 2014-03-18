@@ -81,7 +81,7 @@ function test_cmd {
 
     if [ "$glob" = "" ]; then
         glob="$FHIRBASE_HOME/test/*_test.sql";
-        pg_prove_args='-v';
+        #pg_prove_args='-v';
     fi
 
     export TEST_DB_NAME

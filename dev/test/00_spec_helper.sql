@@ -19,3 +19,4 @@ create database :test_db_name;
 
 \c :test_db_name
 CREATE EXTENSION IF NOT EXISTS pgtap ;
+SET log_statement TO 'none';
