@@ -29,6 +29,7 @@ if [ ! -d /tmp/pgtap ]; then
   echo y | sudo perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP' || echo 'CPAN :( - hope it will work'
 fi
 
-
 # only for vagrant
-sudo su -l vagrant -c 'cd /home/vagrant/fhirbase  && ./runme -c cfg/config.sh.vagrant test'
+#sudo su -l vagrant -c 'cd /home/vagrant/fhirbase  && ./runme -c cfg/config.sh.vagrant test'
+sudo su -l vagrant -c 'psql template1 -c "CREATE DATABASE fhirbase"'
+sudo su -l vagrant -c 'cd /home/vagrant/fhirbase && ./runme -c cfg/config.sh.vagrant install fhirbase'
