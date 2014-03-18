@@ -50,9 +50,7 @@ SELECT
  WHERE table_name NOT IN ('resource', 'backbone_element')
 );
 
-SELECT 'create datatypes...' FROM (
-  SELECT meta.eval_ddl(ddl) FROM meta.datatypes_ddl
-) _;
+SELECT meta.eval_ddl(ddl) FROM meta.datatypes_ddl;
 
 CREATE VIEW meta.resources_ddl AS (
 SELECT
@@ -76,8 +74,5 @@ SELECT
   WHERE table_name !~ '^profile'
 );
 
-
-SELECT 'create resource tables...' FROM (
-  SELECT meta.eval_ddl(unnest)
-    FROM ( SELECT unnest(ddls) FROM meta.resources_ddl) _
-)_;
+SELECT meta.eval_ddl(unnest)
+  FROM ( SELECT unnest(ddls) FROM meta.resources_ddl) _;
