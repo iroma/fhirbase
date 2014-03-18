@@ -2,7 +2,7 @@
 
 Open source relational storage for [FHIR](http://hl7.org/implement/standards/fhir/) with documented API
 
-[![Build Status](https://travis-ci.org/fhirbase/fhirbase.png?branch=refactor)](https://travis-ci.org/fhirbase/fhirbase)
+[![Build Status](https://travis-ci.org/fhirbase/fhirbase.png?branch=master)](https://travis-ci.org/fhirbase/fhirbase)
 
 
 Sponsored by:
@@ -136,8 +136,7 @@ Base table for all resource aggregate root tables
       resource_type character varying, -- resourceType see FHIR documentation
       language character varying, -- see FHIR documentation
       container_id uuid, -- not null and references aggregating resource if resource is contained
-      contained_id character varying, -- original contained id from resource aggregate
-      created_at timestamp without time zone DEFAULT now() -- timestamp field
+      contained_id character varying -- original contained id from resource aggregate
   );
 ```
 
@@ -167,21 +166,21 @@ Here is mapping table for primitive types from FHIR to postgresql:
   );
 
   COPY type_to_pg_type (type, pg_type) FROM stdin;
-  code         	varchar
-  date_time         	timestamp
-  string         	varchar
-  text         	text
-  uri                  	varchar
-  datetime         	timestamp
-  instant      	timestamp
-  boolean       	boolean
-  base64_binary	bytea
-  integer         	integer
-  decimal         	decimal
-  sampled_data_data_type	text
-  date         	date
-  id                  	varchar
-  oid	               varchar
+    code	varchar
+    date_time	timestamp
+    string	varchar
+    text	text
+    uri		varchar
+    datetime	timestamp
+    instant	timestamp
+    boolean	boolean
+    base64_binary	bytea
+    integer	integer
+    decimal	decimal
+    sampled_data_data_type	text
+    date	date
+    id	varchar
+    oid	varchar
   \.
 
 ```
@@ -355,7 +354,7 @@ TODO: we should think about versioning!
 psql -d postgres -e 'create database mydb'`
 
 # Download fhirbase.sql from repository backup and restore using psql
-curl https://raw.github.com/fhirbase/fhirbase/refactor/fhirbase.sql | psql -d mydb
+curl https://raw.github.com/fhirbase/fhirbase/master/fhirbase.sql | psql -d mydb
 
 # check installation
 
