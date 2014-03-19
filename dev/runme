@@ -60,11 +60,11 @@ function install_cmd {
 }
 
 function recreate_db {
-    echo "DROP DATABASE $1; CREATE DATABASE $1;" | psql $PSQL_ARGS -d postgres;
+    echo "DROP DATABASE IF EXISTS $1; CREATE DATABASE $1;" | psql $PSQL_ARGS -d postgres;
 }
 
 function drop_db {
-    psql $PSQL_ARGS -d template1 -c "DROP DATABASE $1";
+    psql $PSQL_ARGS -d template1 -c "DROP DATABASE IF EXISTS $1";
 }
 
 function test_cmd {
