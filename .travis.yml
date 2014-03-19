@@ -12,4 +12,4 @@ before_script:
   - sudo pg_lsclusters
   # - echo y | sudo perl -MCPAN -e 'install TAP::Parser::SourceHandler::pgTAP' || echo 'CPAN CPANich :( - hope will work'
 
-script: export PERL5LIB=/home/travis/perl5/lib/perl5 && cd $TRAVIS_BUILD_DIR/dev && ./runme -c cfg/config.sh.travis test && ./runme -c cfg/config.sh.travis build
+script: export PERL5LIB=/home/travis/perl5/lib/perl5 && cd $TRAVIS_BUILD_DIR/dev && ./runme -c cfg/config.sh.travis test #&& ./runme -c cfg/config.sh.travis build
