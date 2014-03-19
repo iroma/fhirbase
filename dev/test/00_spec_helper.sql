@@ -14,7 +14,7 @@
 
 \c postgres
 \set test_db_name `echo $TEST_DB_NAME`
-drop database :test_db_name;
+drop database if exists :test_db_name;
 create database :test_db_name;
 
 \c :test_db_name
