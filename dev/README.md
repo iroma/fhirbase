@@ -41,7 +41,9 @@ Vagrant will downloads box (virtual or lxc - depends on your system),
 start it and provisions with bootstrap.sh script,
 which will install everything you need.
 
-You can connect to vagrant's postgresql:
+By configuration vagrant is forwards 5433 port to your local host (you can change port in Vagrantfile).
+So you can connect to `fhir` database inside vagrant vm with user `vagrant`:
+
 `psql -h localhost -p 5433 -U vagrant fhirbase`
 
 
