@@ -5,6 +5,8 @@ Open source relational storage for [FHIR](http://hl7.org/implement/standards/fhi
 [![Build Status](https://travis-ci.org/fhirbase/fhirbase.png?branch=master)](https://travis-ci.org/fhirbase/fhirbase)
 
 
+Powered by [Health Samurai](http://healthsamurai.github.io/)
+
 Sponsored by:
 
 ![choice-hs.com](http://choice-hs.com/Images/Shared/Choice-HSLogo.png)
