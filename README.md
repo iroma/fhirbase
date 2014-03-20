@@ -1,6 +1,6 @@
 # FHIRbase
 
-Open source relational storage for [FHIR](http://hl7.org/implement/standards/fhir/) with documented API
+Open source relational storage for [FHIR](http://hl7.org/implement/standards/fhir/) with document API
 
 [![Build Status](https://travis-ci.org/fhirbase/fhirbase.png?branch=master)](https://travis-ci.org/fhirbase/fhirbase)
 
