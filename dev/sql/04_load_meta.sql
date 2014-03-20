@@ -115,3 +115,9 @@ select
     SELECT unnest(fpath('//fh:structure/fh:element', :'fhir')) as el
   ) els
 ;
+INSERT INTO meta.resource_elements
+ (version, path, min, max, type, schema)
+VALUES
+('0.12', ARRAY['Patient', 'attr'], '0', '1', ARRAY['string'], 'exta'),
+('0.12', ARRAY['Patient', 'attr'], '0', '1', ARRAY['string'], 'extb')
+;

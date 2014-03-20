@@ -19,7 +19,7 @@ CREATE VIEW meta.enums_ddl AS(
   FROM meta.enums
 );
 
-SELECT  meta.eval_ddl(ddl) FROM meta.enums_ddl;
+SELECT meta.eval_ddl(ddl) FROM meta.enums_ddl;
 
 CREATE TABLE fhir.resource (
   _id UUID PRIMARY KEY,
@@ -56,18 +56,18 @@ CREATE VIEW meta.resources_ddl AS (
 SELECT
   ARRAY[
        'CREATE TABLE'
-    || ' fhir."' || table_name  || '"'
+    || ' "' || schema || '"."' || table_name  || '"'
     || '(' || array_to_string(columns, ',') || ')'
     || ' INHERITS (fhir.' || base_table || ')'
-  , 'ALTER TABLE fhir.' || table_name || ' ALTER COLUMN _type SET DEFAULT $$' || table_name || '$$'
-  ,'ALTER TABLE fhir.' || table_name || ' ADD PRIMARY KEY (_id)'
+  , 'ALTER TABLE ' || schema || '.' || table_name || ' ALTER COLUMN _type SET DEFAULT $$' || table_name || '$$'
+  ,'ALTER TABLE ' || schema || '.' || table_name || ' ADD PRIMARY KEY (_id)'
   ,CASE WHEN base_table = 'resource'
      THEN  --'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (container_id) REFERENCES fhir.resource (_id) ON DELETE CASCADE DEFERRABLE;' || -- problem with inheretance & foreign keys
-          'CREATE INDEX ON fhir.' || table_name || ' (container_id);'
-     ELSE    'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (resource_id) REFERENCES fhir.' || resource_table_name || ' (_id) ON DELETE CASCADE DEFERRABLE;'
-          || 'CREATE INDEX ON fhir.' || table_name || ' (resource_id);'
-          || 'ALTER TABLE fhir.' || table_name || ' ADD FOREIGN KEY (parent_id) REFERENCES fhir.' || parent_table_name || ' (_id) ON DELETE CASCADE DEFERRABLE;'
-          || 'CREATE INDEX ON fhir.' || table_name || ' (parent_id);'
+          'CREATE INDEX ON ' || schema || '.' || table_name || ' (container_id);'
+     ELSE    'ALTER TABLE ' || schema || '.' || table_name || ' ADD FOREIGN KEY (resource_id) REFERENCES fhir.' || resource_table_name || ' (_id) ON DELETE CASCADE DEFERRABLE;'
+          || 'CREATE INDEX ON ' || schema || '.' || table_name || ' (resource_id);'
+          || 'ALTER TABLE ' || schema || '.' || table_name || ' ADD FOREIGN KEY (parent_id) REFERENCES ' || parent_schema || '.' || parent_table_name || ' (_id) ON DELETE CASCADE DEFERRABLE;'
+          || 'CREATE INDEX ON ' || schema || '.' || table_name || ' (parent_id);'
      END
   ] AS ddls
   FROM meta.resource_tables

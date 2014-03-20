@@ -34,6 +34,10 @@
     "label":"SSN",
     "system":"urn:oid:2.16.840.1.113883.2.4.6.7",
     "value":"123456789"}],
+  "extension": [
+    {"url": "http://fhirbase.com/extension/exta#attr", "valueString": "value-exta"},
+    {"url": "http://fhirbase.com/extension/extb#attr", "valueString": "value-extb"}
+  ],
   "name":[
   {"use":"official",
     "text":"Roel",

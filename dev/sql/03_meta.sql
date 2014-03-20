@@ -37,7 +37,8 @@ CREATE TABLE meta.resource_elements (
   min varchar,
   max varchar,
   type varchar[],
-  PRIMARY KEY(path)
+  schema varchar default 'fhir',
+  PRIMARY KEY(path, schema)
 );
 
 CREATE TABLE meta.type_to_pg_type (
@@ -62,3 +63,13 @@ VALUES
 ('date', 'date'),
 ('id', 'varchar'),
 ('oid', 'varchar');
+
+-- extensions
+CREATE TABLE meta.extensions (
+  name varchar,
+  schema varchar
+);
+INSERT INTO meta.extensions (name, schema)
+VALUES
+('http://fhirbase.com/extension/exta', 'exta'),
+('http://fhirbase.com/extension/extb', 'extb');

@@ -8,7 +8,8 @@ VIEW meta.expanded_resource_elements as (
     array_pop(path) || ARRAY[column_name(array_last(path), type)] as path,
     type,
     min,
-    max
+    max,
+    schema
   FROM (
     SELECT
       path,
@@ -17,7 +18,8 @@ VIEW meta.expanded_resource_elements as (
         ELSE unnest(type)
       END as type,
       min,
-      max
+      max,
+      schema
     FROM meta.resource_elements
   ) e
   WHERE type not in ('Extension', 'contained') OR type is null
@@ -30,6 +32,7 @@ VIEW meta.compound_resource_elements as (
   SELECT a.*
          ,ere.min
          ,ere.max
+         ,ere.schema
     FROM (
             SELECT DISTINCT
               array_pop(path) as path
@@ -50,7 +53,8 @@ CREATE MATERIALIZED VIEW meta.resource_columns as (
       tt.pg_type as pg_type,
       column_ddl(array_last(e.path), tt.pg_type, e.min::varchar, e.max) as column_ddl,
       e.min,
-      e.max
+      e.max,
+      e.schema
     FROM meta.expanded_resource_elements e
     JOIN meta.type_to_pg_type tt ON tt.type = underscore(e.type)
 );
@@ -69,7 +73,8 @@ VIEW meta.expanded_with_dt_resource_elements as (
       CASE WHEN array_length(t.path,1) = 1
         THEN e.max
         ELSE t.max
-      END AS max
+      END AS max,
+      e.schema
     FROM meta.expanded_resource_elements e
     JOIN meta.unified_complex_datatype t
     ON t.path[1] = e.type
@@ -92,10 +97,12 @@ VIEW meta.resource_tables as (
     coalesce((
       SELECT array_agg(column_ddl)
         FROM meta.resource_columns rc
-       WHERE array_pop(rc.path) = e.path
+       WHERE array_pop(rc.path) = e.path and rc.schema = e.schema
     ), ARRAY[]::varchar[]) as columns
     ,min
     ,max
+    ,schema
+    ,'fhir' as parent_schema
   FROM meta.compound_resource_elements e
   UNION
   SELECT
@@ -107,6 +114,8 @@ VIEW meta.resource_tables as (
     ,array[]::varchar[] as columns
     ,min
     ,max
+    ,schema
+    ,'fhir' as parent_schema
   FROM meta.expanded_with_dt_resource_elements
 );
 
