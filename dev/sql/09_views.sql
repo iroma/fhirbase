@@ -6,7 +6,8 @@ SELECT * FROM (
   r.path || t.subpath AS path,
   underscore(COALESCE(t.type, r.type)) AS type,
   COALESCE(t.min, r.min) AS min,
-  COALESCE(t.max, r.max) AS max
+  COALESCE(t.max, r.max) AS max,
+  r.schema
   FROM (
     SELECT *
     FROM meta.expanded_resource_elements
@@ -15,8 +16,8 @@ SELECT * FROM (
     SELECT path[1] AS type_name, array_tail(path) AS subpath, *
     FROM meta.datatype_unified_elements
   ) t ON underscore(t.type_name) = underscore(r.type)
-  UNION SELECT r.path, underscore(r.type), r.min, r.max FROM (
-    SELECT path, type, min, max
+  UNION SELECT r.path, underscore(r.type), r.min, r.max, r.schema FROM (
+    SELECT path, type, min, max, schema
     FROM meta.expanded_resource_elements
   ) r
 ) w ORDER BY array_to_string(w.path, '_');
@@ -61,19 +62,19 @@ CREATE OR REPLACE FUNCTION gen_select_sql(var_path varchar[], schm varchar)
     SELECT n."max" = '*'
     INTO isArray
     FROM meta.resource_elements_expanded_with_types n
-    WHERE n.path = var_path;
+    WHERE n.path = var_path and n.schema = 'fhir';
 
     SELECT array_to_string(array_agg('t' || level::varchar || '."' || underscore(fhir.array_last(n.path)) || '" as "' || camelize(fhir.array_last(n.path)) || '"'), ', ')
     INTO columns
     FROM meta.resource_elements_expanded_with_types n
     JOIN meta.primitive_types pt ON underscore(pt.type) = underscore(n.type)
-    WHERE fhir.array_pop(n.path) = var_path;
+    WHERE fhir.array_pop(n.path) = var_path and n.schema = 'fhir';
 
     SELECT array_to_string(array_agg(E'(\n' || indent(gen_select_sql(n.path, schm), 3) || E'\n) as "' || camelize(fhir.array_last(n.path)) || '"'), E',\n')
     INTO selects
     FROM meta.resource_elements_expanded_with_types n
     LEFT JOIN meta.primitive_types pt on underscore(pt.type) = underscore(n.type)
-    WHERE pt.type IS NULL AND fhir.array_pop(n.path) = var_path and fhir.array_last(n.path) not in ('contained');
+    WHERE pt.type IS NULL AND fhir.array_pop(n.path) = var_path and fhir.array_last(n.path) not in ('contained') and n.schema = 'fhir';
 
     IF selects IS NULL AND columns IS NULL THEN
       RETURN 'NULL';
