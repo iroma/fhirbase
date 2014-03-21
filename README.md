@@ -95,7 +95,7 @@ Generation steps:
   * generate enums for FHIR system enumerator types
   * generate tables for each resource
      * root entity table inherits from resource base table
-     * components & complex type tables inherits from resource base table
+     * components & complex type tables inherits from resource_component base table
 * Generate views & procedures for CRUD
   * generate views, which return resource as json aggregate
   * generate insert_resource(resource json) - put resource data in
