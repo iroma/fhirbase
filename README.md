@@ -62,7 +62,7 @@ But we believe that after solving this problems we will get:
 
 Most of it is required or desired while programming Health IT systems.
 
-## Why postgresql?
+## Why PostgreSQL?
 
 > PostgreSQL is a powerful, open source object-relational database system.
 > It has more than 15 years of active development and a proven architecture
@@ -80,7 +80,7 @@ We actively use advanced postgresql features
 * [uuid-ossp](http://www.postgresql.org/docs/9.3/static/uuid-ossp.html)
 
 
-## Schema generation
+## Schema Generation
 
 We code-generate database schema & CRUD views & procedures from
 FHIR machine readable specification (http://www.hl7.org/implement/standards/fhir/downloads.html).
@@ -113,10 +113,10 @@ There are two base tables:
 * resource – base table for all __root entities__ of resources
 * resource_component − base table for all __value objects__ (resource components)
 
-Each resource represented as __root entity__ table (for example 'patient')
-and table per component (for example: patient.contact is saved in `patient_contact` table).
+Each resource is represented as a __root entity__ table (for example 'patient')
+and table per component (for example: patient.contact is stored in `patient_contact` table).
 
-This point is illustrated on picture bellow:
+This point is illustrated in the picture below:
 
 ![schema1](doc/schema1.png)
 
@@ -142,7 +142,7 @@ Base table for all resource aggregate root tables
   );
 ```
 
-### Description resource_component table
+### Description of resource_component table
 
 Base table for all resource components
 
@@ -156,9 +156,9 @@ Base table for all resource components
   );
 ```
 
-### Primitive data types attributes
+### Primitive data type attributes
 
-Here is mapping table for primitive types from FHIR to postgresql:
+Here is a mapping table for primitive types from FHIR to postgresql:
 
 ```sql
 
@@ -204,10 +204,10 @@ For FHIR system enumerated types we create postgresql ENUMs:
 
 ### Complex data type attributes
 
-We create table for each compound data type,
+We create table for each compound data type
 inheriting from resource_component table.
 
-Here is how table for address type created:
+Here is how a table for address type is created:
 
 ```sql
 
@@ -226,7 +226,7 @@ Here is how table for address type created:
 
 For resource attributes with such compound type we create separate
 tables (for the sake of separation of storage and consistency) and
-inherits it from type base table:
+inherit it from type base table:
 
 ```sql
 
@@ -235,11 +235,11 @@ inherits it from type base table:
 
 ```
 
-### Tables abbreviations
+### Table of Abbreviations
 
 Postgresql with default configuration limits length of table names.
 We didn't want to rebuild postgresql so we shortened table names
-using the following abbreviation table:
+using the following table of abbreviations:
 
 
 ```sql
@@ -307,12 +307,12 @@ SELECT p.*
 
 ```
 
-But after searching we want to get resource as whole
+But after searching we want to get a resource as whole
 (i.e. collect resource aggregate from relational tables).
 
 To simplify this, we generate views with names view_<resource_name>
-which return FHIR compliant json resource representation. So to
-accomplish query we can replace __patient__ table with __view_patient__ view,
+which return FHIR compliant json resource representation. So, to
+accomplish query we can replace __patient__ table with __view_patient__ view
 and get resource json in one hop.
 
 
