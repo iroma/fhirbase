@@ -1,4 +1,4 @@
-# FHIRbase
+# FHIRBase
 
 Open source relational storage for [FHIR](http://hl7.org/implement/standards/fhir/) with document API
 
@@ -31,14 +31,14 @@ In terms of [Domain Driven Design](), __resource__ is an [aggregate]() which con
 (having identity) and a set of aggregated __value objects__. In this readme we sometimes use DDD terminology
 so don't be confused.
 
-There is a concern - how to persist __resources__.
+There is a concern – how to persist __resources__.
 
 The simplest solution is just to save them as text blobs in RDBMS or in a distributed file storage system like (S3, Riak & Hadoop).
 This solution is simple and scalable but has trade-offs:
 
 * you will have to implement search and querying by creating hand-made indexes or using index engines like elastic search, solr, etc;
 * query language will be very limited (in comparison with SQL);
-* weak data consistency control - type checks, referential integrity, aggregate invariants;
+* weak data consistency control: type checks, referential integrity, aggregate invariants;
 * complicated batch transformations.
 
 Second option is a usage of document databases like MongoDb, CouchDb, RethinkDb etc. They feat better (removing some part of hand work) but share some of trade-offs.
@@ -47,7 +47,7 @@ Second option is a usage of document databases like MongoDb, CouchDb, RethinkDb 
 * Querying is less powerful and declarative than for relational databases (joins, aggregations).
 * Document databases sometimes are not yet really matured for enterprise (read mongo fails reports).
 
-Third option - relational schema - solves most of the problems and brings new ones :)
+Third option – relational schema – solves most of the problems and brings new ones :)
 
 * How to create such a complex schema?
 * How to simplify aggregates (__resource__) operations (persistence, retrieval)?
@@ -57,7 +57,7 @@ But we believe that after solving this problems we will get:
 
 * fine-Granularity of data control;
 * Rich Querying & Data Abstraction capabilities;
-* Enhanced Data Consistency - applying most of FHIR constraints on a database level;
+* Enhanced Data Consistency – applying most of FHIR constraints on a database level;
 * storage Efficiency.
 
 Most of it is required or desired while programming Health IT systems.
@@ -84,13 +84,13 @@ We actively use advanced postgresql features
 
 We code-generate database schema & CRUD views & procedures from
 FHIR machine readable specification (http://www.hl7.org/implement/standards/fhir/downloads.html).
-All generation done in postgresql.
+All generation is done in postgresql.
 
 Generation steps:
 
 * Convert FHIR meta specification from XML to more convenient relational form
 * Generate schema using meta information
-  * generate base tables - resource and resource_component
+  * generate base tables – resource and resource_component
   * generate data types tables, inheriting from resource_component
   * generate enums for FHIR system enumerator types
   * generate tables for each resource
@@ -98,7 +98,7 @@ Generation steps:
      * components & complex type tables inherits from resource_component base table
 * Generate views & procedures for CRUD
   * generate views, which return resource as json aggregate
-  * generate insert_resource(resource json) - put resource data in
+  * generate insert_resource(resource json) – put resource data in
   * create delete procedure
   * create update procedure as delete & insert
 * Run tests
@@ -110,8 +110,8 @@ We heavily use postgresql inheritance for schema infrastructure.
 
 There are two base tables:
 
-* resource - base table for all __root entities__ of resources
-* resource_component - base table for all __value objects__ (resource components)
+* resource – base table for all __root entities__ of resources
+* resource_component − base table for all __value objects__ (resource components)
 
 Each resource represented as __root entity__ table (for example 'patient')
 and table per component (for example: patient.contact is saved in `patient_contact` table).
@@ -272,7 +272,7 @@ VALUES
 
 ### Contained Resources
 
-FHIR allows on level resource - resource aggregation,
+FHIR allows on level resource – resource aggregation,
 see http://www.hl7.org/implement/standards/fhir/references.html.
 
 We save __contained resources___ same way as resources, but 
@@ -293,7 +293,7 @@ TODO: we are working on a solution
 
 Relational schema is perfect for querying.
 
-Example - select patients with recent visits:
+Example – select patients with recent visits:
 
 ```sql
 
@@ -303,7 +303,7 @@ SELECT p.*
      ON es.resource_id = ehp.resource_id
     JOIN fhir.patient p
      ON p.id = es.reference::uuid
-  WHERE  ehp.start BETWEEN LOCALTIMESTAMP - INTERVAL '1 week' AND LOCALTIMESTAMP
+  WHERE  ehp.start BETWEEN LOCALTIMESTAMP – INTERVAL '1 week' AND LOCALTIMESTAMP
 
 ```
 
@@ -324,7 +324,7 @@ SELECT vp.id as id, vp.json as resource
      ON es.resource_id = ehp.resource_id
     JOIN fhir.view_patient vp
      ON vp.id = es.reference::uuid
-  WHERE  ehp.start BETWEEN LOCALTIMESTAMP - INTERVAL '1 week' AND LOCALTIMESTAMP
+  WHERE  ehp.start BETWEEN LOCALTIMESTAMP – INTERVAL '1 week' AND LOCALTIMESTAMP
 
 ```
 
@@ -374,15 +374,15 @@ psql -d mydb < fhirbase_test.sql
 ## Usage
 
 * all resource tables lay in __fhir__ schema
-* insert_resource(res json) - store resource
+* insert_resource(res json) – store resource
 * use SQL for querying (select, join, group)
 * use resource views to retrieve json aggregates
 
 ## Contribution
 
 * Star us on github
-* Create an issue - for a bug report or enhancment
-* Contribute to FHIRbase  - see dev/README.md
+* Create an issue – for a bug report or enhancment
+* Contribute to FHIRBase − see dev/README.md
 
 ## Roadmap
 
