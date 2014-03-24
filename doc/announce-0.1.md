@@ -22,5 +22,5 @@ There are plans for:
 FHIRBase is an open source project, so if you found it promising and valuable:
 
 * Spread the word [FHIRBase](https://github.com/fhirbase/fhirbase)
-* Report us your ideas, enhancements & bugs on [github]
+* Report us your ideas, enhancements & bugs on [github](https://github.com/fhirbase/fhirbase/issues)
 * Contribute the code [using pull requests](https://help.github.com/articles/using-pull-requests)
